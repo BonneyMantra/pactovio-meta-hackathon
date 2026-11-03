@@ -1,12 +1,14 @@
 export { PROVIDERS, DEFAULT_RULES, providerSpec, SAMPLE_USER_ID, type ProviderSpec } from './catalog';
 export { Composio, ComposioError } from './composio';
 export { verifyComposioWebhook, signComposioWebhook } from './signature';
-export { classifyEmail, heuristicClassify, Classification, type InboundMessage } from './classify';
+export { classifyEmail, heuristicClassify, Classification, MAIL_KINDS, DOOR_OF_KIND, type MailKind, type InboundMessage } from './classify';
 export { connectUrl, completeCallback, disconnectProvider, syncConnectors, buildCatalog, watchInbox, markConnected } from './accounts';
 export { runAction, exerciseAction, exerciseDef, makeCtx, composioFor, type Deps, type Exercise } from './runtime';
 export { runEventActions, matchesFilter, EVENT_ACTIONS, type EventActionResult } from './events';
+export { splitAddress } from './inbound-mail';
+export { mimeFor } from './util';
 export { handleComposioWebhook, parseEnvelope, mailHint } from './webhook';
 export { fetchAndStore, storeMessage, classifyStep, routeStep, draftStep, markIntakeStatus, docKind, type IntakeJob } from './intake';
-export { effectiveRules, getConnector, listConnectors, saveConnector } from './store';
+export { effectiveRules, getConnector, isLive, listConnectors, saveConnector } from './store';
 export { PROVIDER_ACTIONS } from './providers';
 export { ActionError, type ActionDef, type ActionCtx, type ActionOutput } from './actions';

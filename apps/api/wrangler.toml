@@ -73,4 +73,5 @@ max_retries = 3
 
 [triggers]
 # 22:00 UTC = 06:00 MYT, nightly tender scan
-crons = ["0 22 * * *"]
+# * * * * *: per-minute Gmail autopilot poll (fallback to the Composio trigger); no-op when no workspace has autopilot on
+crons = ["0 22 * * *", "* * * * *"]

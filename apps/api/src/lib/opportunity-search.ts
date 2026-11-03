@@ -6,6 +6,7 @@ import {
   countryFromName, DOMAIN_LABELS, iso2, NOTICE_SOURCES, REGION_LABELS, regionOf, regionsInText, SEGMENT_DOMAINS, type Domain, type Region,
 } from '@pactovio/sources';
 import type { OnboardingState } from './onboarding-state';
+import { withBrain } from './opportunity-brain';
 import { assessNotices, profileHash, readScores } from './opportunity-assess';
 import { countryName, noticeValue, toNotice } from './opportunity-notice';
 import { loadPool, noticeDomains, viewKey, type ViewTender } from './opportunity-pool';
@@ -52,6 +53,7 @@ function counts<K extends string>(rows: Row[], keysOf: (r: Row) => K[]): Map<K, 
 
 /** Worldwide pool -> filters -> sort -> one page; only that page (<= 20) is AI-assessed, each notice cached. */
 export async function searchOpportunities(env: Env, _workspace: string, state: OnboardingState, input: SearchInput, lang: string) {
+  state = await withBrain(env, _workspace, state); // fit is scored against the catalogue and Company Brain
   const segment = state.company.supplier_segment;
   if (!segment) throw new HttpError(409, 'Choose your supplier segment before searching for opportunities.', 'company_incomplete', { missing: ['supplier_segment'] });
   const now = new Date();

@@ -30,7 +30,7 @@ const fake = (provider: string, meta: Record<string, unknown> = {}, opts: Parame
 
 /** Inputs for actions that have no `sample`. */
 const INPUTS: Record<string, Record<string, Record<string, unknown>>> = {
-  gmail: { get_message: { message_id: '18c2f0a1b2' } },
+  gmail: { get_message: { message_id: '18c2f0a1b2' }, list_new: { after_seconds: 1_793_000_000 } },
   outlook: { get_message: { message_id: 'AAMkAD-msg-1' } },
   hubspot: { update_deal: { deal_id: '30911234567', stage: 'bidding', amount: 5_950_000, close_date: '2026-11-19T14:00:00Z' }, add_note: { deal_id: '30911234567', body: 'Pactovio verdict: BID' } },
   salesforce: { update_opportunity: { opportunity_id: '006Hn00000AbCdEIAV', stage: 'submitted', amount: 220000, close_date: '2026-11-16' }, add_note: { opportunity_id: '006Hn00000AbCdEIAV', body: 'Pactovio verdict: BID' } },
@@ -47,7 +47,7 @@ describe('every provider action builds tool calls the live Composio schemas acce
     const out: ActionOutput = await def.run(input, f.ctx);
     const errors = f.calls.filter((c) => !c.tool.startsWith('proxy')).flatMap((c) => check(c.tool, c.args));
     expect(errors, errors.join('\n')).toEqual([]);
-    if (!['watch_inbox', 'unwatch_inbox', 'update_deal', 'update_opportunity'].includes(action) && !(provider === 'outlook' && action === 'send_test_message')) {
+    if (!['watch_inbox', 'unwatch_inbox', 'list_new', 'update_deal', 'update_opportunity'].includes(action) && !(provider === 'outlook' && action === 'send_test_message')) {
       expect(out.id, `${provider}.${action} returned no id from its fixture response`).toBeTruthy();
     }
     if (def.readback) expect(await def.readback(out, f.ctx), 'readback').toBe(true);
