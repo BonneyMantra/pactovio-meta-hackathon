@@ -18,7 +18,7 @@ LANE_FAST = "meta:muse-spark-1.3@minimal"
 LANE_VISION = "meta:muse-spark-1.3@medium"
 PUBLIC_ORIGIN = "https://pactovio.pages.dev"
 # Hard daily cap on every model call (USD at list prices, resets 00:00 UTC = 08:00 MYT).
-MODEL_DAILY_CAP_USD = "0.25"
+MODEL_DAILY_CAP_USD = "20"
 # Kill switch: "1" stops every model call. Also settable without a deploy: KV key config:models_disabled = "1".
 MODELS_DISABLED = "0"
 # Composio project "pactovio" sends OAuth callbacks to https://pactovio.pages.dev/api/connectors/verifier (set 2026-11-03).
