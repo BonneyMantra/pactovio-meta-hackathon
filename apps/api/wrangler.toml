@@ -1,0 +1,76 @@
+name = "pactovio-api"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = false
+preview_urls = false
+
+[observability]
+enabled = true
+
+[vars]
+ENVIRONMENT = "production"
+# Model lanes: "<provider>:<model>@<reasoning_effort>". Providers: meta (default), fireworks, baseten, modal.
+# Unset lanes use the defaults in packages/models/src/providers.ts. Secret: META_API_KEY (wrangler secret).
+LANE_REASON = "meta:muse-spark-1.3@high"
+LANE_AGENT = "meta:muse-spark-1.3@medium"
+LANE_FAST = "meta:muse-spark-1.3@minimal"
+LANE_VISION = "meta:muse-spark-1.3@medium"
+PUBLIC_ORIGIN = "https://pactovio.pages.dev"
+# Hard daily cap on every model call (USD at list prices, resets 00:00 UTC = 08:00 MYT).
+MODEL_DAILY_CAP_USD = "0.25"
+# Kill switch: "1" stops every model call. Also settable without a deploy: KV key config:models_disabled = "1".
+MODELS_DISABLED = "0"
+# Composio project "pactovio" sends OAuth callbacks to https://pactovio.pages.dev/api/connectors/verifier (set 2026-11-03).
+COMPOSIO_CALLBACK_VERIFIER_ENABLED = "true"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pactovio"
+database_id = "f8835f8a-70b9-47cf-8b03-d60ead8699ef"
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "pactovio-files"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "ae2a5d52127444bc9daf6e42a6d17168"
+
+[[workflows]]
+name = "pactovio-pack-run"
+binding = "PACK_RUN"
+class_name = "PackRunWorkflow"
+
+[[workflows]]
+name = "pactovio-scan"
+binding = "SCAN"
+class_name = "ScanWorkflow"
+
+[[workflows]]
+name = "pactovio-intake"
+binding = "INTAKE"
+class_name = "IntakeWorkflow"
+
+[[durable_objects.bindings]]
+name = "AGENT"
+class_name = "AgentHub"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["AgentHub"]
+
+[[queues.producers]]
+binding = "EVENTS"
+queue = "pactovio-events"
+
+[[queues.consumers]]
+queue = "pactovio-events"
+max_batch_size = 10
+max_batch_timeout = 5
+max_retries = 3
+
+[triggers]
+# 22:00 UTC = 06:00 MYT, nightly tender scan
+crons = ["0 22 * * *"]
