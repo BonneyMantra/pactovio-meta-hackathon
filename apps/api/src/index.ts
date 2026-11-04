@@ -7,6 +7,7 @@ import { handleScheduled } from './scheduled';
 export { PackRunWorkflow } from './workflows/pack-run';
 export { ScanWorkflow } from './workflows/scan';
 export { IntakeWorkflow } from './workflows/intake';
+export { ProposalRunWorkflow } from './workflows/proposal-run';
 export { AgentHub } from './do/agent-hub';
 
 const { app } = buildApp();

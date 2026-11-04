@@ -8,3 +8,4 @@ export { orchestrate, PIPELINE } from './orchestrate';
 export { createProposal, getProposalRow, listProposalRows, listSteps, loadProposalJson, type InputFile, type ProposalInput, type ProposalRow, type StepView } from './store';
 export { inputKey, assetKey, assetName } from './assets';
 export { renderProposalHtml } from './html';
+export { startProposal, type StartInput } from './start';
