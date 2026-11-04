@@ -1,5 +1,5 @@
 // Onboarding step 2: connect HubSpot and watch the product catalogue stream into the working panel.
-// POST /api/brain/hubspot/sync does the import; /api/products is polled meanwhile so products (then images) appear as they land.
+// POST /api/brain/hubspot/sync does the import; /api/products is polled meanwhile so products appear as their photos land.
 import { h, icon } from '../ui.js';
 import { friendlyError, connectorDestination } from '../customer-api.js';
 import { logoTile } from '../screens/ops-kit.js';
@@ -54,7 +54,9 @@ export function catalogueStep(s, { nav, connection, onNext, onSkip }) {
   };
   const add = (p) => {
     const tile = h('div.ob-prod', h('span.ob-pimg', h('span.ob-noimg', icon('box', 22))), h('div.ob-pname', p.name), h('div.ob-pmeta', h('span.mono', p.sku || ''), h('b.num', price(p))));
-    tiles.set(p.id, tile); setImg(tile, p); grid.prepend(tile);
+    // Photographed products stream in at the top; items without a photo (services, parts) go below them.
+    tiles.set(p.id, tile); setImg(tile, p);
+    if (thumbOf(p)) grid.prepend(tile); else grid.append(tile);
     count.textContent = String(tiles.size);
   };
   const play = () => {
@@ -63,12 +65,17 @@ export function catalogueStep(s, { nav, connection, onNext, onSkip }) {
     if (p) add(p);
     tick = setTimeout(play, queue.length > 20 ? 35 : 80);
   };
-  const queued = new Set();
+  // Rows land before their photos (images are fetched after the insert), so a product is shown once its photo is in;
+  // the ones still without a photo when the import ends follow after.
+  const queued = new Set(), held = new Map();
+  const flush = () => { for (const [id, p] of held) { queued.add(id); queue.push(p); } held.clear(); };
   async function poll() {
     try {
       for (const p of await hubspotProducts()) {
         if (tiles.has(p.id)) setImg(tiles.get(p.id), p);
-        else if (!queued.has(p.id)) { queued.add(p.id); queue.push(p); }
+        else if (queued.has(p.id)) continue;
+        else if (thumbOf(p)) { held.delete(p.id); queued.add(p.id); queue.push(p); }
+        else held.set(p.id, p);
       }
     } catch { /* transient; the sync result decides */ }
     if (!disposed && syncing) timer = setTimeout(poll, 900);
@@ -85,10 +92,11 @@ export function catalogueStep(s, { nav, connection, onNext, onSkip }) {
     next.replaceChildren('Continue', icon('arrow', 16)); next.disabled = false; next.focus({ preventScroll: true });
   };
   play(); poll();
-  hubspotSync().then(async (r) => { syncing = false; clearTimeout(timer); await poll(); finish(r); }).catch((e) => {
+  hubspotSync().then(async (r) => { syncing = false; clearTimeout(timer); await poll(); flush(); finish(r); }).catch((e) => {
     syncing = false; clearTimeout(timer);
     if (disposed) return;
     if (e.code === 'not_connected') return connectCard(s, { nav, onSkip, pending: true });
+    flush();
     if (tiles.size || queue.length) return finish(null);
     title.textContent = 'The import stopped';
     status.textContent = friendlyError(e); status.className = 'pv-status pv-error';
