@@ -37,13 +37,13 @@ function cf(...args: string[]): string {
 
 /** Migrate and (when the tenders are missing) seed the target state with wrangler BEFORE the in-process proxy opens it. */
 function prepareState(): void {
-  cf('d1', 'migrations', 'apply', 'pactovio', '--local', '--persist-to', state);
-  const out = cf('d1', 'execute', 'pactovio', '--local', '--persist-to', state, '--json', '--command', "SELECT COUNT(*) AS n FROM tenders WHERE id LIKE 'tnd_sample_%'");
+  cf('d1', 'migrations', 'apply', 'DB', '--local', '--persist-to', state);
+  const out = cf('d1', 'execute', 'DB', '--local', '--persist-to', state, '--json', '--command', "SELECT COUNT(*) AS n FROM tenders WHERE id LIKE 'tnd_sample_%'");
   const n = (JSON.parse(out.slice(out.indexOf('['))) as { results: { n: number }[] }[])[0]?.results[0]?.n ?? 0;
   if (n > 0) return;
   const f = join(mkdtempSync(join(tmpdir(), 'pactovio-seed-')), 'seed.sql');
   writeFileSync(f, buildSeed());
-  cf('d1', 'execute', 'pactovio', '--local', '--persist-to', state, `--file=${f}`);
+  cf('d1', 'execute', 'DB', '--local', '--persist-to', state, `--file=${f}`);
   log('applied sample seed to the target state');
 }
 

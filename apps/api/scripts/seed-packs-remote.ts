@@ -43,6 +43,6 @@ export async function pushRemote(env: Env, o: { apiDir: string; owners: PackSpec
   }
   const sqlFile = join(tmp, 'packs.sql');
   writeFileSync(sqlFile, `${sql.join('\n')}\n`);
-  cf('d1', 'execute', 'pactovio', '--remote', `--file=${sqlFile}`);
+  cf('d1', 'execute', 'DB', '--remote', `--file=${sqlFile}`);
   log('remote: done');
 }

@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "bash ./dev.sh",
-    "db:migrate:local": "bash ./cf.sh d1 migrations apply pactovio --local",
-    "db:migrate:remote": "bash ./cf.sh d1 migrations apply pactovio --remote",
-    "seed:local": "tsx scripts/seed.ts && bash ./cf.sh d1 execute pactovio --local --file=.seed.sql",
-    "seed:remote": "tsx scripts/seed.ts && bash ./cf.sh d1 execute pactovio --remote --file=.seed.sql",
+    "db:migrate:local": "bash ./cf.sh d1 migrations apply DB --local",
+    "db:migrate:remote": "bash ./cf.sh d1 migrations apply DB --remote",
+    "seed:local": "tsx scripts/seed.ts && bash ./cf.sh d1 execute DB --local --file=.seed.sql",
+    "seed:remote": "tsx scripts/seed.ts && bash ./cf.sh d1 execute DB --remote --file=.seed.sql",
     "seed:packs": "tsx scripts/seed-packs.ts",
     "seed:packs:remote": "tsx scripts/seed-packs.ts --remote"
   },

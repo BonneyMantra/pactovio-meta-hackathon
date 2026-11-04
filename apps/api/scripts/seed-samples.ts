@@ -44,7 +44,7 @@ async function main(): Promise<void> {
 
   const target = flag('--remote') ? ['--remote'] : ['--local', ...(val('--persist-to') ? ['--persist-to', val('--persist-to')!] : [])];
   const cf = (a: string[]) => execFileSync('bash', ['./cf.sh', ...a], { cwd: api, stdio: ['ignore', 'ignore', 'inherit'] });
-  cf(['d1', 'execute', 'pactovio', ...target, `--file=${sqlPath}`]);
+  cf(['d1', 'execute', 'DB', ...target, `--file=${sqlPath}`]);
   for (const f of files) {
     const dir = f.workspace_id === KESTREL_WS ? 'kestrel-sensing' : 'harbour-digital';
     cf(['r2', 'object', 'put', `pactovio-files/${r2KeyFor(f.workspace_id, f.filename)}`, `--file=${join(fixtures, dir, f.filename)}`, `--content-type=${f.mime}`, ...target]);
