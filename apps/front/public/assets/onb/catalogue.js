@@ -25,7 +25,7 @@ function connectCard(s, { nav, onSkip, pending, error }) {
   btn.append(label, icon('out', 15));
   s.ask(nav, h('div.pv-heading', h('h1', { tabindex: '-1' }, 'Bring in your products'),
     h('p.pv-lede', 'Pactovio prices every proposal from your own catalogue. Connect HubSpot and it imports each product with its SKU, price and image.')),
-  h('div.pv-form', h('div.pv-source', logoTile('hubspot', 40), h('div', h('strong', 'HubSpot'), h('span', 'Products and deals · read-only'))), status, btn,
+  h('div.pv-form', h('div.pv-source', logoTile('hubspot', 40), h('div', h('strong', 'HubSpot'), h('span', 'Products, prices and deal outcomes'))), status, btn,
     h('button.pv-link.pv-link-mute.pv-resend', { type: 'button', onclick: onSkip }, 'Skip for now')));
   btn.focus({ preventScroll: true });
 }

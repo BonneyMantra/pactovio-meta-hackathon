@@ -56,8 +56,8 @@ export function learningView(root, opts = {}) {
       catch (x) { status.textContent = friendlyError(x); btn.disabled = false; }
     } }, 'Connect Google Drive', icon('out', 15));
     root.replaceChildren(h('div.lr-pick', h('div.access-step', 'STEP 3 · GOOGLE DRIVE'), h('h2.h3', 'Teach it from your past proposals'),
-      h('p.small.ink2', 'Your past proposals live in Google Drive. Connect it read-only, choose the folder, and the agent reads every one: what you offered, how you priced it, how you write and which bids you won.'),
-      h('div.ob-connect', h('span.lr-fico', icon('folder', 20)), h('div', h('strong', 'Google Drive'), h('div.small.ink2', 'Read-only · PDFs in one folder')), btn), status));
+      h('p.small.ink2', 'Your past proposals live in Google Drive. Connect it, choose the folder, and the agent reads every one: what you offered, how you priced it, how you write and which bids you won.'),
+      h('div.ob-connect', h('span.lr-fico', icon('folder', 20)), h('div', h('strong', 'Google Drive'), h('div.small.ink2', 'Reads the PDFs in the folder you choose')), btn), status));
     btn.focus();
   }
 

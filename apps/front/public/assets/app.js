@@ -117,7 +117,8 @@ function setCrumbs(...items) {
     h('button.btn.btn-ghost.btn-sm.pv-menu-btn', { type: 'button', 'aria-label': 'Open navigation', onclick: () => setDrawer(true) }, icon('menu')),
     h('div.crumbs', ws ? h('span.pv-crumb-ws', ws) : null, ...items.flatMap((it, i) => [i === 0 && !ws ? null : h(`span${i === 0 ? '.pv-crumb-ws' : ''}`, '/'), typeof it === 'string' ? h('b', it) : it])),
     h('div.spacer'),
-    location.hash.startsWith('#/agent') ? null : h('a.btn.btn-secondary.btn-sm.ag-ask', { href: '#/agent', title: 'Chat with your agent' }, agentAvatar(ctx.session?.workspace?.name, 20), h('span.pv-hide-sm', 'Ask your agent')),
+    // replaceChildren() would print a null child as the text "null"; leave the slot empty on the agent screen.
+    location.hash.startsWith('#/agent') ? '' : h('a.btn.btn-secondary.btn-sm.ag-ask', { href: '#/agent', title: 'Chat with your agent' }, agentAvatar(ctx.session?.workspace?.name, 20), h('span.pv-hide-sm', 'Ask your agent')),
   );
 }
 

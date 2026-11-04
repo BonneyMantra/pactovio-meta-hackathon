@@ -140,3 +140,8 @@
 @media (min-width: 1280px) { .pv-work .ob-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .pv-steps { flex-wrap: wrap; }
 @media (min-width: 1024px) and (max-width: 1279px) { .pv-stage[data-mode=onb] .pv-steps li:not([aria-current]) .pv-step-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } }
+/* Learning list inside the working panel: the panel is narrower than the full page, so drop the reference column and
+   let the solution and price wrap instead of clipping the price. */
+@media (max-width: 1599px) { .pv-work .lr-row { grid-template-columns: minmax(0, 1fr) auto; } .pv-work .lr-ref { display: none; } }
+.pv-work .lr-row-m { flex-wrap: wrap; row-gap: 2px; white-space: normal; }
+.pv-work .lr-row-m b { white-space: nowrap; }
