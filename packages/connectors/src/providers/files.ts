@@ -1,5 +1,5 @@
-import { ActionError, type ActionCtx, type ProviderActions } from '../actions';
-import { deepFind, deepFindArray, mimeFor } from '../util';
+import { ActionError, need, type ActionCtx, type ProviderActions } from '../actions';
+import { b64ToBytes, bytesToB64, deepFind, deepFindArray, mimeFor } from '../util';
 
 function payload(i: Record<string, any>, ctx: ActionCtx) { // eslint-disable-line @typescript-eslint/no-explicit-any
   if (ctx.file) return ctx.file;
@@ -22,7 +22,61 @@ async function driveFolder(ctx: ActionCtx): Promise<string | null> {
   return id;
 }
 
+const FOLDER_MIME = 'application/vnd.google-apps.folder';
+const quote = (s: string) => s.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+type DriveFile = { id?: string; name?: string; size?: string | number; mimeType?: string; modifiedTime?: string };
+const driveFiles = (data: unknown) => ((deepFindArray(data, ['files']) ?? []) as DriveFile[]).filter((f) => f.id);
+
 export const googledrive: ProviderActions = {
+  list_folders: {
+    summary: 'List Drive folders, optionally matching a name',
+    run: async (i, ctx) => {
+      const name = i.name ? ` and name contains '${quote(String(i.name))}'` : '';
+      const data = await ctx.exec('GOOGLEDRIVE_FIND_FILE', { q: `mimeType = '${FOLDER_MIME}' and trashed = false${name}`, pageSize: 100, fields: 'files(id,name,modifiedTime)' });
+      return { id: null, details: { folders: driveFiles(data).map((f) => ({ id: f.id, name: f.name ?? '', modified: f.modifiedTime ?? null })) } };
+    },
+    sample: () => ({}),
+  },
+  list_files: {
+    summary: 'List the PDFs directly inside a Drive folder (all pages)',
+    run: async (i, ctx) => {
+      const folder = String(need(i.folder_id, 'folder_id'));
+      if (!/^[\w-]{6,80}$/.test(folder)) throw new ActionError('folder_id is not a Drive folder id', 'bad_input');
+      const out: { id: string; name: string; size: number }[] = [];
+      let token: string | undefined;
+      for (let page = 0; page < 10; page++) {
+        const data = await ctx.exec('GOOGLEDRIVE_FIND_FILE', { q: `'${folder}' in parents and mimeType = 'application/pdf' and trashed = false`, pageSize: 100,
+          fields: 'nextPageToken,files(id,name,size,mimeType)', ...(token ? { pageToken: token } : {}) });
+        out.push(...driveFiles(data).map((f) => ({ id: String(f.id), name: f.name ?? String(f.id), size: Number(f.size ?? 0) })));
+        token = deepFind(data, ['nextPageToken', 'next_page_token']) ?? undefined;
+        if (!token) break;
+      }
+      return { id: folder, details: { files: out } };
+    },
+    sample: () => ({}),
+  },
+  download_file: {
+    summary: 'Download one Drive PDF (base64, up to 8 MB)',
+    run: async (i, ctx) => {
+      const id = String(need(i.file_id, 'file_id'));
+      let bytes: Uint8Array | null = null;
+      try {
+        const data = await ctx.exec('GOOGLEDRIVE_DOWNLOAD_FILE', { file_id: id });
+        const href = deepFind(data, ['s3url', 's3_url', 'url']);
+        if (href) { const r = await fetch(href); if (r.ok) bytes = new Uint8Array(await r.arrayBuffer()); }
+      } catch { /* fall back to the raw API below */ }
+      if (!bytes) {
+        const r = await ctx.proxy({ endpoint: `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}`, method: 'GET', query: { alt: 'media' } });
+        const b64 = typeof r.data === 'string' ? r.data : deepFind(r.data, ['data', 'content', 'base64']);
+        if (r.status >= 400 || !b64) throw new ActionError(`Drive download failed (${r.status})`);
+        bytes = b64ToBytes(b64);
+      }
+      if (bytes.length > 8_000_000) throw new ActionError('File is larger than 8 MB', 'bad_input');
+      if (String.fromCharCode(...bytes.subarray(0, 4)) !== '%PDF') throw new ActionError('Downloaded file is not a PDF');
+      return { id, details: { base64: bytesToB64(bytes), bytes: bytes.length } };
+    },
+    sample: () => ({}),
+  },
   upload_file: {
     summary: 'Upload a file into the Pactovio folder',
     run: async (i, ctx) => {

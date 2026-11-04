@@ -27,7 +27,34 @@ async function hubspotPipeline(ctx: ActionCtx, stage: BidStage): Promise<{ pipel
 const isoDate = (v: unknown) => (v ? String(v).slice(0, 10) : undefined);
 const amountStr = (v: unknown) => (typeof v === 'number' ? v.toFixed(2) : v ? String(v) : undefined);
 
+const PRODUCT_PROPS = 'name,hs_sku,description,price,hs_product_type,hs_url,hs_images';
+const MAX_PRODUCT_PAGES = 30;
+
+/** The `paging` object may sit under Composio's response wrapper. */
+function pagingAfter(data: unknown): string | null {
+  const o = data as Record<string, any> | null; // eslint-disable-line @typescript-eslint/no-explicit-any
+  const paging = o?.paging ?? o?.data?.paging ?? o?.response_data?.paging ?? null;
+  return deepFind(paging, ['after']);
+}
+
 export const hubspot: ProviderActions = {
+  list_products: {
+    summary: 'Read every product in the HubSpot product library (all pages)',
+    run: async (i, ctx) => {
+      const products: unknown[] = [];
+      let after: string | undefined;
+      for (let page = 0; page < MAX_PRODUCT_PAGES; page++) {
+        const r = await ctx.proxy({ endpoint: '/crm/v3/objects/products', method: 'GET',
+          query: { limit: '100', properties: String(i.properties ?? PRODUCT_PROPS), ...(after ? { after } : {}) } });
+        if (r.status >= 400) throw new ActionError(`HubSpot products list failed (${r.status})`);
+        products.push(...(deepFindArray(r.data, ['results']) ?? []));
+        after = pagingAfter(r.data) ?? undefined;
+        if (!after) break;
+      }
+      return { id: null, details: { products } };
+    },
+    sample: () => ({}),
+  },
   create_deal: {
     summary: 'Create a deal (stage, value, close date)',
     run: async (i, ctx) => {
