@@ -1,129 +1,112 @@
 # Pactovio
 
-The pre-sales engine for technical B2B suppliers. Three doors in, one engine, outputs a bid team can use:
+The bid desk for technical B2B suppliers: it learns how a company wins, reads a buyer's RFQ, and returns a priced, evidence-backed proposal in the company's own voice, then waits for a person to approve it.
 
-- Doors: public tenders found by a nightly scan, inbound RFPs and RFQs (upload, paste, mailbox), design requests from customers.
-- Engine: read the whole pack, extract every requirement, decide bid or no-bid per lot, match requirements to the company's evidence, draft answers and a priced quote, check every claim, ask a person to approve.
-- Outputs: the buyer's own response form filled in (DOCX), a requirement matrix with sources, per-lot verdicts, a priced quote (DOCX and XLSX), events to the team's tools, and a 24x7 agent you can chat with or reach over MCP.
+Live: https://pactovio-meta.pages.dev (landing, `/pricing`; the product is at `/app`). Built for the Meta Global AI Developer Hackathon 2026, Startups Track.
 
-Built for the Meta Global AI Developer Hackathon 2026. Hosted target: https://pactovio.pages.dev (landing, /pricing) and https://pactovio.pages.dev/app. Customer access in this version uses email-code signup/login, a private company workspace, resumable onboarding, customer evidence uploads and catalogue prices. Rollout requires the additive customer migration and configured email/Composio services; see [customer setup and API contract](apps/api/CUSTOMER-AUTH.md). Billing remains Dodo Payments test mode. Existing sample-company data is retained internally and is not available through customer sessions.
+## What it does, end to end
 
-**The product interface** (`apps/front/public`, plain HTML, CSS and ES modules on the live API, no build step):
+1. **Learns the company.** From its website, HubSpot (catalogue and deal outcomes) and Google Drive (past proposal PDFs). Muse Spark reads each proposal natively and extracts a typed schema; house style and win-rate statistics are computed from it. This is the **Company Brain** (`packages/brain`).
+2. **Receives the request.** An RFQ arrives by chat (typed or dictated) or by Gmail **autopilot**, which classifies inbound mail, ignores the rest, and starts a run. Replies are drafts, never sent.
+3. **Writes the bid.** Muse Wonder runs the eight bid stages as tool calls. The output has page-cited requirements, go/no-go, a priced bill of materials from the catalogue, architecture, zone wiring, devices placed on the buyer's floor plan (SAM 3.1), a compliance matrix, a labelled concept visual and a code-level claim check (`packages/proposal`).
+4. **Review, edit, approve.** The proposal renders as designed HTML with PDF export. Nothing leaves without a person's approval.
+5. **Finds more work.** Tenders from around the world are ranked against the Company Brain. Web search finds buyers with public buying signals and drafts outreach (`apps/api/src/routes/prospects.ts`).
 
-| Screen | What it shows (all live data) |
-|---|---|
-| Today | Counts that open filtered views, top tender matches with fit, newest intakes with the fast model's one-line reason, approvals waiting, recent runs with tokens and cost |
-| Inbox | Every intake by door (RFQ, RFP, design request, tender, ignored) with confidence; paste-in composer |
-| Tenders → detail | Per-lot verdict with reasons citing document and page, every gate, the requirement matrix (filters, search, page citations), drafted answers with struck claims, the buyer's own form filled and downloadable, the run's steps with model, tokens and cost, buyer intel |
-| Quotes | Design requests matched against datasheets (MET / PARTIAL / GAP with citations) and quote documents with DOCX export |
-| Agent | The 24x7 agent: streaming chat over WebSocket, tool calls, citations, approve / decline cards, proactive inbox |
-| Connections | 15 connectors by category with live status and a live event stream |
-| Evidence, Catalogue, Company settings, Billing & usage, How it works, Pricing, Help | Upload and index company documents; enter product prices; resume/edit company setup; plans, test checkout and usage limits |
+### Design partner
 
-## How it works
+Rax Tech International (Chennai; e-surveillance, IoT, automation; 49 products) is the company the workflow was built around. The imported HubSpot catalogue has 67 items (49 Rax products, 12 third-party components, 6 services). The agent learns from 45 past Rax proposals, with win or loss read from HubSpot deals: 20 won, 16 lost, 9 open.
 
+## Screenshots
+
+Files to add under `docs/screenshots/`:
+
+- `brain.png` (Company Brain: style profile and win-rate stats)
+- `inbox-autopilot.png` (Inbox with "Proposal ready")
+- `proposal-requirements.png` (page-cited requirements, go/no-go)
+- `proposal-floorplan.png` (devices placed on the buyer's plan)
+- `proposal-pdf.png` (cover with labelled concept visual)
+- `tenders.png` (ranked tenders)
+- `prospects.png` (prospects with drafted outreach)
+
+## Architecture
+
+```mermaid
+flowchart TD
+  subgraph In[Doors in]
+    G[Gmail autopilot]
+    C[Chat: typed or voice]
+    T[Tenders worldwide]
+  end
+  G -->|Spark minimal: classify| W
+  C -->|Voice Transcribe| W
+  subgraph Learn[Company Brain]
+    H[HubSpot catalogue + deals]
+    D[Drive past proposals]
+    D -->|Spark: native PDF read| B[Style + stats]
+    H --> B
+  end
+  W[Muse Wonder: orchestrates with tool calls] --> R[Spark: read pack, page citations]
+  R --> S[Select + price from catalogue]
+  B --> S
+  S --> A[Architecture + zone wiring]
+  S --> F[SAM 3.1 on floor plan, Spark names boxes]
+  S --> I[Muse Image concept visual]
+  S --> K[Compliance matrix]
+  A --> X[Claim check in code]
+  F --> X
+  I --> X
+  K --> X
+  X --> P[Proposal HTML + PDF]
+  P --> Q[Person approves before anything is sent]
+  T -->|Spark ranks vs Brain| Q
 ```
- scan (cron 06:00 MYT)  upload / paste / mailbox  design request
-        \                     |                      /
-         v                    v                     v
-   Cloudflare Worker  pactovio-api  (Hono + zod OpenAPI, /api /v1 /mcp /webhooks /ics)
-        |                |                  |                |
-   Workflows         Durable Object      Queues           D1 + R2 + KV
-   PackRun / Scan /  AgentHub (chat,     pactovio-events  tenders, matrix,
-   Intake            alarms, SSE)        webhook + app    verdicts, evidence,
-                                         fan-out          ledger | pack files | cache
-        |
-        v
-   Meta Model API (Muse Spark 1.3 lanes)                  Muse Spark web search (buyer intel)
-   Swap-ready: Fireworks / Baseten / Modal (OpenAI-compatible)
-```
 
-| Piece | What it does |
+## Which Meta model does what
+
+Every model and search call goes to the Meta Model API. Prices are Standard-mode list prices.
+
+| Model | Lane / id | Role | List price |
+|---|---|---|---|
+| Muse Spark 1.3 | `reason` `@high` | Native PDF and image read of the RFQ; requirements with filename and page; reads each past proposal | $1.25 in, $0.15 cached, $4.25 out per 1M tokens |
+| Muse Spark 1.3 | `agent` `@medium`, `vision` `@medium`, `fast` `@minimal` | Chat tool loop, naming floor-plan boxes, email classification, tender ranking, drafting | same |
+| Muse Spark web search | Responses API `web_search` | Prospects with public buying signals, with source links | $2.50 per 1,000 queries |
+| Muse Wonder 1.0 | `meta:muse-wonder-1.0@medium` | Orchestrates the eight bid stages as tool calls (up to 16 steps); Spark fallback | $4.00 in, $0.20 cached, $20.00 out per 1M tokens |
+| SAM 3.1 | `sam-3.1` | Segments floor plans and site photos so devices sit next to the real object | $2.50 per 1,000 images |
+| Muse Image 1.0 | `muse-image-1.0` | Concept visual on the cover, captioned as generated | $0.01 per image |
+| Muse Voice Transcribe 1.0 | `muse-voice-transcribe-1.0` | Spoken requests in chat | $0.18 per hour of audio |
+
+The RFQ goes in as native PDF `file` and `image_url` parts with a 1,048,576-token window: no OCR, chunking or embeddings. Muse Spark counts reasoning tokens inside `max_tokens`, so the client adds headroom per effort level. `*-contributor` models are rejected in code, because Meta may train on those prompts and proposals are commercial documents. Code: `packages/models/src` (`providers.ts`, `wonder.ts`, `sam.ts`, `image.ts`, `voice.ts`).
+
+## Lanes
+
+Each role is `LANE_<ROLE>=<provider>:<model>[@effort]`, set in `apps/api/wrangler.toml`. Providers known to the registry: `meta`, `fireworks`, `baseten`, `modal`. The latter three speak the chat-completions protocol, so moving a role to an open-weights model on a customer's endpoint is a config change.
+
+**This is architecture, not running.** Every lane in production is `meta:muse-spark-1.3`; nothing runs on Fireworks, Baseten or Modal.
+
+## How it works on Cloudflare
+
+| Piece | Role |
 |---|---|
-| `apps/api` | One Worker `pactovio-api`. Routes, Workflows (`PackRunWorkflow`, `ScanWorkflow`, `IntakeWorkflow`), `AgentHub` Durable Object (SQLite, WebSocket hibernation, alarms), queue consumer, cron `0 22 * * *` UTC. `workers_dev` is off. |
-| `apps/front` | Cloudflare Pages project `pactovio`: `_worker.js` sends `/api /v1 /mcp /webhooks /ics /dev` to the Worker over a service binding and everything else to the static site: landing, `/pricing`, `/privacy`, `/terms` and the product app at `/app`. |
-| `packages/engine` | Pack run pipeline, gates in code, evidence matching, verdicts, drafting, claim check, form fill, buyer intel, caps, replay. |
-| `packages/sources`, `packages/pack` | TED v3, UK Find a Tender, eTenders (anonymous pack download), unzip and text extraction for PDF, DOCX, XLSX; form detection. |
-| `packages/quote` | Design request parsing, catalogue match, pricing and tax rules, quote export. |
-| `packages/agent` | Streaming tool loop, 17 tools, confirmation gating (state-changing tools return a pending card, a person confirms). Same tools over MCP. |
-| `packages/connectors` | 15 connectors through Composio, live email intake. See Connectors. |
-| `packages/billing` | Dodo test-mode checkout, webhook, credit ledger, caps, real `/limits`. |
+| Worker `pactovio-meta-api` (`apps/api`) | Hono + zod routes for `/api`, `/mcp`, `/webhooks`. Cron `0 22 * * *` UTC (06:00 MYT) for the tender scan and a per-minute autopilot poll. |
+| Workflows | `PackRunWorkflow`, `ScanWorkflow`, `IntakeWorkflow`, `BrainLearnWorkflow`, `ProposalRunWorkflow`: long runs that resume after failures. |
+| Durable Object `AgentHub` | The chat agent: SQLite state, WebSocket, alarms, 17 tools, approval cards for state-changing actions; same tools over MCP. |
+| D1, R2, KV, Queues | Records and run steps; pack files and proposal assets; cache and config; event fan-out. |
+| Pages (`apps/front`) | `_worker.js` sends API paths to the Worker over a service binding and serves the static site and `/app`. |
 
-### Which Meta model does what (Meta Model API by default)
+Every model call is a row in `run_steps` (model, purpose, tokens in, out, cached, ms, cost). A **$20 per day** cap on model spend and a kill switch (`MODELS_DISABLED`, or KV key `config:models_disabled`) stop runaway cost. Budget exhaustion is an error, never a made-up answer.
 
-Each role is a lane, `LANE_<ROLE>=<provider>:<model>[@reasoning_effort]`, set in `apps/api/wrangler.toml`. Providers: `meta` (default), `fireworks`, `baseten`, `modal`. Moving a role to another OpenAI-compatible provider is a config change. `*-contributor` models are rejected in code (Meta may train on those prompts). Defined in `packages/models/src/providers.ts`.
+Decisions are mostly code: gates, requirement status, go/no-go and pricing are computed in code, and the model writes reasoning. Every claim in a drafted answer is checked against evidence and unsupported sentences are struck.
 
-| Lane | Default | Used for |
-|---|---|---|
-| `reason` | `meta:muse-spark-1.3@high` | Whole-pack read, requirement extraction (section by section), per-lot verdict reasoning. The pack text goes first in every prompt of a run so later calls hit the prompt cache. |
-| `agent` | `meta:muse-spark-1.3@medium` | Agent tool loop (chat and MCP), evidence scans. If the model is not served the agent falls back to `meta:muse-spark-1.2@low`. |
-| `fast` | `meta:muse-spark-1.3@minimal` | Nightly notice triage, answer drafting, email classification, buyer-intel summaries. |
-| `vision` | `meta:muse-spark-1.3@medium` | Drawings, scanned pages and evidence images (sent as `image_url` parts); falls back to `meta:muse-spark-1.2`. |
-| TODO | Muse Wonder | Being added; role to be documented when it lands. |
-| TODO | SAM 3.1 | Being added; role to be documented when it lands. |
-| TODO | Muse Image | Being added; role to be documented when it lands. |
-| TODO | Muse Voice Transcribe | Being added; role to be documented when it lands. |
+Connectors run through Composio: Gmail, Outlook, Slack, Teams, HubSpot, Salesforce, Google Drive, Dropbox, calendars, Jira, Asana, DocuSign, QuickBooks and Xero. Each customer connects their own accounts to a private workspace. Sign-in is by six-digit email code.
 
-Retrieval over the evidence library does not call a model: Meta has no embedding model, so chunks are ranked by an idf-weighted lexical score (`packages/engine/src/lexical.ts`) and Kestrel datasheet lines by `packages/quote/src/lexical.ts`. Drafted-answer claim checks are code too (`claimCheckSync` in the engine): every concrete value must appear in the answer's evidence or the sentence is struck.
+## Built during the hackathon
 
-### Swap-ready open-weights lanes
+Development of Pactovio began on 30 Oct 2026, inside the hackathon window (26 Oct – 4 Nov 2026). We built on a tender pre-sales engine:
 
-Every lane is OpenAI-compatible, so moving a role to open weights is a config change, not a code change: set `LANE_<ROLE>` to `fireworks:<model>`, `baseten:<model>` (with `BASETEN_BASE_URL`) or `modal:<model>` (with `MODAL_BASE_URL`), plus that provider's API key secret. Nothing in the repo ships pointed at those providers; Meta is the only default.
-
-Muse Spark counts reasoning tokens inside `max_tokens`, so `chat()` adds headroom per effort level. Every step records `model` as `<provider>:<model>`.
-
-Structured output is JSON Schema from zod, validated, one retry with the validation error. Every model call is a row in `run_steps` (model, purpose, input, output and cached tokens, ms, cost). Costs use the published Meta Standard-mode list prices (Muse Spark $1.25 in / $0.15 cached / $4.25 out per 1M tokens).
-
-### Decisions are mostly code, not model
-
-Gates (turnover, insurance cover, certifications, references) are checked in code against the company profile as of the submission deadline. Requirement status (MET, PARTIAL, GAP, NEEDS_EVIDENCE) comes from lexical match-strength thresholds and explicit rules. Per-lot BID, NO_BID or CONDITIONAL is decided by code; the model only writes the reasoning. Every sentence of a drafted answer is split into claims (certifications, SLAs, headcounts, client names, money, dates) and each is checked against the evidence in code; unsupported ones are struck and tagged.
-
-On the real Teagasc pack (public tender, 3 lots, EUR 5.95M) the sample company's insurance cover (EUR 6.0M) is below the EUR 6.5M the pack requires, so all three lots come out CONDITIONAL rather than BID. That is the intended behaviour, not a bug.
-
-## Customer access and limits
-
-Sign in or create an account with a six-digit email code. New customers receive an empty, private workspace and complete company setup before entering the app. Company details are saved between visits; evidence, products, requests, quotes, agent threads and connected accounts belong to that workspace. Customer cookies are opaque, hashed server-side, HttpOnly, Secure and revocable. Legacy anonymous sample cookies do not authenticate customer APIs.
-
-Per customer browser session: 2 fresh pack reads, 3 buyer web-search refreshes and 10 agent messages a minute. Globally: one fresh pack run in flight, web search 25/day and 150/month, and a hard **$0.25/day model spend cap** with a kill switch. Budget exhaustion is an error, not a fabricated answer. New customer workspaces have no recorded replays. Scheduled scans exclude retained samples and customers whose setup is incomplete. `GET /api/limits` returns the current counters and budget.
-
-Each customer connects their own tools through Composio. The project callback verifier must be configured before production customer connections are enabled; credentials and shared demo accounts are never adopted into customer workspaces. See [configuration, migration and verification](apps/api/CUSTOMER-AUTH.md).
-
-Catalogue entry currently supports 26 currencies with two decimal minor units; unsupported currency formats are rejected. Customers supply their own prices and datasheets. Quotes without configured tax rules exclude tax and require supplier confirmation of applicable taxes and commercial terms.
-
-## Connectors
-
-15 connectors through Composio managed auth, two per category: Gmail and Outlook, Slack and Microsoft Teams, HubSpot and Salesforce, Google Drive and Dropbox, Google Calendar and Outlook Calendar, Jira and Asana, DocuSign, QuickBooks and Xero. Each does one real job (mail trigger to classified intake with reply drafted never sent, chat posts with approve and decline links, a deal per bid, uploads of filled forms and quotes, calendar events for deadlines, a task per matrix gap, a quote sent for signature, an estimate from an approved quote).
-
-**Live-tested on 30 Oct 2026 against real connected test accounts** (`npx tsx scripts/connector-e2e.ts all --api https://pactovio.pages.dev`): 9 checks passed across 8 connectors, 0 failed. Each check performs the real action, reads the object back through Composio, then cleans up.
-
-| Connector | Live check | Result |
-|---|---|---|
-| Gmail | create draft, read back, delete | PASS |
-| Gmail real-time intake | email arrives, Composio trigger hits `/webhooks/composio`, the fast lane classifies it, intake created | PASS (classified `design`, 24 s end to end) |
-| Slack | post message, read back, delete | PASS |
-| Salesforce | create opportunity, read back, delete | PASS |
-| Google Drive | upload file, read back, delete | PASS |
-| Dropbox | upload file, read back, delete | PASS |
-| Google Calendar | create event, read back, delete | PASS |
-| Jira | create task, read back, delete | PASS |
-| Asana | create task, read back, delete | PASS |
-
-Event rules also fired on their own in production on 30 Oct, with no one clicking: a finished pack read opened gap tasks in Jira and Asana (`run.completed` → `create_gap_tasks`); a drafted quote was uploaded to Google Drive and Dropbox (`quote.ready` → `upload_artifacts`) and the agent posted "Quote ready" plus both lot verdicts to the team's Slack channel. A no-bid verdict correctly pushed nothing to the CRM (`sync_bid` only runs for Bid or Bid with conditions).
-
-Built and fixture-tested but **not live-tested**: HubSpot (test account not finished in time), Outlook and Outlook Calendar (Microsoft account creation was refused for the test persona), Microsoft Teams (needs a Microsoft 365 work account), QuickBooks (Intuit sandbox signup was refused), DocuSign and Xero (need our own OAuth apps). Pactovio uses its own Composio project, so its webhook subscription and connected accounts are isolated from any other product.
-
-## Agent
-
-The 24x7 agent is the `AgentHub` Durable Object: a streaming tool loop on the `agent` lane (Muse Spark 1.3), proactive messages from events (new match, run finished, approval requested), a morning digest on a Durable Object alarm, WebSocket and SSE delivery. State-changing tools never execute directly: they return a pending card and a person approves in chat or from a signed link. The same tools are served over MCP at `/mcp` (streamable HTTP, API key).
-
-
-## Billing (Dodo Payments, test mode only)
-
-Plans: Scout (free, 3 credits), Team (USD 149 a month, 150 credits), Business (USD 449 a month, 600 credits), credit pack (100 credits, USD 40). A pack read costs 1, 2 or 4 credits by page count, a design match 1, a buyer refresh 1. Checkout returns a Dodo test checkout URL; the webhook is verified with Standard Webhooks signatures and is idempotent. No real payment is possible. Sample workspaces are shared by judges and never charged. Usage is also sent to a Dodo meter, but no metered product is attached, so the credit ledger is the billing.
-
-## Timeline
-
-Development of Pactovio began on 30 Oct 2026, inside the hackathon window (26 Oct – 4 Nov 2026).
+- **Company Brain**: HubSpot import, native read of past proposals, style and win-rate stats.
+- **Bid engine**: the Wonder-run pipeline, SAM floor-plan placement, concept visual, claim check, HTML and PDF.
+- **Autopilot**: Gmail classification, runs started from RFQs, "Proposal ready" in the Inbox.
+- **Reach**: ranked worldwide tenders, web-search prospects and drafted outreach.
 
 ## What is not in this repository
 
@@ -134,25 +117,24 @@ The private, licensed UI kit source that the front end was designed with is not 
 ```bash
 npm install
 cd apps/api
-# put META_API_KEY in .env.local, gitignored; dev.sh turns it into .dev.vars
-npx tsx scripts/seed-packs.ts --state .wrangler/state     # migrates, seeds the sample companies, extracts the real packs
-npx tsx scripts/seed-samples.ts --apply --local           # company evidence and the Kestrel catalogue
-PORT=8788 npm run dev                                     # http://localhost:8788/api/health
+# put META_API_KEY in .env.local (gitignored); dev.sh turns it into .dev.vars
+PORT=8788 npm run dev                 # http://localhost:8788/api/health
 cd ../.. && npm test && npm run typecheck
 ```
 
-The real tender packs are public documents from eTenders, TED and Find a Tender. They are not committed; `fixtures/packs/SOURCES.md` lists each source. Deploy: `wrangler deploy` for the Worker, `wrangler pages deploy public --project-name pactovio` from `apps/front`, then `npm run seed:packs:remote` and the remote seed scripts in `apps/api/package.json`.
+Deploy: `wrangler deploy` for the Worker in `apps/api`, then `wrangler pages deploy public --project-name pactovio-meta` from `apps/front`. Connectors need a Composio project key and callback verifier; sign-in email needs a Resend key. See [customer setup](apps/api/CUSTOMER-AUTH.md), [API](docs/API.md) and [agent](docs/AGENT.md).
 
 ## Cut or not done
 
-- Connectors: 8 of 15 live-tested, 9 checks (see Connectors); HubSpot, Outlook, Outlook Calendar, Teams, QuickBooks, DocuSign and Xero are fixture-tested only.
-- Scanned PDFs without a text layer are rejected on evidence upload (upload PNG or JPG); PDF image pages are not rendered to PNG for the vision step.
-- Form fill covers table rows keyed by reference number; free-form content controls are untouched.
-- Retrieval is lexical (idf-weighted term overlap), so it matches wording, not meaning; the status thresholds in `packages/engine/src/matrix-rules.ts` are not yet re-calibrated on a large library.
-- Paid customer billing is not enabled: Dodo checkout remains test mode. Production customer rollout needs verified email delivery, the customer migration and the Composio callback verifier.
+- Retrieval is lexical (idf-weighted term overlap), because Meta has no embedding model. It matches wording, not meaning.
+- Billing is Dodo Payments test mode; no real payment is possible. There are no paying customers and no revenue.
+- SAM 3.1 returns generic shapes on CAD line drawings. We prompt it with shape and colour phrases, then Muse Spark names each box.
+- Muse Voice Transcribe is exercised in our tests with a software test input, not a native microphone.
+- Muse Wonder is in preview; Spark takes over if it is unavailable.
+- Scanned PDFs without a text layer are rejected on evidence upload; upload PNG or JPG.
+- Several connectors (Outlook, Teams, QuickBooks, DocuSign, Xero) are built and fixture-tested but not live-tested.
+- Open-weights lanes are configuration only (see Lanes).
 
-## Sample data
+## License
 
-Harbour Digital Ltd (Cork) and Kestrel Sensing Ltd (Galway) are fictional and labelled "Sample company". Tenders and their documents are real public notices.
-
-MIT licensed.
+MIT.
