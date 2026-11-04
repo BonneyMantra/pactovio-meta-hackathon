@@ -204,3 +204,52 @@
 .rq-doc-v { font-size: 26px; font-weight: 550; letter-spacing: -0.03em; }
 .rq-doc-meta .btn { margin-top: 6px; }
 @media (max-width: 600px) { .rq-doc { grid-template-columns: 84px 1fr; } .composer .hint { display: none; } }
+
+/* Inbox autopilot */
+.ap { margin-bottom: 22px; padding: 20px; border-radius: 16px; background: #fff; box-shadow: var(--shadow-card); display: grid; gap: 14px; animation: rise 360ms var(--ease) backwards; }
+.ap-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; flex-wrap: wrap; }
+.ap-title { display: flex; gap: 14px; align-items: flex-start; min-width: 0; }
+.ap-k { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.07em; color: var(--accent); }
+.ap-title h2 { margin: 3px 0 2px; font-size: 22px; line-height: 1.25; font-weight: 550; letter-spacing: -0.025em; }
+.ap-stats { display: flex; gap: 6px; }
+.ap-stat { display: grid; justify-items: center; min-width: 70px; padding: 8px 10px; border-radius: 12px; background: var(--surface); box-shadow: var(--hair); }
+.ap-stat b { font-size: 22px; font-weight: 550; letter-spacing: -0.03em; } .ap-stat span { font-size: 11.5px; color: var(--ink-3); }
+.ap-stat.acc b { color: var(--accent); } .ap-stat.ok b { color: var(--ok); }
+.ap-list { display: grid; gap: 8px; }
+.ap-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 12px 14px; border-radius: 12px; background: var(--surface); box-shadow: var(--hair); }
+.ap-item.proposal_ready { background: #fff; box-shadow: 0 0 0 1px rgba(47, 125, 79, 0.35), 0 6px 18px rgba(47, 125, 79, 0.06); }
+.ap-item.ignored { background: transparent; box-shadow: none; padding: 8px 14px; opacity: 0.6; }
+.ap-item.ignored .ap-subj { text-decoration: line-through; text-decoration-color: var(--ink-4); }
+.ap-main { min-width: 0; display: grid; gap: 3px; }
+.ap-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ap-from { font-size: 13.5px; font-weight: 550; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ap-time { margin-left: auto; }
+.ap-subj { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ap-att { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--ink-3); } .ap-att span { display: inline-flex; gap: 4px; align-items: center; }
+.ap-side { display: flex; align-items: center; gap: 12px; }
+.ap-val { font-size: 18px; font-weight: 550; letter-spacing: -0.02em; }
+.ap-run { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); }
+.ap-foot { display: flex; justify-content: center; }
+.ap-ign { gap: 0; }
+@media (max-width: 700px) { .ap-item { grid-template-columns: 1fr; } .ap-side { justify-content: space-between; } .ap-stats { width: 100%; } .ap-stat { flex: 1; min-width: 0; } .ap-title h2 { font-size: 19px; } }
+
+/* Prospects */
+.ps-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin-top: 8px; font-size: 13px; }
+.ps-meta > span:first-child { display: inline-flex; align-items: center; gap: 6px; }
+.ps-list { display: grid; gap: 14px; }
+.ps { padding: 20px 22px; display: grid; gap: 14px; animation: rise 420ms var(--ease) backwards; }
+.ps-head { display: flex; gap: 14px; align-items: center; }
+.ps-name { font-size: 18px; font-weight: 550; letter-spacing: -0.02em; }
+.ps-k { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 4px; }
+.ps-signal p { margin: 0; font-size: 15px; line-height: 23px; }
+.ps-src { display: inline-flex; gap: 5px; align-items: center; margin-top: 6px; color: #006d96; }
+.ps-why { display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; background: #eef6f9; color: #00506e; font-size: 13.5px; line-height: 20px; }
+.ps-why .ico { padding-top: 2px; }
+.ps .btn-ghost { padding-left: 0; }
+.ps-draft { margin-top: 8px; padding: 16px; border-radius: 12px; background: var(--surface); box-shadow: var(--hair); display: grid; gap: 8px; animation: rise 240ms var(--ease); }
+.ps-draft-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ps-draft-head .chip { gap: 5px; }
+.ps-subj { font-weight: 550; font-size: 14.5px; }
+.ps-body { white-space: pre-wrap; font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 24px; color: var(--ink); }
+.ps-draft-foot { display: flex; justify-content: flex-end; }
+.ps-body { max-width: 680px; }

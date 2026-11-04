@@ -1,6 +1,7 @@
 // Inbox: every intake (email, upload, scan) with the fast model's classification, filterable by door.
 import { api, h, icon, fmt, empty, errorBox, skeleton } from '../ui.js';
 import { doorOf, doorChip, sourceMark, senderName, tabs } from './work-kit.js';
+import { autopilotPanel } from './inbox-autopilot.js';
 
 const FILTERS = [
   { id: 'all', label: 'All' }, { id: 'rfp', label: 'RFP / RFQ' },
@@ -25,10 +26,11 @@ export async function render(root, _params, ctx) {
     h('a.btn.btn-primary.btn-sm', { href: '#/inbox/new' }, icon('inbox'), 'New intake')));
   const bar = h('div');
   const list = h('div.card.wk-list');
-  root.append(bar, list);
+  const ap = autopilotPanel();
+  root.append(ap, bar, list);
   list.append(skeleton(6));
   let items = [];
-  try { items = (await api('/intakes')).items || []; } catch (e) { list.replaceChildren(errorBox(e)); return; }
+  try { items = (await api('/intakes')).items || []; } catch (e) { list.replaceChildren(errorBox(e)); return () => ap.dispose?.(); }
   let active = 'all';
   const counts = Object.fromEntries(FILTERS.map((f) => [f.id, f.id === 'all' ? items.length : items.filter((i) => doorOf(i) === f.id).length]));
   const draw = () => {
@@ -48,5 +50,5 @@ export async function render(root, _params, ctx) {
       }
     } catch { /* keep the last good list */ }
   }, 15000);
-  return () => clearInterval(poll);
+  return () => { clearInterval(poll); ap.dispose?.(); };
 }
