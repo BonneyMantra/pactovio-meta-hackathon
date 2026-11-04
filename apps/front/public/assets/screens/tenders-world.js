@@ -6,7 +6,7 @@ import { modelChip } from '../doc/rail.js';
 
 const money = (v) => {
   if (!v?.amount_minor || !v.currency || v.amount_minor < 100_00) return null; // portals publish 1 or 0 as "not stated"
-  try { return new Intl.NumberFormat('en-IN', { style: 'currency', currency: v.currency, notation: 'compact', maximumFractionDigits: 1 }).format(v.amount_minor / 100); }
+  try { return new Intl.NumberFormat(v.currency === 'INR' ? 'en-IN' : 'en', { style: 'currency', currency: v.currency, notation: 'compact', maximumFractionDigits: 1 }).format(v.amount_minor / 100); }
   catch { return `${v.currency} ${Math.round(v.amount_minor / 100).toLocaleString('en-IN')}`; }
 };
 const AI_MSG = { budget: 'The daily AI limit was reached, so new notices are ranked by keyword overlap until tomorrow.', models_disabled: 'AI ranking is paused, so notices are ordered by keyword overlap.', unavailable: 'Muse Spark did not answer, so some notices are not scored yet.' };
@@ -26,7 +26,7 @@ function card(n, i, onSave) {
           n.deadline ? h('span', `Closes ${fmt.date(n.deadline)}${n.days_left != null ? ` · ${n.days_left} days left` : ''}`) : null,
           n.source ? h('span', String(n.source).toUpperCase()) : null))),
     n.summary ? h('div.small', { style: { lineHeight: '20px' } }, n.summary) : null,
-    reasons.length ? h('div.ps-why', icon('brain', 14), h('span', reasons.join(' '))) : null,
+    reasons.length ? h('div.ps-why', icon('brain', 14), h('span', reasons.map((r) => String(r).trim().replace(/[.;\s]*$/, '.')).join(' '))) : null,
     f.risks?.length ? h('div.xs.muted', `Risk: ${f.risks[0]}`) : null,
     h('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' } }, save,
       n.url ? h('a.btn.btn-ghost.btn-sm', { href: n.url, target: '_blank', rel: 'noopener' }, icon('out', 14), 'Official notice') : null));

@@ -4,7 +4,8 @@ import { api, h, icon, fmt, toast, empty, errorBox, skeleton } from '../ui.js';
 import { modelChip } from '../doc/rail.js';
 
 /** SKUs are shown as chips below, so the bracketed codes the model cites inline are dropped from the sentence. */
-const why = (t) => String(t || '').replace(/\s*\[[^\]]+\]/g, '').replace(/\s+([.,;:])/g, '$1').trim();
+const why = (t) => String(t || '').replace(/\s*\[[^\]]+\]/g, '').replace(/\s+([.,;:])/g, '$1')
+  .replace(/,?\s+(?:fitting|matching|with|using|via|including|such as|like|for|e\.g\.)([.;:]|$)/gi, '$1').trim();
 const host = (u) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return u; } };
 
 /** Draft body: the first "Subject:" line (if the model wrote one) becomes the subject. */

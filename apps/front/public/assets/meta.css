@@ -234,7 +234,7 @@
 .ap-subj { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ap-att { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--ink-3); } .ap-att span { display: inline-flex; gap: 4px; align-items: center; }
 .ap-side { display: flex; align-items: center; gap: 12px; }
-.ap-val { font-size: 18px; font-weight: 550; letter-spacing: -0.02em; }
+.ap-val { font-size: 18px; font-weight: 550; letter-spacing: -0.02em; white-space: nowrap; }
 .ap-run { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); }
 .ap-foot { display: flex; justify-content: center; }
 .ap-ign { gap: 0; }
