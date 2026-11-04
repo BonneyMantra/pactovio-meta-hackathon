@@ -76,7 +76,7 @@ export async function render(root, { id }, ctx) {
         h('div', h('div.xs.muted', [p.client?.name, p.ref, p.commercials?.total_inr ? inrShort(p.commercials.total_inr) : null].filter(Boolean).join(' · ')), heading),
         h('div.pd-actions', review.el,
           h('button.btn.btn-secondary.btn-sm', { type: 'button', onclick: async () => { try { await navigator.clipboard.writeText(location.href); toast('Link copied'); } catch { toast('Copy the address bar link to share'); } } }, icon('clip', 14), 'Copy link'),
-          h('button.btn.btn-primary.btn-sm', { type: 'button', onclick: print }, icon('download', 14), 'Download PDF'))),
+          h('button.btn.btn-secondary.btn-sm', { type: 'button', onclick: print }, icon('download', 14), 'Download PDF'))),
       h('div.pd-wrap', stage, rail(p, brain)));
     if (reveal) doc.classList.add('pd-reveal');
     layout(root, stage, doc);

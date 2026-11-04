@@ -5,7 +5,20 @@ import { assetName } from './assets';
 import { goNoGo } from './gonogo';
 
 /** Build the final Proposal from run state. Pure: every figure was computed upstream in code; this only arranges and validates. */
-export function assemble(ctx: RunCtx, opts: { today?: Date; preparedBy?: { name: string; title: string } } = {}): Proposal {
+/**
+ * The next reference in the company's own series: learned refs like "RAX/PR/2026/077" give the prefix, width and last number
+ * for the year; `issued` (proposals this workspace already completed) keeps two new ones from sharing a number.
+ */
+export function nextRef(refs: string[], year: string, issued: number, fallback: string): string {
+  const series = refs.map((r) => /^(.*?)(\d{4})\/(\d+)$/.exec(r)).filter((m): m is RegExpExecArray => !!m);
+  if (!series.length) return fallback;
+  const prefix = series.map((m) => m[1]!).sort((a, b) => series.filter((m) => m[1] === b).length - series.filter((m) => m[1] === a).length)[0]!;
+  const width = series[0]![3]!.length;
+  const last = Math.max(0, ...series.filter((m) => m[1] === prefix && m[2] === year).map((m) => Number(m[3])));
+  return `${prefix}${year}/${String(last + 1 + issued).padStart(width, '0')}`;
+}
+
+export function assemble(ctx: RunCtx, opts: { today?: Date; preparedBy?: { name: string; title: string }; issued?: number } = {}): Proposal {
   const { rfq, bom, design, compliance, claims, floorplan, visual, selection } = ctx.state;
   if (!rfq || !bom || !design || !compliance || !claims || !selection) throw new Error('Run state is incomplete');
   const today = (opts.today ?? new Date()).toISOString().slice(0, 10);
@@ -13,7 +26,7 @@ export function assemble(ctx: RunCtx, opts: { today?: Date; preparedBy?: { name:
   const p = claims.patched;
   const fp = floorplan && 'image_ref' in floorplan ? floorplan : null;
   const proposal = {
-    ref: `PR/${today.slice(0, 4)}/${ctx.proposalId.slice(-6).toUpperCase()}`, revision: 'R1', date: today, validity_days: style?.validity_days ?? 60,
+    ref: nextRef(ctx.brain.past.map((x) => x.ref), today.slice(0, 4), opts.issued ?? 0, `PR/${today.slice(0, 4)}/${ctx.proposalId.slice(-6).toUpperCase()}`), revision: 'R1', date: today, validity_days: style?.validity_days ?? 60,
     client: rfq.client, rfq_ref: rfq.rfq_ref, title: bom.title, solution_type: bom.solution_type,
     executive_summary: p.executive_summary, requirement_understanding: p.requirement_understanding, solution_overview: p.solution_overview,
     architecture: design.architecture, scope_of_supply: bom.scope_of_supply, custom_engineering: bom.custom_engineering,

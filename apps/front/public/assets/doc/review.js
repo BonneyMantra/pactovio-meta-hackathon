@@ -22,7 +22,7 @@ export function reviewControls({ p, id, doc, relayout, onTitle }) {
     approveBtn.className = `btn btn-sm ${ok ? 'btn-secondary' : 'btn-primary'}`;
     approveBtn.replaceChildren(...[ok ? icon('check', 14) : null, ok ? 'Approved' : 'Approve'].filter(Boolean));
     approveBtn.disabled = ok || editing;
-    editBtn.replaceChildren(icon(editing ? 'check' : 'paper', 14), editing ? 'Done editing' : 'Edit');
+    editBtn.replaceChildren(...[editing ? icon('check', 14) : null, editing ? 'Done editing' : 'Edit text'].filter(Boolean));
     editedNote.textContent = review.edits ? `${review.edits} edit${review.edits > 1 ? 's' : ''} by the bid desk` : '';
   }
 

@@ -31,7 +31,7 @@ export const lineType = (sku: string, inCatalogue: boolean): Proposal['scope_of_
 const SYSTEM = `You write the commercial and narrative parts of a supplier's proposal in the supplier's own voice.
 - external_items: bought-out items for the "external" gaps (give a plausible Indian-market budgetary unit price in INR; sku "EXT-..." in caps).
 - work_packages: custom engineering for the "custom" gaps, named WP-1, WP-2 ..., with person_days (be realistic, whole or half days).
-- plan: 4-6 phases with weeks; the sum of weeks is the elapsed project length.
+- plan: 4-6 phases with weeks; the sum of weeks is the elapsed project length. When the buyer states a timeline (survey, pilot, sign-off, rollout waves, completion), the phases follow it: the buyer's phases in the buyer's order, each ending by the buyer's week from purchase order, and the plan finishes within the buyer's completion time. Name phases the way the buyer does (e.g. "Pilot: 6 sites").
 - Never state any rupee total, subtotal, GST or grand total in prose; write {{TOTAL_INR}} where the project value belongs (prices are computed by the system).
 - Only mention products that appear in "Selected catalogue lines" or your external_items. Never invent certifications, client names or numbers that are not in the inputs.
 - title: the solution and scope only (e.g. \"Integrated e-surveillance for 120 ATM sites and 18 branches\"), without the supplier name or the word proposal.
@@ -59,6 +59,7 @@ export const composeBom = (ctx: RunCtx): Promise<string> => runStep(ctx, 'compos
   const user = `Client: ${rfq.client.name} (${rfq.client.sector}, ${rfq.client.city}, ${rfq.client.country}). RFQ ${rfq.rfq_ref}: ${rfq.title}.
 Sites: ${rfq.sites.atm} ATM, ${rfq.sites.branch} branch. Summary: ${rfq.summary}
 Requirements: ${rfq.requirements.slice(0, 30).map((r) => `${r.id} ${r.text}`).join(' | ')}
+Buyer's timeline: ${rfq.requirements.filter((r) => r.category === 'timeline').map((r) => `${r.clause ? `${r.clause} ` : ''}${r.text}${r.page ? ` (p. ${r.page})` : ''}`).join(' | ') || 'not stated'}
 Selected catalogue lines: ${selection.lines.map((l) => `${l.sku} (${cat.get(l.sku)?.name}) x${l.qty} ${l.scope}`).join('; ')}
 Gaps:\n${gapsTxt}
 Supplier voice rules: ${(style.voice_rules ?? []).join(' | ') || '(neutral, plain, specific)'}

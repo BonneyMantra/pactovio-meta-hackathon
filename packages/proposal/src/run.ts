@@ -38,7 +38,8 @@ export async function runProposal(env: Env, p: RunParams, hooks: { fetchImpl?: t
     ctx.state.models ??= {};
     if (!ctx.catalogue.length) throw new RunStopped('Your catalogue is empty, so there is nothing to price this bid from. Connect HubSpot (or add your products) and send the RFQ again.');
     const o = await orchestrate(ctx, { forceSpark: p.forceSpark });
-    const proposal = assemble(ctx);
+    const issued = (await db.prepare("SELECT COUNT(*) AS n FROM proposals WHERE workspace_id = ? AND status = 'completed'").bind(p.workspaceId).first<{ n: number }>())?.n ?? 0;
+    const proposal = assemble(ctx, { issued });
     const cost = (await db.prepare('SELECT COALESCE(SUM(cost_usd), 0) AS c FROM proposal_steps WHERE proposal_id = ? AND name != ?').bind(p.proposalId, 'orchestrate').first<{ c: number }>())?.c ?? 0;
     await db.prepare("UPDATE proposals SET status = 'completed', title = ?, proposal_json = ?, orchestrator = ?, cost_usd = ?, updated_at = ? WHERE id = ?")
       .bind(proposal.title, JSON.stringify(proposal), o.orchestrator, cost + o.row.costUsd, new Date().toISOString(), p.proposalId).run();
