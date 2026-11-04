@@ -13,7 +13,7 @@ Measured in production (read-only, 5 Nov 2026):
 - **A full bid on five Meta models costs $0.39 and takes 7.2 minutes**, averaged over 13 runs.
 - **Muse Wonder orchestrated all 13.**
 - **Learning one past proposal costs $0.026.** Spark's reading of 45 past proposal PDFs matches the source records on **93.7%** of fields, and on **99.2%** of bill-of-materials lines ([eval](docs/EVALS.md#eval-how-accurately-muse-spark-reads-past-proposals)).
-- **787 tests** run on every push.
+- **817 tests** run on every push.
 
 Engineering docs: [Architecture](docs/ARCHITECTURE.md) · [Models and lanes](docs/MODELS.md) · [Evals and tests](docs/EVALS.md) · [Security](docs/SECURITY.md) · [Decision records](docs/adr/README.md) · [API](docs/API.md) · [Contributing](CONTRIBUTING.md)
 
@@ -106,7 +106,7 @@ Connectors run through Composio: Gmail, Outlook, Slack, Teams, HubSpot, Salesfor
 
 ## Engineering
 
-- **CI** (`.github/workflows/ci.yml`) runs on every push with no secrets. It runs the repository guards, `tsc --noEmit` and 787 Vitest tests in 98 files ([EVALS.md](docs/EVALS.md)).
+- **CI** (`.github/workflows/ci.yml`) runs on every push with no secrets. It runs the repository guards, `tsc --noEmit` and 817 Vitest tests in 101 files ([EVALS.md](docs/EVALS.md)).
 - **Real bindings in tests.** API tests run every D1 migration into a local D1, R2 and KV (Miniflare). Model replies are recorded wire-format payloads, so the whole pipeline, including the Wonder → Spark fallback, runs in a test.
 - **Tenant isolation is tested.** More than 30 named tests show one workspace cannot read, write, export or enumerate another's data ([SECURITY.md](docs/SECURITY.md)).
 - **Guards** (`scripts/ci-guards.sh`):

@@ -6,14 +6,14 @@ This page covers what is tested, how the tests run without secrets, and what has
 
 `npm run check` runs three steps in order: the repository guards (`scripts/ci-guards.sh`), `tsc --noEmit`, then `vitest run`. GitHub Actions runs the same steps on every push and pull request (`.github/workflows/ci.yml`) with no secrets. The suite stubs every model, connector and payment call at the `fetch` boundary.
 
-Result on 5 Nov 2026, commit `f1a0c82`, in a clean `npm ci`:
+Result on 5 Nov 2026, commit `96d2b2c`:
 
 | Metric | Value |
 |---|---|
-| Test files | 98 passed |
-| Tests | 787 passed, 2 skipped |
+| Test files | 101 passed |
+| Tests | 817 passed, 2 skipped |
 | Typecheck | 0 errors |
-| Wall time | about 101 s locally |
+| Wall time | about 66 s locally |
 
 The two skipped tests need a licensed tender pack that is not in the repo: `packages/pack/test/pack.test.ts:102` and `packages/engine/test/docx.test.ts:72`.
 
@@ -21,7 +21,8 @@ The two skipped tests need a licensed tender pack that is not in the repo: `pack
 
 | Area | Files | Tests |
 |---|---|---|
-| `apps/api`: routes, Workflows, autopilot, proposals, auth, tenancy | 52 | 407 |
+| `apps/api`: routes, Workflows, autopilot, proposals, live step stream, auth, tenancy | 53 | 414 |
+| `packages/evals`: extraction and proposal-quality scorers | 2 | 23 |
 | `packages/connectors`: Composio providers, webhook signatures, inbound mail, classification | 10 | 110 |
 | `packages/agent`: tool loop, approval gate, caps | 3 | 58 |
 | `packages/engine`: run pipeline, claims, documents | 6 | 50 |
