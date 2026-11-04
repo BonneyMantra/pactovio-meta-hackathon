@@ -103,7 +103,8 @@ export function rfqKit({ win, ta, feed, scroll, threadId, setBusy }) {
     const poll = async () => {
       let p;
       try { p = await getProposal(id); fails = 0; } catch (e) {
-        if (++fails > 12 || e?.status === 404) { result.replaceChildren(h('div.error-box', 'Lost track of this run. Open it from Proposals.')); return; }
+        // A redeploy can briefly answer 404; only a run that stays missing (or keeps failing) is abandoned.
+        if (++fails > 12 || (e?.status === 404 && fails > 5)) { result.replaceChildren(h('div.error-box', 'Lost track of this run. Open it from Proposals.')); return; }
         setTimeout(poll, 2500); return;
       }
       const ps = p, st = ps.steps || [];

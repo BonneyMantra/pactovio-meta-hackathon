@@ -1,4 +1,5 @@
 import type { BrainData, BrainStyle, CompanyBrain, PastProposal } from './brain';
+import { selfStatements } from './brain-facts';
 
 /** The subset of a learned past proposal (B1's brain_documents.proposal_json) the bid engine uses. */
 interface LearnedProposal {
@@ -87,6 +88,7 @@ export async function readBrainTables(db: D1Database, ws: string): Promise<Brain
   const brain: CompanyBrain = {
     profile: withName(profile, wsRow?.name), proposals_learned: row?.proposals_learned ?? learned.length,
     style, stats: parse<Record<string, unknown>>(row?.stats_json) ?? undefined, learned_at: row?.learned_at ?? undefined,
+    self_statements: selfStatements(learned as Record<string, unknown>[]),
   };
   return { brain, past };
 }

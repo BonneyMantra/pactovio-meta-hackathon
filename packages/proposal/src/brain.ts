@@ -20,6 +20,8 @@ export interface CompanyBrain {
   style?: BrainStyle;
   stats?: Record<string, unknown>;
   learned_at?: string;
+  /** What the company's own past proposals say about its facilities, service and people (most repeated first). */
+  self_statements?: string[];
 }
 export interface PastProposal {
   ref: string; title: string; solution_type: string; sector?: string; client?: string; city?: string; date?: string;

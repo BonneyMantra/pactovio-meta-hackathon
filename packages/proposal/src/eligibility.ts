@@ -20,12 +20,15 @@ export async function companyFacts(ctx: RunCtx): Promise<string> {
   } catch { /* no profile */ }
   const brain = ctx.brain.brain?.profile ? JSON.stringify(ctx.brain.brain.profile) : '';
   const past = ctx.brain.past.map((p) => `${p.ref} ${p.client ?? ''} ${p.title} (${p.outcome ?? ''})`).join('; ');
-  return `Workspace profile: ${profile.slice(0, 3000)}\nBrain profile: ${brain}\nPast proposals: ${past.slice(0, 1500)}`;
+  const self = ctx.brain.brain?.self_statements ?? [];
+  const own = self.length ? `\nWhat the company's own past proposals say about its facilities, service and people:\n${self.map((s) => `- ${s}`).join('\n')}` : '';
+  return `Workspace profile: ${profile.slice(0, 3000)}\nBrain profile: ${brain}${own}\nPast proposals: ${past.slice(0, 1500)}`;
 }
 
 const SYSTEM = `You check a supplier's eligibility for a tender against the supplier's own facts. For EACH condition decide:
 - "met" ONLY when the company facts state it (cite the fact in the remark).
 - "gap" when the facts or the past proposals show it is NOT met: e.g. no office, service centre or staff in a state the buyer requires, fewer qualifying references than required, a certificate the facts show is missing. Name what is missing.
+- Locations: the company's own statements name where it designs, builds and supports from. A state or city the buyer requires a staffed office or service centre in, where no facility, office or service centre of the company is on record, is a "gap" (remark: what is on record, and that a partner or new centre is needed), not "to_confirm".
 - "to_confirm" when the facts are silent; remark "To confirm: <evidence to attach>".
 Never assume a qualification. Remarks are one short factual line, no marketing language.`;
 
