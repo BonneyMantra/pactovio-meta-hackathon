@@ -30,7 +30,9 @@ const SYSTEM = `You check a supplier's eligibility for a tender against the supp
 - "gap" when the facts or the past proposals show it is NOT met: e.g. no office, service centre or staff in a state the buyer requires, fewer qualifying references than required, a certificate the facts show is missing. Name what is missing.
 - Locations: the company's own statements name where it designs, builds and supports from. A state or city the buyer requires a staffed office or service centre in, where no facility, office or service centre of the company is on record, is a "gap" (remark: what is on record, and that a partner or new centre is needed), not "to_confirm".
 - "to_confirm" when the facts are silent; remark "To confirm: <evidence to attach>".
-Never assume a qualification. Remarks are one short factual line, no marketing language.`;
+- An empty or missing profile field (no certifications listed, no turnover figures) is silence, not evidence: "to_confirm". Only a positive statement of what the company has (its own facilities, its references) can show a gap.
+- References: count the company's past proposals marked won in the buyer's sector that meet the size asked for; fewer than required is a "gap" (say how many are on record).
+Never assume a qualification. Remarks are one short factual line in the buyer's terms, no marketing language, never field names, brackets or JSON.`;
 
 export const checkEligibility = (ctx: RunCtx): Promise<string> => runStep(ctx, 'check_eligibility', () => !!ctx.state.eligibility, async () => {
   const rfq = ctx.state.rfq;
