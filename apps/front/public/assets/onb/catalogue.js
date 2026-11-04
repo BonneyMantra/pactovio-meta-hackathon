@@ -67,14 +67,21 @@ export function catalogueStep(s, { nav, connection, onNext, onSkip }) {
   };
   // Rows land before their photos (images are fetched after the insert), so a product is shown once its photo is in;
   // the ones still without a photo when the import ends follow after.
+  // A photo is decoded before its tile is added, so a tile never lands with a half-painted image.
   const queued = new Set(), held = new Map();
+  let decoding = 0, waits = 0;
+  const ready = (p) => {
+    queued.add(p.id); decoding++;
+    const im = new Image(); im.src = thumbOf(p);
+    im.decode().catch(() => undefined).finally(() => { decoding--; if (!disposed) queue.push(p); });
+  };
   const flush = () => { for (const [id, p] of held) { queued.add(id); queue.push(p); } held.clear(); };
   async function poll() {
     try {
       for (const p of await hubspotProducts()) {
         if (tiles.has(p.id)) setImg(tiles.get(p.id), p);
         else if (queued.has(p.id)) continue;
-        else if (thumbOf(p)) { held.delete(p.id); queued.add(p.id); queue.push(p); }
+        else if (thumbOf(p)) { held.delete(p.id); ready(p); }
         else held.set(p.id, p);
       }
     } catch { /* transient; the sync result decides */ }
@@ -82,7 +89,7 @@ export function catalogueStep(s, { nav, connection, onNext, onSkip }) {
   }
   const finish = (r) => {
     if (disposed) return;
-    if (queue.length) { tick = setTimeout(() => finish(r), 250); return; }
+    if (queue.length || (decoding && waits++ < 32)) { tick = setTimeout(() => finish(r), 250); return; }
     const n = tiles.size;
     title.textContent = n ? 'Catalogue imported' : 'No products found in HubSpot';
     sub.textContent = n ? 'Imported from HubSpot with prices and images. Every proposal is priced from these.' : 'Add products to the HubSpot products library, or skip and add them in Catalogue.';
@@ -97,7 +104,7 @@ export function catalogueStep(s, { nav, connection, onNext, onSkip }) {
     if (disposed) return;
     if (e.code === 'not_connected') return connectCard(s, { nav, onSkip, pending: true });
     flush();
-    if (tiles.size || queue.length) return finish(null);
+    if (tiles.size || queue.length || decoding) return finish(null);
     title.textContent = 'The import stopped';
     status.textContent = friendlyError(e); status.className = 'pv-status pv-error';
     next.replaceChildren('Try again', icon('refresh', 16)); next.disabled = false;

@@ -40,7 +40,7 @@
 .ob-headrow p { margin: 6px 0 0; }
 .ob-count { font-size: 40px; font-weight: 550; letter-spacing: -0.04em; } .ob-count .muted { font-size: 16px; letter-spacing: 0; }
 .ob-products { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; min-height: 220px; max-height: 560px; overflow: hidden; align-content: start; mask-image: linear-gradient(#000 78%, transparent); -webkit-mask-image: linear-gradient(#000 78%, transparent); }
-.ob-prod { padding: 10px; border-radius: 12px; background: var(--surface); box-shadow: var(--hair); display: grid; gap: 6px; animation: ob-drop 420ms var(--ease) backwards; }
+.ob-prod { padding: 10px; border-radius: 12px; background: var(--surface); box-shadow: var(--hair); display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: 6px; animation: ob-drop 420ms var(--ease) backwards; }
 @keyframes ob-drop { from { opacity: 0; transform: translateY(-10px) scale(0.96); } }
 .ob-pimg { height: 84px; border-radius: 8px; background: #fff; display: grid; place-items: center; overflow: hidden; }
 .ob-pimg img { max-width: 86%; max-height: 86%; object-fit: contain; }
