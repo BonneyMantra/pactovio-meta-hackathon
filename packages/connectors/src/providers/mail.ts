@@ -1,5 +1,5 @@
 import { ActionError, need, type ActionCtx, type ProviderActions } from '../actions';
-import { deepFind } from '../util';
+import { deepFind, deepFindArray } from '../util';
 
 const SAMPLE_DRAFT = { to: 'buyer@example.org', subject: 'Pactovio connector test draft', body: 'This draft was created by the Pactovio connector test. It was never sent.' };
 
@@ -27,6 +27,17 @@ async function ownAddress(ctx: ActionCtx, tool: string, keys: string[]): Promise
 export const gmail: ProviderActions = {
   watch_inbox: { summary: 'Register the new-message trigger (polls every minute)', run: (_i, ctx) => watch(ctx, 'GMAIL_NEW_GMAIL_MESSAGE', { labelIds: 'INBOX', interval: 1 }) },
   unwatch_inbox: { summary: 'Delete the new-message trigger', run: (_i, ctx) => unwatch(ctx) },
+  list_new: {
+    summary: 'List inbox message ids received after a Unix-seconds cursor (autopilot polling fallback)',
+    run: async (i, ctx) => {
+      const after = Math.floor(Number(need(i.after_seconds, 'after_seconds')));
+      if (!Number.isFinite(after) || after <= 0) throw new ActionError('after_seconds must be a Unix timestamp', 'bad_input');
+      const data = await ctx.exec('GMAIL_FETCH_EMAILS', { query: `in:inbox after:${after}`, max_results: Math.min(Number(i.limit) || 20, 50), ids_only: true, include_spam_trash: false });
+      const items = (deepFindArray(data, ['messages']) ?? []) as Record<string, unknown>[];
+      const ids = items.map((m) => String(m.messageId ?? m.message_id ?? m.id ?? '')).filter(Boolean);
+      return { id: null, details: { ids } };
+    },
+  },
   get_message: {
     summary: 'Fetch one message by id',
     run: async (i, ctx) => {

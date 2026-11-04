@@ -1,4 +1,5 @@
 import { WorkflowEntrypoint, type WorkflowEvent, type WorkflowStep, type WorkflowStepConfig } from 'cloudflare:workers';
+import { autopilotStep } from '../lib/autopilot';
 import type { Env } from '@pactovio/contracts/env';
 import { classifyStep, draftStep, fetchAndStore, markIntakeStatus, routeStep, type IntakeJob } from '@pactovio/connectors';
 
@@ -19,6 +20,7 @@ export class IntakeWorkflow extends WorkflowEntrypoint<Env, IntakeParams> {
       const msg = await stage('fetch message', () => fetchAndStore(this.env, job));
       const { cls, workspaceId } = await stage('classify', () => classifyStep(this.env, job, msg));
       await stage('route', () => routeStep(this.env, job, workspaceId, msg, cls));
+      await stage('autopilot', () => autopilotStep(this.env, job, workspaceId, msg, cls));
       await stage('draft reply', () => draftStep(this.env, job, workspaceId, msg, cls));
     } catch (e) {
       console.error('IntakeWorkflow failed', job.intakeId, e instanceof Error ? e.message.slice(0, 200) : 'unknown');

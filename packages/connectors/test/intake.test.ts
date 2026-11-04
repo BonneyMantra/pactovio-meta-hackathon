@@ -68,12 +68,12 @@ describe('email parsing', () => {
 
 describe('classifyEmail (fast lane, json_schema)', () => {
   const env = { META_API_KEY: 'k' } as Env;
-  it('asks the fast lane for the four-door schema with minimal reasoning and returns the parsed result', async () => {
+  it('asks the fast lane for the six-kind schema with minimal reasoning and returns the parsed result', async () => {
     const seen: Record<string, any>[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
-    const out = await classifyEmail(env, FOG, { fetch: modelApi({ door: 'design', confidence: 0.93, reason: 'Technical requirements and a request to design and quote', customer: 'Westbay Port Authority', subject: 'Fog monitoring, Berths 4 to 9' }, seen) });
+    const out = await classifyEmail(env, FOG, { fetch: modelApi({ kind: 'design_request', confidence: 0.93, reason: 'Technical requirements and a request to design and quote', customer: 'Westbay Port Authority', subject: 'Fog monitoring, Berths 4 to 9' }, seen) });
     expect(out).toMatchObject({ door: 'design', customer: 'Westbay Port Authority' });
     expect(seen[0]).toMatchObject({ model: 'muse-spark-1.3', reasoning_effort: 'minimal', temperature: 0 });
-    expect(seen[0]!.response_format.json_schema.schema.properties.door.enum).toEqual(['tender', 'rfp', 'design', 'other']);
+    expect(seen[0]!.response_format.json_schema.schema.properties.kind.enum).toEqual(['rfq', 'rfp', 'design_request', 'tender_notice', 'marketing', 'other']);
     expect(seen[0]!.messages[1].content).toContain('Fog monitoring for the Berth 4');
   });
   it('retries once on invalid JSON, then falls back to the keyword heuristic with low confidence', async () => {
@@ -129,7 +129,7 @@ describe('intake pipeline', () => {
 
   it('design request: classify moves it to the industrial workspace, routes to lane C and announces it with ids', async () => {
     await insert('int_design');
-    const f = modelApi({ door: 'design', confidence: 0.94, reason: 'Technical requirements', customer: 'Westbay Port Authority', subject: 'Fog monitoring, Berths 4 to 9' });
+    const f = modelApi({ kind: 'design_request', confidence: 0.94, reason: 'Technical requirements', customer: 'Westbay Port Authority', subject: 'Fog monitoring, Berths 4 to 9' });
     const { cls, workspaceId } = await classifyStep(env, job('int_design', { messageId: 'm-d' }), FOG, { fetch: f });
     expect(workspaceId).toBe('ws_kestrel_sensing');
     lane.match.mockResolvedValue({});
@@ -168,7 +168,7 @@ describe('intake pipeline', () => {
 
   it('other: the intake is ignored, nothing is created, no draft is written', async () => {
     await insert('int_news');
-    const cls = { door: 'other' as const, confidence: 0.9, reason: 'Newsletter', customer: '', subject: 'Weekly' };
+    const cls = { kind: 'marketing' as const, confidence: 0.9, reason: 'Newsletter', customer: '', subject: 'Weekly' };
     const f = modelApi(cls);
     const c = await classifyStep(env, job('int_news'), { ...FOG, subject: 'Weekly' }, { fetch: f });
     expect(await env.DB.prepare("SELECT status FROM intakes WHERE id = 'int_news'").first()).toMatchObject({ status: 'ignored' });

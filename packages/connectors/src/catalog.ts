@@ -27,7 +27,7 @@ export const PROVIDERS: ProviderSpec[] = [
   { provider: 'gmail', toolkit: 'gmail', name: 'Gmail', category: 'email', managedAuth: true,
     description: 'Watch a shared inbox for inbound RFPs, RFQs and design requests.',
     whatItDoes: 'A new email fires a Composio trigger; Pactovio fetches it and its attachments, classifies it, opens an intake and saves a reply as a Gmail draft (never sent).',
-    actions: ['watch_inbox', 'unwatch_inbox', 'get_message', 'create_draft', 'send_test_message'] },
+    actions: ['watch_inbox', 'unwatch_inbox', 'list_new', 'get_message', 'create_draft', 'send_test_message'] },
   { provider: 'outlook', toolkit: 'outlook', name: 'Outlook', category: 'email', managedAuth: true,
     description: 'Watch a Microsoft mailbox for inbound RFPs, RFQs and design requests.',
     whatItDoes: 'A new message fires a Composio trigger; Pactovio fetches it and its attachments, classifies it, opens an intake and saves a reply as an Outlook draft (never sent).',

@@ -12,6 +12,7 @@ import { patchData, readOnboarding, saveResult } from '../lib/onboarding-state';
 import { assessByIds, opportunityDetail, saveOpportunity } from '../lib/opportunity-detail';
 import { resolveLang } from '../lib/opportunity-notice';
 import { searchOpportunities } from '../lib/opportunity-search';
+import { withBrain } from '../lib/opportunity-brain';
 import { analyzeWebsite } from '../lib/site-analyze';
 import type { AppEnv } from '../lib/types';
 
@@ -66,20 +67,20 @@ export function registerOnboardingTools(app: Hono<AppEnv>): void {
     const ws = c.get('auth').workspaceId, input = await body(c, OpportunityAssessInput, 4_000);
     await takeLimit(c.env.DB, `onboarding-opps-assess:${ws}`, 30, 3600);
     const lang = resolveLang(input.lang, c.req.header('accept-language'));
-    return c.json(await assessByIds(c.env, await readOnboarding(c.env.DB, ws), input.ids, lang));
+    return c.json(await assessByIds(c.env, await withBrain(c.env, ws, await readOnboarding(c.env.DB, ws)), input.ids, lang));
   });
   app.post('/opportunities/save', async (c) => {
     const ws = c.get('auth').workspaceId, input = await body(c, OpportunitySaveInput, 1_000);
     await takeLimit(c.env.DB, `onboarding-opps-save:${ws}`, 60, 3600);
     const lang = resolveLang(input.lang, c.req.header('accept-language'));
-    return c.json(await saveOpportunity(c.env, ws, await readOnboarding(c.env.DB, ws), input.source, input.id, lang));
+    return c.json(await saveOpportunity(c.env, ws, await withBrain(c.env, ws, await readOnboarding(c.env.DB, ws)), input.source, input.id, lang));
   });
   app.get('/opportunities/:source/:id', async (c) => {
     const ws = c.get('auth').workspaceId;
     const params = OpportunityDetailParams.parse(c.req.param()), query = OpportunityDetailQuery.parse(c.req.query());
     await takeLimit(c.env.DB, `onboarding-opps-detail:${ws}`, 120, 3600);
     const lang = resolveLang(query.lang, c.req.header('accept-language'));
-    return c.json(await opportunityDetail(c.env, await readOnboarding(c.env.DB, ws), params.source, params.id, lang));
+    return c.json(await opportunityDetail(c.env, await withBrain(c.env, ws, await readOnboarding(c.env.DB, ws)), params.source, params.id, lang));
   });
 
   app.post('/deadlines/extract', async (c) => {
