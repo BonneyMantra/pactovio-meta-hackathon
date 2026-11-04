@@ -15,10 +15,17 @@ export type SearchInput = z.output<typeof OpportunitySearchInput>;
 const GENERIC = new Set(['services', 'service', 'solutions', 'solution', 'products', 'product', 'systems', 'system', 'supply', 'support', 'general',
   'company', 'quality', 'customer', 'customers', 'industry', 'industries', 'other', 'various', 'management', 'provision']);
 
-/** Terms come only from what the customer confirmed: capabilities and offerings. Internal ranking signal, never a label. */
-export function fitTerms(state: OnboardingState): string[] {
-  const phrases = [...(state.company.capabilities ?? []), ...(state.profile.offerings ?? [])];
-  return [...new Set(phrases.flatMap((p) => tokens(p)).filter((t) => t.length >= 4 && !GENERIC.has(t) && !/^\d/.test(t)))].slice(0, 60);
+// Words of the brain text's own framing ("Catalogue (67 products, first 40)", "Company Brain: learned from ..."), not what the company sells.
+const FRAMING = new Set(['catalogue', 'first', 'brain', 'learned', 'past', 'proposals', 'proposal', 'rate', 'sectors', 'served', 'from']);
+
+/** Ranking terms from what the customer confirmed (capabilities, offerings) plus the real catalogue and Company Brain (product names,
+ * families, sectors, solution types), so a security-electronics catalogue pulls alarm and surveillance notices into the scored set.
+ * Internal ranking signal, never a label. */
+export function fitTerms(state: OnboardingState & { brainText?: string }): string[] {
+  const keep = (t: string) => t.length >= 4 && !GENERIC.has(t) && !FRAMING.has(t) && !/\d/.test(t);
+  const own = [...(state.company.capabilities ?? []), ...(state.profile.offerings ?? [])].flatMap((p) => tokens(p)).filter(keep);
+  const brain = tokens((state.brainText ?? '').replace(/\[[^\]]*\]/g, ' ')).filter(keep); // [SKU] codes are not words
+  return [...new Set([...own.slice(0, 60), ...brain])].slice(0, 160);
 }
 const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const haystack = (t: ViewTender) => fold([t.title, t.buyer, ...t.lots.map((l) => l.title), typeof t.raw?.description === 'string' ? t.raw.description : ''].join(' '));
@@ -35,7 +42,10 @@ function priorities(state: OnboardingState): { country: string; regions: Set<Reg
 }
 
 type Row = { t: ViewTender; key: string; code: string; region: Region | null; domains: Domain[]; words: string; score?: number; heuristic: number };
-const tier = (r: Row) => (r.score === undefined ? 1 : r.score >= 50 ? 0 : 2);
+// Scored >= 40 first, then not-yet-scored, then known poor fits: a 48 must not sink below notices nobody has read yet.
+const tier = (r: Row) => (r.score === undefined ? 1 : r.score >= 40 ? 0 : 2);
+/** The first relevance page scores a wider candidate set and keeps the best, so one weak keyword match cannot crowd out a real fit. */
+const FIRST_PAGE_CANDIDATES = 24;
 const byRelevance = (a: Row, b: Row) => tier(a) - tier(b) || (b.score ?? 0) - (a.score ?? 0) || b.heuristic - a.heuristic
   || (a.t.deadline ?? '9999').localeCompare(b.t.deadline ?? '9999');
 const SORTS: Record<SearchInput['sort'], (a: Row, b: Row) => number> = {
@@ -64,8 +74,9 @@ export async function searchOpportunities(env: Env, _workspace: string, state: O
   const rows: Row[] = pool.map((t) => {
     const code = iso2(t.country), region = code ? regionOf(code) : null, words = haystack(t);
     const place = code && (code === prio.country || prio.countries.has(code)) ? 3 : region && prio.regions.has(region) ? 2 : 0;
-    const overlap = terms.filter((x) => words.includes(x)).length;
-    return { t, key: viewKey(t), code, region, domains: noticeDomains(t), words, score: scores[viewKey(t)], heuristic: place * 10 + Math.min(overlap, 8) };
+    const head = fold([t.title, ...t.lots.map((l) => l.title)].join(' '));
+    const inHead = terms.filter((x) => head.includes(x)).length, inBody = terms.filter((x) => words.includes(x)).length - inHead;
+    return { t, key: viewKey(t), code, region, domains: noticeDomains(t), words, score: scores[viewKey(t)], heuristic: place * 10 + Math.min(inHead * 3 + inBody, 24) };
   });
   const q = fold(input.q ?? '').split(/\s+/).filter(Boolean);
   const currency = input.currency ?? 'EUR', horizon = input.deadline_within_days ? now.getTime() + input.deadline_within_days * 86_400_000 : null;
@@ -95,11 +106,13 @@ export async function searchOpportunities(env: Env, _workspace: string, state: O
       .map(([id, count]) => ({ id, label: DOMAIN_LABELS[id], count })),
   };
   const matched = pre.filter((r) => inRegion(r) && inCountry(r) && inDomain(r)).sort(SORTS[input.sort]);
-  const page = matched.slice(input.offset, input.offset + input.limit);
+  const wide = input.sort === 'relevance' && input.offset === 0;
+  let page = matched.slice(input.offset, input.offset + (wide ? Math.max(input.limit, FIRST_PAGE_CANDIDATES) : input.limit));
   const { byKey, keys, ai } = await assessNotices(env, state, page.map((r) => r.t), lang);
   const assessed = new Map(page.map((r, i) => [r.key, byKey.get(keys[i]!) ?? null]));
   page.forEach((r) => { const a = assessed.get(r.key); if (a) r.score = a.score; });
-  if (input.sort === 'relevance') page.sort(byRelevance); // fresh assessments reorder within the page only
+  if (input.sort === 'relevance') page.sort(byRelevance); // fresh assessments reorder within the scored set only
+  page = page.slice(0, input.limit);
   const notices = page.map((r) => toNotice(r.t, assessed.get(r.key) ?? null, lang, now, segment));
   return {
     notices, total: matched.length, offset: input.offset, limit: input.limit, sort: input.sort, domains, facets, lang, ai,

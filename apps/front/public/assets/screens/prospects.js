@@ -3,6 +3,8 @@
 import { api, h, icon, fmt, toast, empty, errorBox, skeleton } from '../ui.js';
 import { modelChip } from '../doc/rail.js';
 
+/** SKUs are shown as chips below, so the bracketed codes the model cites inline are dropped from the sentence. */
+const why = (t) => String(t || '').replace(/\s*\[[^\]]+\]/g, '').replace(/\s+([.,;:])/g, '$1').trim();
 const host = (u) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return u; } };
 
 /** Draft body: the first "Subject:" line (if the model wrote one) becomes the subject. */
@@ -27,7 +29,7 @@ function card(p, i) {
       h('div.small.ink2', [p.country, p.published_at ? `signal from ${fmt.date(p.published_at)}` : null].filter(Boolean).join(' · ')))),
     h('div.ps-signal', h('div.ps-k', 'Buying signal'), h('p', p.signal),
       p.source_url ? h('a.xs.ps-src', { href: p.source_url, target: '_blank', rel: 'noopener' }, icon('out', 12), host(p.source_url)) : null),
-    p.fit_reason ? h('div.ps-why', icon('brain', 14), h('span', p.fit_reason)) : null,
+    why(p.fit_reason) ? h('div.ps-why', icon('brain', 14), h('span', why(p.fit_reason))) : null,
     products.length ? h('div', { style: { display: 'flex', gap: '6px', flexWrap: 'wrap' } }, products.map((s) => h('span.chip.outline', s))) : null,
     h('div', more, body));
 }

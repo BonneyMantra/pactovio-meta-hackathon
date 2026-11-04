@@ -5,7 +5,7 @@ import { dash, fitRing } from './work-kit.js';
 import { modelChip } from '../doc/rail.js';
 
 const money = (v) => {
-  if (!v?.amount_minor || !v.currency) return null;
+  if (!v?.amount_minor || !v.currency || v.amount_minor < 100_00) return null; // portals publish 1 or 0 as "not stated"
   try { return new Intl.NumberFormat('en-IN', { style: 'currency', currency: v.currency, notation: 'compact', maximumFractionDigits: 1 }).format(v.amount_minor / 100); }
   catch { return `${v.currency} ${Math.round(v.amount_minor / 100).toLocaleString('en-IN')}`; }
 };

@@ -54,14 +54,15 @@ beforeAll(async () => {
 afterAll(async () => { vi.unstubAllGlobals(); vi.useRealTimers(); await dispose?.(); });
 
 describe('worldwide opportunity search', () => {
-  it('pools every source worldwide, reports failures per source and assesses only the page', async () => {
+  it('pools every source worldwide, reports failures per source and scores a wider first page, returning the best', async () => {
     const out = await search({ lang: 'pl', domains: ['lab_medical', 'construction', 'it_software', 'professional_services'], limit: 3 });
     expect(out.sources_failed).toEqual(['fts']);
     // Open notices only: TED 722700, CF GPRS and World Bank OP00478103 had closed by 4 Nov.
     expect(out.total).toBe(7);
     expect(out.notices).toHaveLength(3);
-    expect(model).toEqual({ calls: 1, items: 3 });
-    expect(out.ai).toMatchObject({ ran: true, assessed: 3, cached: 0 });
+    // The first relevance page scores up to 24 candidates (all 7 here, in batches of 5) and returns the best 3.
+    expect(model).toEqual({ calls: 2, items: 7 });
+    expect(out.ai).toMatchObject({ ran: true, assessed: 7, cached: 0 });
     expect(out.notices[0]).toMatchObject({ id: '737366-2026', source: 'ted', region: 'europe', domains: ['lab_medical'], title: 'PL: POST-PCR-Pipettier-Roboter' });
     expect(out.facets.regions).toEqual(expect.arrayContaining([{ id: 'europe', label: 'Europe', count: 3 }, { id: 'africa', label: 'Africa', count: 3 }, { id: 'asia', label: 'Asia', count: 1 }]));
     expect(out.facets.countries).toEqual(expect.arrayContaining([{ code: 'ET', name: 'Etiopia', count: 2 }, { code: 'GB', name: 'Wielka Brytania', count: 2 }]));
@@ -88,7 +89,7 @@ describe('worldwide opportunity search', () => {
   it('assesses more on request and reuses the cache', async () => {
     const before = { ...model };
     const out = await (await call('/onboarding/opportunities/assess', 'POST', { ids: ['wb:OP00478548', 'ted:737366-2026', 'cf:nope-0000'], lang: 'pl' })).json() as any;
-    expect(model.items - before.items).toBe(1); // 737366 was assessed in Polish by the first search
+    expect(model.items - before.items).toBe(0); // the first search's wide page already scored both in Polish: all from cache
     expect(out.notices.map((n: any) => [n.id, n.fit.method, n.fit.score])).toEqual([['OP00478548', 'ai', 88], ['737366-2026', 'ai', 88]]);
     expect(out.missing).toEqual(['cf:nope-0000']);
     expect((await call('/onboarding/opportunities/assess', 'POST', { ids: ['sam:1'] })).status).toBe(400);
