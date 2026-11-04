@@ -40,3 +40,14 @@ describe('company brain readers', () => {
     await expect(PROVIDER_ACTIONS.googledrive!.download_file!.run({ file_id: 'abc' }, bad.ctx)).rejects.toThrow(/not a PDF/);
   });
 });
+
+describe('hubspot.list_deals', () => {
+  it('pages through all deals', async () => {
+    const { ctx } = ctxFor('hubspot', {}, (r) => {
+      const after = (r as { parameters?: { name: string; value: string }[] }).parameters?.find((p) => p.name === 'after')?.value;
+      return after ? { status: 200, data: { results: [{ id: '3' }] } } : { status: 200, data: { results: [{ id: '1' }, { id: '2' }], paging: { next: { after: 'x' } } } };
+    });
+    const out = await PROVIDER_ACTIONS.hubspot!.list_deals!.run({}, ctx);
+    expect((out.details!.deals as unknown[]).length).toBe(3);
+  });
+});

@@ -6,8 +6,10 @@ import { takeLimit } from '../lib/customer-security';
 import { errorResponse } from '../lib/router';
 import type { AppEnv } from '../lib/types';
 import { syncHubspot } from '../lib/brain-catalogue';
+import { syncOutcomes } from '../lib/brain-outcomes';
 import { listFolders, startLearn } from '../lib/brain-learn';
-import { liveStats, loadBrain, proposalIndex, type BrainEnv } from '../lib/brain-store';
+import { computeStats } from '@pactovio/brain';
+import { learnedDocs, liveStats, loadBrain, proposalIndex, type BrainEnv } from '../lib/brain-store';
 
 /** /api/brain (customer session only; every query is scoped to the session's workspace). */
 export const brainRoutes = new Hono<AppEnv>();
@@ -70,4 +72,13 @@ brainRoutes.post('/drive/learn', authed(async (c, ws) => {
 brainRoutes.post('/hubspot/sync', authed(async (c, ws) => {
   await takeLimit(c.env.DB, `brain-hubspot:${ws}`, 12, 3600);
   return c.json(await syncHubspot(env(c), ws));
+}));
+
+/** Re-read deal outcomes and recompute the stored brain stats from them. */
+brainRoutes.post('/hubspot/deals-sync', authed(async (c, ws) => {
+  await takeLimit(c.env.DB, `brain-deals:${ws}`, 12, 3600);
+  const r = await syncOutcomes(env(c), ws);
+  const docs = await learnedDocs(c.env.DB, ws);
+  if (docs.length) await c.env.DB.prepare('UPDATE company_brain SET stats_json = ? WHERE workspace_id = ?').bind(JSON.stringify(computeStats(docs.map((d) => d.proposal))), ws).run();
+  return c.json({ ...r, proposals_matched: docs.filter((d) => d.outcome_source === 'hubspot').length });
 }));

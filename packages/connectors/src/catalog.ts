@@ -43,7 +43,7 @@ export const PROVIDERS: ProviderSpec[] = [
   { provider: 'hubspot', toolkit: 'hubspot', name: 'HubSpot', category: 'crm', managedAuth: true,
     description: 'A deal per bid with stage, value and deadline.',
     whatItDoes: 'Creates or updates one deal per tender or quote (stage, amount, close date) and attaches a note with the verdict and its reasons.',
-    actions: ['create_deal', 'update_deal', 'add_note', 'list_products'] },
+    actions: ['create_deal', 'update_deal', 'add_note', 'list_products', 'list_deals'] },
   { provider: 'salesforce', toolkit: 'salesforce', name: 'Salesforce', category: 'crm', managedAuth: true,
     description: 'An opportunity per bid with stage, value and deadline.',
     whatItDoes: 'Creates or updates one opportunity per tender or quote (stage, amount, close date) and attaches a note with the verdict and its reasons.',

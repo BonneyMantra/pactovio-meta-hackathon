@@ -3,6 +3,7 @@ import { runAction } from '@pactovio/connectors';
 import { computeStats, deriveStyle, extractProposal, type Extraction } from '@pactovio/brain';
 import type { StepLogger } from '@pactovio/models';
 import { randomToken } from './db';
+import { syncOutcomes } from './brain-outcomes';
 import { addEvent, learnedDocs, saveBrain, type BrainEnv } from './brain-store';
 
 export const MAX_FILES = 60;
@@ -97,6 +98,13 @@ export async function failStep(env: BrainEnv, p: LearnParams, d: DocRef, index: 
 
 /** Step 3: style (Spark, grounded in refs) + stats (code) from everything this workspace has learned. */
 export async function deriveStep(env: BrainEnv, p: LearnParams): Promise<{ proposals: number }> {
+  await addEvent(env.DB, p.workspaceId, p.runId, 'brain.learn.outcomes', { message: 'Reading deal outcomes from HubSpot' });
+  try {
+    const o = await syncOutcomes(env, p.workspaceId);
+    await addEvent(env.DB, p.workspaceId, p.runId, 'brain.learn.outcomes', { message: `Matched ${o.outcomes} deal outcomes`, ...o });
+  } catch (e) {
+    await addEvent(env.DB, p.workspaceId, p.runId, 'brain.learn.outcomes', { message: 'HubSpot deals unavailable; keeping outcomes read from the PDFs', error: e instanceof Error ? e.message : 'failed' });
+  }
   await addEvent(env.DB, p.workspaceId, p.runId, 'brain.learn.deriving', {});
   const docs = await learnedDocs(env.DB, p.workspaceId);
   if (docs.length < 3) throw new Error(`Only ${docs.length} proposals could be read; at least 3 are needed to learn a style.`);

@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { Env } from '@pactovio/contracts/env';
 import { mapHubspotProduct } from '@pactovio/brain';
@@ -77,5 +79,25 @@ describe('catalogue upsert', () => {
   it('is tenant scoped', async () => {
     const r = await upsertCatalogue(env.DB, b.workspace, raw);
     expect(r.imported).toBe(2);
+  });
+});
+
+describe('outcome join in the brain', () => {
+  it('uses stored HubSpot outcomes by ref and falls back to the PDF value', async () => {
+    const { learnedDocs } = await import('../src/lib/brain-store');
+    const p = (ref: string, status: string) => JSON.stringify({ ...JSON.parse(readFileSync(join(__dirname, '../../../packages/brain/test/fixtures/RAX-PR-2025-041.json'), 'utf8')), ref, outcome: { status, decided_on: null, reason: 'r' }, implementation_plan: JSON.parse(readFileSync(join(__dirname, '../../../packages/brain/test/fixtures/RAX-PR-2025-041.json'), 'utf8')).implementation_plan.map((s: object) => ({ start_week: null, ...s })), commercials: { ...JSON.parse(readFileSync(join(__dirname, '../../../packages/brain/test/fixtures/RAX-PR-2025-041.json'), 'utf8')).commercials, note: null } });
+    const now = new Date().toISOString();
+    await env.DB.batch([
+      env.DB.prepare("INSERT INTO brain_documents (id, workspace_id, run_id, drive_file_id, filename, status, proposal_ref, proposal_json, updated_at) VALUES ('bdoc_p1', ?, 'brn_aaaaaaaaaaaaaaaaaaaa', 'f2', 'b.pdf', 'done', 'RAX/PR/2025/002', ?, ?)").bind(a.workspace, p('RAX/PR/2025/002', 'pending'), now),
+      env.DB.prepare("INSERT INTO brain_documents (id, workspace_id, run_id, drive_file_id, filename, status, proposal_ref, proposal_json, updated_at) VALUES ('bdoc_p2', ?, 'brn_aaaaaaaaaaaaaaaaaaaa', 'f3', 'c.pdf', 'done', 'RAX/PR/2025/003', ?, ?)").bind(a.workspace, p('RAX/PR/2025/003', 'pending'), now),
+      env.DB.prepare("INSERT INTO brain_outcomes (workspace_id, ref, status, decided_on, amount_inr, deal_id, dealname, synced_at) VALUES (?, 'RAX/PR/2025/002', 'won', '2025-05-05', 1, 'd1', 'RAX/PR/2025/002 · x', ?)").bind(a.workspace, now),
+      env.DB.prepare("INSERT INTO brain_outcomes (workspace_id, ref, status, decided_on, amount_inr, deal_id, dealname, synced_at) VALUES (?, 'RAX/PR/2025/003', 'lost', '2025-05-05', 1, 'd2', 'RAX/PR/2025/003 · x', ?)").bind(b.workspace, now),
+    ]);
+    const docs = await learnedDocs(env.DB, a.workspace);
+    const by = Object.fromEntries(docs.map((d) => [d.proposal.ref, d]));
+    expect(by['RAX/PR/2025/002']!.proposal.outcome.status).toBe('won');
+    expect(by['RAX/PR/2025/002']!.outcome_source).toBe('hubspot');
+    expect(by['RAX/PR/2025/003']!.proposal.outcome.status).toBe('pending'); // B's deal never leaks into A
+    expect(by['RAX/PR/2025/003']!.outcome_source).toBe('pdf');
   });
 });

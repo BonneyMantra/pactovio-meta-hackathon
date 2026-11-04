@@ -1,9 +1,10 @@
 import type { Env } from '@pactovio/contracts/env';
-import { ProposalSchema, computeStats, indexRow, type BrainStats, type CompanyBrain, type Proposal, type ProposalIndexRow, type StyleProfile } from '@pactovio/brain';
+import { ProposalSchema, applyOutcomes, computeStats, indexRow, type BrainStats, type CompanyBrain, type Proposal, type ProposalIndexRow, type StyleProfile } from '@pactovio/brain';
 import { randomToken } from './db';
+import { storedOutcomes } from './brain-outcomes';
 
 export type BrainEnv = Env & { BRAIN?: Workflow };
-export const EVENT_TYPES = ['brain.learn.started', 'brain.learn.file_started', 'brain.learn.file_done', 'brain.learn.file_failed', 'brain.learn.deriving', 'brain.learn.completed', 'brain.learn.failed'] as const;
+export const EVENT_TYPES = ['brain.learn.started', 'brain.learn.file_started', 'brain.learn.file_done', 'brain.learn.file_failed', 'brain.learn.outcomes', 'brain.learn.deriving', 'brain.learn.completed', 'brain.learn.failed'] as const;
 export type BrainEventType = (typeof EVENT_TYPES)[number];
 
 export async function addEvent(db: D1Database, ws: string, runId: string, type: BrainEventType, payload: Record<string, unknown>): Promise<void> {
@@ -12,7 +13,7 @@ export async function addEvent(db: D1Database, ws: string, runId: string, type: 
     .bind(`be_${randomToken(8)}`, ws, runId, type, JSON.stringify(payload), new Date().toISOString(), runId).run();
 }
 
-export interface LearnedDoc { proposal: Proposal; section_order: string[]; voice_notes: string[]; filename: string }
+export interface LearnedDoc { outcome_source: 'hubspot' | 'pdf'; proposal: Proposal; section_order: string[]; voice_notes: string[]; filename: string }
 
 /** Latest-read document wins when two Drive files carry the same proposal ref. */
 export async function learnedDocs(db: D1Database, ws: string): Promise<LearnedDoc[]> {
@@ -22,13 +23,15 @@ export async function learnedDocs(db: D1Database, ws: string): Promise<LearnedDo
   for (const r of rows) {
     const parsed = ProposalSchema.safeParse(JSON.parse(r.proposal_json));
     if (!parsed.success) continue;
-    byRef.set(parsed.data.ref, { proposal: parsed.data, filename: r.filename, section_order: JSON.parse(r.section_order_json ?? '[]'), voice_notes: JSON.parse(r.voice_notes_json ?? '[]') });
+    byRef.set(parsed.data.ref, { outcome_source: 'pdf', proposal: parsed.data, filename: r.filename, section_order: JSON.parse(r.section_order_json ?? '[]'), voice_notes: JSON.parse(r.voice_notes_json ?? '[]') });
   }
-  return [...byRef.values()];
+  // Outcomes come from the CRM deals (joined by ref); refs without a deal keep the PDF-derived value.
+  const joined = applyOutcomes([...byRef.values()].map((d) => d.proposal), await storedOutcomes(db, ws));
+  return [...byRef.values()].map((d, i) => ({ ...d, proposal: joined[i]!.proposal, outcome_source: joined[i]!.outcome_source }));
 }
 
 export async function proposalIndex(db: D1Database, ws: string): Promise<ProposalIndexRow[]> {
-  return (await learnedDocs(db, ws)).map((d) => indexRow(d.proposal, d.filename)).sort((a, b) => b.date.localeCompare(a.date));
+  return (await learnedDocs(db, ws)).map((d) => ({ ...indexRow(d.proposal, d.filename), outcome_source: d.outcome_source })).sort((a, b) => b.date.localeCompare(a.date));
 }
 
 export async function saveBrain(db: D1Database, ws: string, runId: string, style: StyleProfile, stats: BrainStats, count: number): Promise<void> {

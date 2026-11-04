@@ -37,7 +37,26 @@ function pagingAfter(data: unknown): string | null {
   return deepFind(paging, ['after']);
 }
 
+/** Page through a HubSpot CRM object list (100 per page). */
+async function listObjects(ctx: ActionCtx, object: string, properties: string, extra: Record<string, string> = {}): Promise<unknown[]> {
+  const out: unknown[] = [];
+  let after: string | undefined;
+  for (let page = 0; page < MAX_PRODUCT_PAGES; page++) {
+    const r = await ctx.proxy({ endpoint: `/crm/v3/objects/${object}`, method: 'GET', query: { limit: '100', properties, ...extra, ...(after ? { after } : {}) } });
+    if (r.status >= 400) throw new ActionError(`HubSpot ${object} list failed (${r.status})`);
+    out.push(...(deepFindArray(r.data, ['results']) ?? []));
+    after = pagingAfter(r.data) ?? undefined;
+    if (!after) break;
+  }
+  return out;
+}
+
 export const hubspot: ProviderActions = {
+  list_deals: {
+    summary: 'Read every deal (name, amount, stage, close date, pipeline)',
+    run: async (i, ctx) => ({ id: null, details: { deals: await listObjects(ctx, 'deals', String(i.properties ?? 'dealname,amount,dealstage,closedate,pipeline')) } }),
+    sample: () => ({}),
+  },
   list_products: {
     summary: 'Read every product in the HubSpot product library (all pages)',
     run: async (i, ctx) => {

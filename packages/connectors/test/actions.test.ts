@@ -38,7 +38,7 @@ const INPUTS: Record<string, Record<string, Record<string, unknown>>> = {
 const CONFIGURED: Record<string, Record<string, unknown>> = { gmail: { trigger: { id: 'ti_1' } }, outlook: { trigger: { id: 'ti_2' } } };
 
 /** Read-only Company Brain readers: covered in brain-actions.test.ts. */
-const READERS = new Set(['list_products', 'list_folders', 'list_files', 'download_file']);
+const READERS = new Set(['list_products', 'list_deals', 'list_folders', 'list_files', 'download_file']);
 const cases = PROVIDERS.flatMap((p) => Object.keys(PROVIDER_ACTIONS[p.provider]!).filter((a) => !READERS.has(a)).map((action) => [`${p.provider}.${action}`, p.provider, action] as const));
 
 describe('every provider action builds tool calls the live Composio schemas accept', () => {

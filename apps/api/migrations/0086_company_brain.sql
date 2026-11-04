@@ -57,3 +57,16 @@ CREATE TABLE company_brain (
   run_id TEXT,
   learned_at TEXT
 );
+
+-- Deal outcomes read from the workspace's HubSpot, joined to proposals by ref.
+CREATE TABLE brain_outcomes (
+  workspace_id TEXT NOT NULL REFERENCES workspaces(id),
+  ref TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('won','lost','pending')),
+  decided_on TEXT,
+  amount_inr INTEGER,
+  deal_id TEXT NOT NULL,
+  dealname TEXT NOT NULL,
+  synced_at TEXT NOT NULL,
+  PRIMARY KEY (workspace_id, ref)
+);
