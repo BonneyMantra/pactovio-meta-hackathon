@@ -7,6 +7,7 @@ import {
 } from '@pactovio/sources';
 import type { OnboardingState } from './onboarding-state';
 import { withBrain } from './opportunity-brain';
+import { cpvWords } from './opportunity-cpv';
 import { proposalIndex } from './brain-store';
 import { assessNotices, profileHash, readScores } from './opportunity-assess';
 import { countryName, noticeValue, toNotice } from './opportunity-notice';
@@ -29,6 +30,9 @@ export function fitTerms(state: OnboardingState & { brainText?: string }): strin
   return [...new Set([...own.slice(0, 60), ...brain])].slice(0, 160);
 }
 const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+/** Whole words only (plural allowed): "panel" must not match inside an unrelated word. */
+const wordSet = (s: string) => new Set(s.split(/[^\p{L}\p{N}-]+/u).filter(Boolean));
+const has = (w: Set<string>, term: string) => w.has(term) || w.has(`${term}s`) || w.has(`${term}es`);
 const haystack = (t: ViewTender) => fold([t.title, t.buyer, ...t.lots.map((l) => l.title), typeof t.raw?.description === 'string' ? t.raw.description : ''].join(' '));
 
 /** The user's own country and region first, then regions and countries named in their markets. */
@@ -99,8 +103,8 @@ export async function searchOpportunities(env: Env, _workspace: string, state: O
   const rows: Row[] = pool.map((t) => {
     const code = iso2(t.country), region = code ? regionOf(code) : null, words = haystack(t);
     const place = code && (code === prio.country || prio.countries.has(code)) ? 3 : region && prio.regions.has(region) ? 2 : 0;
-    const head = fold([t.title, ...t.lots.map((l) => l.title)].join(' '));
-    const inHead = terms.filter((x) => head.includes(x)).length, inBody = terms.filter((x) => words.includes(x)).length - inHead;
+    const head = wordSet(fold([t.title, ...t.lots.map((l) => l.title), cpvWords(t.cpv ?? [])].join(' '))), body = wordSet(words);
+    const inHead = terms.filter((x) => has(head, x)).length, inBody = terms.filter((x) => !has(head, x) && has(body, x)).length;
     return { t, key: viewKey(t), code, region, domains: noticeDomains(t), words, score: scores[viewKey(t)], heuristic: place * 10 + Math.min(inHead * 3 + inBody, 24) };
   });
   const q = fold(input.q ?? '').split(/\s+/).filter(Boolean);

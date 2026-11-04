@@ -20,3 +20,13 @@ describe('tender ranking terms', () => {
     expect(fitTerms(state())).toEqual(expect.arrayContaining(['fpga', 'layout']));
   });
 });
+
+describe('CPV category words', () => {
+  it('gives foreign-language notices English category words from their CPV codes, longest prefix first', async () => {
+    const { cpvWords } = await import('../src/lib/opportunity-cpv');
+    expect(cpvWords(['31625200'])).toContain('alarm');
+    expect(cpvWords(['32323500'])).toContain('surveillance');
+    expect(cpvWords(['32323500'])).not.toContain('radio'); // the specific video-surveillance group beats division 32
+    expect(cpvWords(['33100000'])).toBe('');
+  });
+});
