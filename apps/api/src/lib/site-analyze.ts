@@ -22,7 +22,7 @@ export interface SiteAnalysis {
 
 const PROMPT = `You summarise a supplier's own website for their sales profile. Use ONLY the page text provided.
 Every item must cite source_url: the exact URL header of the page where it appears. Omit anything not stated on those pages.
-customers ("who you serve"): customer types (e.g. "Water utilities", "Hospital laboratories") or named customer organisations, only when the pages explicitly state them as customers, clients or who the company serves.
+customers ("who you serve"): customer types (e.g. "Water utilities", "Hospital laboratories", "Banks") or named customer organisations, only when the pages explicitly state them as customers, clients or who the company serves; sectors listed under a heading such as "Industries we serve" or "Who we serve" count as customer types.
 markets: industries or regions served.
 offerings: names of products or services sold (max 6 words each, no slogans, sentences or counts). capabilities: short capability phrases (max 8 words).
 country: ISO 3166-1 alpha-2 of the company's stated headquarters only if an address states it, else null.

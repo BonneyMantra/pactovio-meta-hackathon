@@ -70,3 +70,12 @@
 .lr-phase-ok { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #006d96; color: #fff; }
 .lr-phrase { margin: 0; padding: 10px 12px; border-left: 2px solid #006d96; background: var(--surface-2); border-radius: 0 8px 8px 0; font-size: 13px; line-height: 1.45; color: var(--ink); animation: lr-in 420ms var(--ease) backwards; }
 .lr-pick .ob-connect { margin: 8px 0 4px; }
+/* "Who you serve" picker when the website does not say */
+.ob-pickhint { margin-bottom: 6px; }
+.ob-pickchip { cursor: pointer; font-family: inherit; border: 0; background: #fff; transition: background 160ms, box-shadow 160ms, color 160ms; }
+.ob-pickchip:hover { box-shadow: 0 0 0 0.5px var(--ink-3); color: var(--ink); }
+.ob-pickchip[aria-pressed=true] { background: #eef6f9; box-shadow: 0 0 0 1px #006d96; color: #00506e; }
+.ob-addwho { margin-top: 8px; max-width: 320px; height: 34px; font-size: 13px; }
+/* Learning view at tablet widths: the tall reading column no longer stretches the gap between the two right panels */
+@media (max-width: 1100px) and (min-width: 681px) { .lr-body { grid-template-rows: auto 1fr; } .lr-mid { align-self: start; } }
+@media (max-width: 680px) { .ob-src-list { margin-left: 0; width: 100%; } .ob-src-list a { line-height: 1.6; white-space: nowrap; } }

@@ -11,6 +11,9 @@ import { readyStep } from './onb/ready.js';
 import { learningView } from './brain/learning.js';
 
 const STEPS = ['Company', 'Catalogue', 'Proposals', 'Ready'];
+const listed = (xs) => Array.isArray(xs) && xs.some((x) => String(x || '').trim());
+// Same mandatory profile values the API checks before setup can complete (apps/api/src/lib/company-required.ts).
+const profileReady = (p = {}) => String(p.description || '').trim().length >= 20 && listed(p.offerings) && listed(p.markets) && listed(p.customers);
 const SKIP = 'pv:onb-skip:';
 const skipped = (ws, k) => { try { return sessionStorage.getItem(SKIP + ws + k) === '1'; } catch { return false; } };
 const skip = (ws, k) => { try { sessionStorage.setItem(SKIP + ws + k, '1'); } catch { /* optional */ } };
@@ -42,7 +45,8 @@ export async function renderOnboarding(root, session, onComplete, onLogout) {
       const [c, conns, products, learn] = await Promise.all([getCompany(), connectionState(), hubspotProducts().catch(() => []), learnProgress().catch(() => null)]);
       if (disposed) return;
       const company = c.company || {};
-      if (!companyReady(company)) return show(0, (b) => websiteStep(b, { company, workspace: ws, onNext: resolve }));
+      const incomplete = Array.isArray(c.required_missing) ? c.required_missing.length > 0 : !profileReady(c.profile || {});
+      if (!companyReady(company) || incomplete) return show(0, (b) => websiteStep(b, { company, workspace: ws, onNext: resolve }));
       if (!skipped(ws, 'crm') && (conns.hubspot !== 'connected' || !products.length)) {
         const next = () => { skip(ws, 'crm'); resolve(); };
         return show(1, (b) => catalogueStep(b, { connection: conns.hubspot, onNext: next, onSkip: next }), conns.hubspot === 'connected');
@@ -50,9 +54,10 @@ export async function renderOnboarding(root, session, onComplete, onLogout) {
       if (!skipped(ws, 'files') && learn?.status !== 'done') {
         return show(2, (b) => {
           const wrap = h('div'), foot = h('div.ob-actions.ob-skip', h('button.btn.btn-ghost.btn-sm', { type: 'button', onclick: () => { skip(ws, 'files'); resolve(); } }, 'Skip for now'));
-          b.append(wrap, learn?.status === 'running' ? null : foot);
+          b.append(wrap);
+          if (learn?.status !== 'running') b.append(foot);
           return learningView(wrap, { returnTo: '/app#/onboarding', onStart: () => foot.remove(), onDone: () => { foot.remove(); skip(ws, 'files'); resolve(); } });
-        }, conns.googledrive === 'connected');
+        }, true);
       }
       show(3, (b) => { let d = null; readyStep(b, { onComplete, companyName: company.name }).then((x) => { d = x; }); return () => d?.(); });
     } catch (e) { if (!disposed) gateError(root, e, resolve); }

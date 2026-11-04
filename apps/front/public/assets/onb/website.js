@@ -36,10 +36,11 @@ export function websiteStep(root, { company, workspace, onNext }) {
   function reveal(site, r) {
     const d = r.draft || {};
     const chips = (label, items) => (items?.length ? h('div.ob-row', h('div.ob-k', label), h('div.ob-chips', items.slice(0, 10).map((t, i) => h('span.chip.outline', { style: { animationDelay: `${600 + i * 60}ms` } }, t)))) : null);
+    const who = servedPicker(d.customers, d.markets);
     const profile = h('div.ob-profile',
       h('div.ob-row', h('div.ob-k', 'Company'), h('div.ob-name', d.name || '—')),
       d.description ? h('div.ob-row', h('div.ob-k', 'What you do'), h('p.ob-desc', d.description)) : null,
-      chips('Offerings', d.offerings), chips('Who you serve', d.customers), chips('Markets', d.markets),
+      chips('Offerings', d.offerings), who.el, chips('Markets', d.markets),
       h('div.ob-row.ob-two',
         h('div', h('div.ob-k', 'Country'), h('div', d.country ? COUNTRY(d.country) : h('span.muted', 'Not stated on the site'))),
         h('div', h('div.ob-k', 'Segment'), h('div', d.supplier_segment ? SEG[d.supplier_segment] : h('span.muted', 'Choose below')))),
@@ -50,9 +51,11 @@ export function websiteStep(root, { company, workspace, onNext }) {
     const complete = draft.name?.length >= 2 && /^[A-Z]{2}$/.test(draft.country || '') && draft.supplier_segment && draft.capabilities.length;
     const save = h('button.btn.btn-primary', { type: 'button', onclick: async () => {
       if (!complete) return manual({ ...company, ...draft });
+      const customers = who.values();
+      if (!customers.length) { status.textContent = 'Choose at least one type of customer you serve.'; who.focus(); return; }
       save.disabled = true; status.textContent = 'Saving your profile…';
       try {
-        await api('/onboarding', { method: 'PATCH', body: { company: draft, profile: { description: d.description || '', offerings: (d.offerings || []).slice(0, 50), customers: (d.customers || []).slice(0, 50), markets: (d.markets || []).slice(0, 50), sources: (r.sources || []).slice(0, 10).map((s) => ({ url: s.url, title: String(s.title || '').slice(0, 200) })) } } });
+        await api('/onboarding', { method: 'PATCH', body: { company: draft, profile: { description: d.description || '', offerings: (d.offerings || []).slice(0, 50), customers: customers.slice(0, 50), markets: (d.markets || []).slice(0, 50), sources: (r.sources || []).slice(0, 10).map((s) => ({ url: s.url, title: String(s.title || '').slice(0, 200) })) } } });
         if (!disposed) onNext();
       } catch (e) { if (!disposed) { status.textContent = friendlyError(e); save.disabled = false; } }
     } }, complete ? 'Looks right — continue' : 'Complete the details', icon('arrow', 15));
@@ -67,4 +70,28 @@ export function websiteStep(root, { company, workspace, onNext }) {
     root.querySelector('input')?.focus();
   }
   return () => { disposed = true; form?.dispose(); };
+}
+
+/** "Who you serve": the site's own statement when it has one; otherwise the person picks from the sectors read on the site or types one. */
+function servedPicker(found = [], markets = []) {
+  const picked = new Set(found);
+  const label = h('div.ob-k', 'Who you serve');
+  if (found.length) return { el: h('div.ob-row', label, h('div.ob-chips', found.slice(0, 10).map((t, i) => h('span.chip.outline', { style: { animationDelay: `${600 + i * 60}ms` } }, t)))), values: () => [...picked], focus() {} };
+  const list = h('div.ob-chips.ob-pick', { role: 'group', 'aria-label': 'Who you serve' });
+  const toggle = (t) => h('button.chip.outline.ob-pickchip', { type: 'button', 'aria-pressed': 'false', onclick: (e) => {
+    const on = !picked.has(t); on ? picked.add(t) : picked.delete(t); e.currentTarget.setAttribute('aria-pressed', String(on));
+  } }, t);
+  markets.slice(0, 10).forEach((t) => list.append(toggle(t)));
+  const input = h('input.input.ob-addwho', { type: 'text', maxlength: 80, placeholder: 'Add a customer type, e.g. Banks', 'aria-label': 'Add a customer type', onkeydown: (e) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const t = input.value.trim();
+    if (!t || picked.has(t)) return;
+    const b = toggle(t); list.append(b); b.click(); input.value = '';
+  } });
+  return {
+    el: h('div.ob-row', label, h('div', h('div.xs.muted.ob-pickhint', markets.length ? 'Not stated on the site. Tap the sectors you sell to, or add one.' : 'Not stated on the site. Add the customer types you sell to.'), list, input)),
+    values: () => { const t = input.value.trim(); if (t) picked.add(t); return [...picked]; },
+    focus: () => (list.querySelector('button') || input).focus(),
+  };
 }
