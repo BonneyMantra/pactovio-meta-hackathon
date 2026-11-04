@@ -55,8 +55,8 @@ export function livePanel() {
   const el = h('div.lr-live',
     h('div.lr-live-head', icon('brain', 16), h('span', 'Company Brain'), h('span.lr-pulse')),
     h('div.lr-kpis', h('div', h('div.xs.muted', 'Proposals'), count), h('div', h('div.xs.muted', 'Win rate'), win), h('div', h('div.xs.muted', 'Value read'), val)),
-    h('div.lr-sub', 'How work is sold'), mix,
-    h('div.lr-sub', 'Sectors'), sectors, style);
+    h('div.lr-sub.lr-so-far', 'How work is sold'), mix,
+    h('div.lr-sub.lr-so-far', 'Sectors'), sectors, style);
   function update(ev) {
     seen.push(ev);
     const won = seen.filter((x) => x.outcome === 'won').length, lost = seen.filter((x) => x.outcome === 'lost').length;
@@ -75,6 +75,8 @@ export function livePanel() {
     if (st && st.won + st.lost) countUp(win, (st.won / (st.won + st.lost)) * 100, (v) => `${Math.round(v)}%`, 500);
     const order = b?.style?.section_order || [], voice = b?.style?.voice_rules?.[0]?.text, terms = b?.style?.payment_terms;
     const at = (i) => ({ style: { animationDelay: `${i * 80}ms` } });
+    // Once the brain is derived, the running tallies make way for what it learned (fits a 800px-high screen).
+    if (order.length || voice || terms) [mix, sectors, ...el.querySelectorAll('.lr-so-far')].forEach((x) => { x.hidden = true; });
     style.replaceChildren(
       order.length ? h('div.lr-sub', 'Your section order') : null,
       order.length ? h('ol.lr-order', order.map((s, i) => h('li', at(i), s))) : null,

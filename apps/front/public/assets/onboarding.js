@@ -60,7 +60,7 @@ export async function renderOnboarding(root, session, onComplete, onLogout) {
         const folder = run?.folder?.name;
         s.mode('wide').ask(stepNav(STEPS, 2), h('div.pv-heading', h('h1', { tabindex: '-1' }, 'Learning from your proposals'),
           h('p.pv-lede', `Muse Spark is reading every proposal${folder ? ` in ${folder}` : ''}: structure, prices, products and voice. Each one is then matched to its HubSpot deal to learn which bids you won.`)),
-        h('p.pv-rail-note', icon('clock', 14), 'A full folder takes a few minutes. You can keep this page open.'));
+        h('p.pv-rail-note', icon('clock', 14), 'A full folder takes a minute or two. You can keep this page open.'));
         s.work(view);
       },
       onDone: () => { skip(ws, 'files'); resolve(); },
