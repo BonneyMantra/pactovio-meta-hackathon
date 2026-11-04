@@ -1,0 +1,276 @@
+{
+  "ref": "RAX/PR/2025/088",
+  "revision": "R0",
+  "date": "2025-09-12",
+  "validity_days": 60,
+  "client": {
+    "name": "Marutham Pharma Distributors Pvt Ltd",
+    "sector": "Pharmaceutical distribution",
+    "city": "Coimbatore",
+    "country": "India",
+    "contact_name": "Ms. Revathi Narayanan",
+    "contact_title": "Head, Quality Assurance & Logistics"
+  },
+  "rfq_ref": "MPD/QA/CC/2025/014 dated 31 August 2025",
+  "title": "Cold-Chain Temperature Monitoring for 6 Distribution Centres and 14 Reefer Vehicles",
+  "solution_type": "own_products",
+  "executive_summary": "Thank you for your RFQ MPD/QA/CC/2025/014 dated 31 August 2025. Rax Tech International is pleased to submit our technical and commercial proposal for continuous cold-chain monitoring across six distribution centres and fourteen reefer vehicles of Marutham Pharma Distributors Pvt Ltd.\n\nOur proposal is built entirely from Rax products, designed and manufactured in-house at our Chennai facility: Deep Freezer IoT units for the 2-8 °C and freezer units, Temperature and Humidity sensors for cold rooms, Asset Tracking Units for vehicles, an Industrial Edge IoT Gateway at each centre and an Auto Dialer for the first-line escalation. All data flows into the Rax IoT Platform, which provides audit-ready temperature records, excursion alerts and report generation aligned with GDP practice.\n\nBecause every element is a Rax product, you receive single-window support for hardware, firmware, platform and service. The programme is completed in 10 weeks from order and the total project value is ₹9,47,922 including GST. This offer is valid for 60 days. We look forward to your valued order.",
+  "requirement_understanding": [
+    "Continuous temperature monitoring of 24 deep freezers and refrigerators across six distribution centres.",
+    "Temperature and humidity mapping of 36 cold-room and storage points with audit-ready logs.",
+    "Live temperature and location monitoring of 14 reefer vehicles in transit.",
+    "Excursion alerts by app notification, SMS and automated voice call, with escalation after 15 minutes.",
+    "Tamper-evident, time-stamped records retained for at least 3 years and exportable for regulatory audits.",
+    "Minimal disturbance to daily dispatch operations during installation."
+  ],
+  "solution_overview": "Every refrigerated asset is fitted with a Rax sensing device. Deep freezers use the GSM Deep Freezer IoT unit, which logs temperature locally and continues to transmit over 4G if the centre's Wi-Fi fails. Cold rooms use fixed temperature and humidity sensors reporting to the centre's Industrial Edge IoT Gateway, which buffers readings during connectivity loss. Reefer vehicles carry an Asset Tracking Unit reporting position and trailer temperature.\n\nAll devices register to the Rax IoT Platform, which provides dashboards, calibration-date tracking, excursion alarms and one-click audit reports. A Rax Auto Dialer at each centre places a voice call to the duty manager if an alert is not acknowledged. Because the platform and devices are designed and manufactured by Rax, support for the complete chain is provided with single-window accountability from our Chennai service desk.",
+  "architecture": {
+    "nodes": [
+      {
+        "id": "dfi",
+        "label": "Rax Deep Freezer IoT (24 units)",
+        "kind": "rax_product"
+      },
+      {
+        "id": "th",
+        "label": "Rax Temp and Humidity sensors (36)",
+        "kind": "rax_product"
+      },
+      {
+        "id": "atu",
+        "label": "Rax Asset Tracking Units (14 vehicles)",
+        "kind": "rax_product"
+      },
+      {
+        "id": "gw",
+        "label": "Rax Industrial Edge IoT Gateway (6)",
+        "kind": "rax_product"
+      },
+      {
+        "id": "plat",
+        "label": "Rax IoT Platform",
+        "kind": "rax_product"
+      },
+      {
+        "id": "dial",
+        "label": "Rax Auto Dialer 4G (6)",
+        "kind": "rax_product"
+      },
+      {
+        "id": "qa",
+        "label": "QA team: app, SMS, audit reports",
+        "kind": "client_system"
+      }
+    ],
+    "links": [
+      {
+        "from": "th",
+        "to": "gw",
+        "label": "RS-485"
+      },
+      {
+        "from": "gw",
+        "to": "plat",
+        "label": "4G / MQTT"
+      },
+      {
+        "from": "dfi",
+        "to": "plat",
+        "label": "GSM"
+      },
+      {
+        "from": "atu",
+        "to": "plat",
+        "label": "4G GPS"
+      },
+      {
+        "from": "plat",
+        "to": "dial",
+        "label": "escalation"
+      },
+      {
+        "from": "plat",
+        "to": "qa",
+        "label": "alerts, reports"
+      }
+    ]
+  },
+  "scope_of_supply": [
+    {
+      "sku": "RT-DFI-G",
+      "description": "Deep Freezer IoT (GSM) for freezers and 2-8 °C refrigerators",
+      "type": "rax_product",
+      "qty": 24,
+      "unit": "each",
+      "unit_price_inr": 7800,
+      "amount_inr": 187200
+    },
+    {
+      "sku": "RT-THD-M",
+      "description": "Temperature and humidity sensor, cold-room and storage mapping",
+      "type": "rax_product",
+      "qty": 36,
+      "unit": "each",
+      "unit_price_inr": 3400,
+      "amount_inr": 122400
+    },
+    {
+      "sku": "RT-ATU-W",
+      "description": "Asset Tracking Unit with temperature probe input, reefer vehicles",
+      "type": "rax_product",
+      "qty": 14,
+      "unit": "each",
+      "unit_price_inr": 5200,
+      "amount_inr": 72800
+    },
+    {
+      "sku": "RT-IEI-E-G0",
+      "description": "Industrial Edge IoT Gateway, one per distribution centre",
+      "type": "rax_product",
+      "qty": 6,
+      "unit": "each",
+      "unit_price_inr": 14500,
+      "amount_inr": 87000
+    },
+    {
+      "sku": "RT-ADG-G0",
+      "description": "Auto Dialer 4G for voice escalation, one per centre",
+      "type": "rax_product",
+      "qty": 6,
+      "unit": "each",
+      "unit_price_inr": 6200,
+      "amount_inr": 37200
+    },
+    {
+      "sku": "RT-SW-FIOT",
+      "description": "Rax IoT Platform, one year licence for up to 100 devices",
+      "type": "rax_product",
+      "qty": 1,
+      "unit": "per 100 devices per year",
+      "unit_price_inr": 48000,
+      "amount_inr": 48000
+    },
+    {
+      "sku": "SVC-SURVEY",
+      "description": "Site survey and sensor placement plan, per centre",
+      "type": "service",
+      "qty": 6,
+      "unit": "per site",
+      "unit_price_inr": 12000,
+      "amount_inr": 72000
+    },
+    {
+      "sku": "SVC-INSTALL",
+      "description": "Installation, calibration check and commissioning, per centre",
+      "type": "service",
+      "qty": 6,
+      "unit": "per site",
+      "unit_price_inr": 35000,
+      "amount_inr": 210000
+    },
+    {
+      "sku": "SVC-TRAINING",
+      "description": "QA team and logistics training (2 days)",
+      "type": "service",
+      "qty": 2,
+      "unit": "per day",
+      "unit_price_inr": 9000,
+      "amount_inr": 18000
+    }
+  ],
+  "custom_engineering": [],
+  "implementation_plan": [
+    {
+      "name": "Survey & sensor mapping",
+      "weeks": 2,
+      "deliverables": "Placement plan and calibration schedule for all 6 centres."
+    },
+    {
+      "name": "Supply & configuration",
+      "weeks": 4,
+      "start_week": 2,
+      "deliverables": "Devices configured, labelled and registered on the platform."
+    },
+    {
+      "name": "Installation & commissioning",
+      "weeks": 3,
+      "start_week": 6,
+      "deliverables": "Devices live at all centres and on 14 vehicles."
+    },
+    {
+      "name": "Training & report sign-off",
+      "weeks": 1,
+      "start_week": 10,
+      "deliverables": "QA training, first audit report, handover certificate."
+    }
+  ],
+  "warranty_amc": {
+    "warranty_months_from_commissioning": 12,
+    "warranty_months_from_dispatch": 18,
+    "amc_pct_of_hardware": 10,
+    "amc_hardware_base_inr": 506600,
+    "amc_annual_inr": 50660,
+    "text": "All Rax products carry a warranty of 12 months from the date of commissioning or 18 months from the date of dispatch, whichever is earlier. The IoT Platform licence includes software updates and support during the licence year. Faulty units are replaced within 3 working days."
+  },
+  "assumptions": [
+    "Mains power and a Wi-Fi or Ethernet point are available within 3 metres of each gateway location.",
+    "Vehicles are made available for 2 hours each for device installation at the Coimbatore depot.",
+    "Each sensor position shall be agreed in the site survey and approved by the QA head.",
+    "The platform licence covers up to 100 devices; the 80 devices in this offer leave headroom for expansion."
+  ],
+  "exclusions": [
+    "Calibration certificates from NABL laboratories; Rax provides factory calibration records only.",
+    "Reefer unit repairs, vehicle wiring modifications beyond the sensor connection.",
+    "Mobile data cost for vehicle trackers beyond the first month.",
+    "Civil and electrical works, and statutory approvals."
+  ],
+  "compliance": [
+    {
+      "requirement": "ISO 9001:2015 certified manufacturer",
+      "status": "complies",
+      "remark": "Certificate IND.25.902/QM/U, Bureau Veritas."
+    },
+    {
+      "requirement": "RoHS compliant electronics",
+      "status": "complies",
+      "remark": "All units RoHS compliant."
+    },
+    {
+      "requirement": "Temperature accuracy of ±0.5 °C in the 2-8 °C range",
+      "status": "complies",
+      "remark": "Factory calibrated; records provided per device."
+    },
+    {
+      "requirement": "3-year tamper-evident audit trail",
+      "status": "complies",
+      "remark": "Time-stamped, append-only logs retained for 3 years on the platform."
+    },
+    {
+      "requirement": "NABL-traceable calibration certificates",
+      "status": "deviation",
+      "remark": "Factory calibration supplied; NABL certification can be arranged at actuals."
+    }
+  ],
+  "outcome": {
+    "status": "lost",
+    "decided_on": "2025-10-15",
+    "reason": "Client chose a lower-priced bidder using imported data loggers; Rax was unable to match the 11% price gap without diluting the platform scope."
+  },
+  "prepared_by": {
+    "name": "Divya Ananthakrishnan",
+    "title": "Business Development Manager, IoT Solutions"
+  },
+  "turnaround_days": 12,
+  "commercials": {
+    "supply_subtotal_inr": 854600,
+    "engineering_subtotal_inr": 0,
+    "subtotal": 854600,
+    "discount_pct": 6,
+    "discount_inr": 51276,
+    "taxable_inr": 803324,
+    "gst_pct": 18,
+    "gst_inr": 144598,
+    "total_inr": 947922,
+    "payment_terms": "40% advance with purchase order, 50% on delivery of material at site, 10% on completion of commissioning."
+  }
+}
