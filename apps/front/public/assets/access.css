@@ -72,7 +72,7 @@
    warm white / charcoal, a single inset line on fields, a 2px warm outline on controls, the Aura panel at ≥1024px. */
 .pv-stage { --field: #c58a63; --ring: #b5562a; --muted: #5f5e59; --accent-ink: #9e410d; display: flex; flex-direction: column; min-height: 100svh; background: var(--bg); color: var(--ink); }
 .pv-stage-top { padding: 18px 20px 0; margin-bottom: auto; }
-.pv-stage-top a { display: inline-block; border-radius: 6px; }
+.pv-stage-top a { display: block; width: fit-content; border-radius: 6px; }
 .pv-stage-top img { display: block; width: 124px; height: auto; }
 /* Phones and tablets: the column wrappers dissolve so the agent's work sits between the question and its actions. */
 .pv-stage-center, .pv-ask, .pv-ask-in { display: contents; }
@@ -162,7 +162,7 @@
   .pv-ask { display: block; width: 100%; max-width: 340px; min-width: 0; }
   .pv-ask-in { display: flex; flex-direction: column; gap: 18px; opacity: 0; transform: translateY(10px); transition: opacity 420ms var(--ease), transform 520ms var(--ease); }
   .pv-ask-in.in { opacity: 1; transform: none; }
-  .pv-ask-in > *, .pv-stage:not([data-mode=auth]) .pv-ask-in > * { width: auto; margin: 0; animation: none; }
+  .pv-stage[data-mode] .pv-ask-in > :nth-child(n) { width: auto; margin: 0; animation: none; }
   .pv-stage[data-mode=auth] .pv-ask-in > :last-child { margin-bottom: 0; }
   .pv-stage-foot { grid-area: foot; margin: 0; }
   .pv-stage-center, .pv-stage[data-work=true] .pv-stage-center { align-items: center; padding: 40px 40px 56px; overflow-y: auto; scrollbar-width: thin; }
@@ -171,8 +171,8 @@
   .pv-stage[data-mode=wide] .pv-ask { max-width: none; }
   .pv-stage[data-mode=wide] .pv-stage-foot { padding-left: 32px; padding-right: 28px; }
   .pv-stage[data-mode=wide] .pv-steps li:not([aria-current]) .pv-step-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-  .pv-stage-foot { padding: 0 40px 22px; }
-  .pv-ask-in > .pv-steps { margin-bottom: 8px; }
+  .pv-stage-foot { padding: 0 40px 26px; line-height: 18px; }
+  .pv-stage[data-mode] .pv-ask-in > .pv-steps:nth-child(n) { margin-bottom: 8px; }
   .pv-art, .pv-stage[data-work=true] .pv-art { grid-area: art; display: block; width: auto; padding: 0; margin: 14px 14px 14px 0; border-radius: 18px; overflow: hidden; background: #f4ddc9; }
   .pv-aura { display: block; position: absolute; inset: 0; transition: filter 900ms var(--ease), transform 1200ms var(--ease); }
   .pv-aura img, .pv-aura video { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; }
