@@ -36,7 +36,7 @@ function item(it) {
       h('div.ap-subj', it.title || '(no subject)'),
       st === 'ignored' || st === 'left' ? h('div.xs.muted', { style: { whiteSpace: 'normal' } }, it.reason) : null,
       it.attachments?.length ? h('div.ap-att', it.attachments.map((a) => h('span', icon('clip', 12), a))) : null),
-    h('div.ap-side', st === 'proposal_ready' && p.total_inr ? h('div.ap-val.num', inrShort(p.total_inr)) : null, right));
+    h('div.ap-side', st === 'proposal_ready' && p.total_inr ? h('div.ap-val.num', inrShort(p.total_inr)) : null, st === 'proposal_ready' ? modelChip(modelName(p.model)) : null, right));
 }
 
 async function connectGmail(btn) {

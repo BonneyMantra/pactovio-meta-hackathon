@@ -9,6 +9,10 @@ const FILTERS = [
 ];
 
 function row(it) {
+  // Autopilot opens the intake before Gmail has returned the message; show that honestly instead of an empty RFQ row.
+  if (it.title === '(fetching message)') return h('div.wk-mail', sourceMark(it.source, 32),
+    h('div.wk-mail-main', h('div.wk-mail-top', h('span.wk-sender', 'New email'), h('span.xs.muted.num', fmt.ago(it.received_at))),
+      h('div.wk-mail-subj.muted', 'Reading the message and its attachments…')), h('div.wk-mail-side', h('span.pd-spin')));
   const conf = it.classification?.confidence;
   return h('a.wk-mail', { href: `#/inbox/${encodeURIComponent(it.id)}` },
     sourceMark(it.source, 32),

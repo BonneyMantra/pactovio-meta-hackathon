@@ -74,7 +74,7 @@ async function enrich(env: Env, ws: string, list: Joined[]) {
   const intakeIds = list.map((r) => r.intake_id);
   const propIds = list.flatMap((r) => (r.proposal_id ? [r.proposal_id] : []));
   if (intakeIds.length) {
-    const docs = await rows<{ intake_id: string; filename: string }>(env.DB, `SELECT intake_id, filename FROM documents WHERE intake_id IN (${intakeIds.map(() => '?').join(',')}) ORDER BY filename`, ...intakeIds);
+    const docs = await rows<{ intake_id: string; filename: string }>(env.DB, `SELECT intake_id, filename FROM documents WHERE kind != 'email' AND intake_id IN (${intakeIds.map(() => '?').join(',')}) ORDER BY filename`, ...intakeIds);
     for (const d of docs) files.set(d.intake_id, [...(files.get(d.intake_id) ?? []), d.filename]);
   }
   if (propIds.length) {
