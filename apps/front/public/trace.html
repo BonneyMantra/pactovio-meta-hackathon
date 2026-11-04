@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>A real run, traced — Pactovio</title>
+  <meta name="description" content="One production bid, step by step: Muse Wonder orchestrating Muse Spark, SAM 3.1 and Muse Image on a 120-ATM bank RFP, with every model call's time, tokens and cost." />
+  <link rel="icon" href="/assets/brand/mark.svg?v=65a3b187" type="image/svg+xml" sizes="any" />
+  <link rel="stylesheet" href="/assets/pv.css" />
+  <link rel="stylesheet" href="/assets/landing.css" />
+  <link rel="stylesheet" href="/assets/trace/trace.css" />
+</head>
+<body>
+<header class="l-nav" id="nav"><div class="container in">
+  <a class="l-logo" href="/" aria-label="Pactovio home"><img class="lockup" src="/assets/brand/lockup.svg" alt="Pactovio" width="118" height="28" /></a>
+  <nav class="l-links" aria-label="Main"><a href="/#product">Product</a><a href="/#how">How it works</a><a href="/trace" aria-current="page">A real run</a><a href="/pricing">Pricing</a><a href="https://github.com/BonneyMantra/pactovio-meta-hackathon" target="_blank" rel="noopener">GitHub ↗</a></nav>
+  <div class="l-cta"><a class="btn btn-secondary" href="/app">Sign in</a><a class="btn btn-primary" href="/app">Create your agent</a></div>
+</div></header>
+
+<main class="container tr">
+  <section class="tr-hero">
+    <p class="tr-eyebrow">Production run · 4 Nov 2026 · read from its own telemetry</p>
+    <h1 class="display">One RFQ in, a priced bid out.<br /><span class="muted">Every model call on the record.</span></h1>
+    <p class="lead" id="tr-lead">A bank’s e-surveillance RFP for 120 ATMs and 18 branches, sent to Pactovio in chat. Muse Wonder ran the bid as nine tool calls. Muse Spark read the pack, SAM 3.1 found objects on the floor plan, Muse Image drew the concept visual, and code priced, scored and checked every claim.</p>
+    <dl class="tr-facts" id="tr-facts" aria-label="Run totals"></dl>
+  </section>
+
+  <section class="tr-sec" aria-labelledby="tl-h">
+    <div class="tr-head">
+      <h2 class="stackh" id="tl-h"><span>The timeline.</span><span class="g">Wonder picks each tool; the gaps are its turns.</span></h2>
+      <button class="btn btn-secondary tr-replay" id="tr-replay" type="button">Replay the run</button>
+    </div>
+    <div class="tr-legend" id="tr-legend" aria-label="Model colours"></div>
+    <div class="card tr-gantt" id="tr-gantt" role="list" aria-label="Stages in order"></div>
+    <div class="card tr-detail" id="tr-detail" aria-live="polite"></div>
+  </section>
+
+  <section class="tr-sec" aria-labelledby="fp-h">
+    <h2 class="stackh" id="fp-h"><span>The floor plan.</span><span class="g">SAM 3.1 finds shapes, Spark names them, code places devices.</span></h2>
+    <div class="tr-seg" role="tablist" aria-label="Floor-plan layer">
+      <button type="button" role="tab" aria-selected="true" data-layer="devices" id="fp-tab-devices">Placed devices</button>
+      <button type="button" role="tab" aria-selected="false" data-layer="objects" id="fp-tab-objects">SAM 3.1 objects</button>
+    </div>
+    <div class="card tr-fp">
+      <div class="tr-fp-stage" id="tr-fp-stage">
+        <img id="tr-fp-img" alt="Branch ground-floor plan from the RFP pack (Annexure B)" width="1600" height="1133" />
+        <svg id="tr-fp-svg" viewBox="0 0 2400 1700" preserveAspectRatio="none" role="group" aria-label="Floor-plan overlay"></svg>
+        <div class="tr-tip" id="tr-tip" hidden></div>
+      </div>
+      <p class="small ink2 tr-fp-note" id="tr-fp-note"></p>
+      <ol class="tr-devices" id="tr-devices"></ol>
+    </div>
+  </section>
+
+  <section class="tr-sec" aria-labelledby="cost-h">
+    <h2 class="stackh" id="cost-h"><span>Where the money went.</span><span class="g">Metered at list price, per stage.</span></h2>
+    <div class="card tr-cost" id="tr-cost"></div>
+  </section>
+
+  <section class="tr-sec" aria-labelledby="code-h">
+    <h2 class="stackh" id="code-h"><span>What code decided.</span><span class="g">Models read and judge. Numbers are computed.</span></h2>
+    <div class="tr-cards" id="tr-cards"></div>
+  </section>
+
+  <p class="small ink2 tr-source" id="tr-source">Source: the <span class="mono">proposal_steps</span> rows and stored proposal of one production run, read on 5 Nov 2026. Contact names are removed. How it is built: <a href="https://github.com/BonneyMantra/pactovio-meta-hackathon/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noopener">architecture</a> · <a href="https://github.com/BonneyMantra/pactovio-meta-hackathon/blob/main/docs/MODELS.md" target="_blank" rel="noopener">models and lanes</a> · <a href="https://github.com/BonneyMantra/pactovio-meta-hackathon/blob/main/docs/EVALS.md" target="_blank" rel="noopener">evals</a>.</p>
+  <noscript><p class="lead">This page draws the run from <a href="/assets/trace/run.json">run.json</a>; turn on JavaScript to see the timeline.</p></noscript>
+</main>
+
+<footer class="l-foot"><div class="container in">
+  <div class="who"><img class="tile-o" src="/assets/brand/mark.svg" alt="" width="76" height="76" /><div><b>Pactovio</b><br />Built for the Meta Global AI Developer Hackathon 2026<br />© 2026 Pactovio. MIT licensed.</div></div>
+  <div><h5>Product</h5><ul><li><a href="/app">Sign in</a></li><li><a href="/#how">How it works</a></li><li><a href="/pricing">Pricing</a></li></ul></div>
+  <div><h5>Legal</h5><ul><li><a href="/privacy">Privacy policy</a></li><li><a href="/terms">Terms of service</a></li></ul></div>
+  <div><h5>Code</h5><ul><li><a href="https://github.com/BonneyMantra/pactovio-meta-hackathon" target="_blank" rel="noopener">GitHub</a></li><li><a href="https://github.com/BonneyMantra/pactovio-meta-hackathon/blob/main/docs/API.md" target="_blank" rel="noopener">API reference</a></li></ul></div>
+</div></footer>
+<script type="module" src="/assets/page.js"></script>
+<script type="module" src="/assets/trace/trace.js"></script>
+</body>
+</html>

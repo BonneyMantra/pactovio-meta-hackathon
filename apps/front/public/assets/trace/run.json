@@ -1,0 +1,745 @@
+{
+ "run": {
+  "id_suffix": "map0xa7532f",
+  "started_at": "2026-11-04T22:25:42Z",
+  "finished_at": "2026-11-04T22:35:30Z",
+  "wall_s": 588.2,
+  "source": "chat",
+  "orchestrator": "meta:muse-wonder-1.0",
+  "cost_usd": 0.5374,
+  "orchestrate": {
+   "models": [
+    "meta:muse-wonder-1.0"
+   ],
+   "tokens_in": 16169,
+   "tokens_out": 845,
+   "cost_usd": 0.0367
+  }
+ },
+ "rfq": {
+  "title": "Integrated e-surveillance, intrusion alarm and safe-room access control for 120 ATM sites and 18 branches",
+  "client": {
+   "name": "Kurinji Commercial Bank Limited",
+   "sector": "Banking",
+   "city": "Coimbatore",
+   "country": "India"
+  },
+  "sites": {
+   "atm": 120,
+   "branch": 18
+  }
+ },
+ "result": {
+  "ref": "RAX/PR/2026/097",
+  "go_no_go": {
+   "decision": "conditional",
+   "confidence": 0.54,
+   "reasons": [
+    "Catalogue and engineering cover 15 of 26 technical requirements in full, 11 in part.",
+    "Won 6 of 8 closest past bids (RAX/PR/2025/041, RAX/PR/2024/048, RAX/PR/2026/034).",
+    "4 custom-engineering packages (157 person-days) close the gaps.",
+    "Gap: E5 · Bidder (not parent) completed at least three bank e-surveillance projects of 50+ sites ea… (p. 4).",
+    "Gap: E7 · Bidder or authorised partner operates staffed service centre in Tamil Nadu and Karnataka… (p. 4).",
+    "To confirm: E2 · Average annual turnover not less than INR 25 crore from electronic security or related sy… (p. 4).",
+    "Bid due 24 Nov 2026: 19 days to close the gaps."
+   ],
+   "basis": {
+    "coverage": 0.79,
+    "similar_won": 6,
+    "similar_decided": 8,
+    "eligibility_gaps": 2,
+    "eligibility_to_confirm": 11,
+    "days_left": 19
+   }
+  },
+  "total_inr": 37586417,
+  "subtotal_inr": 33180100,
+  "discount_pct": 4,
+  "gst_pct": 18,
+  "evidence": 96,
+  "struck": 4,
+  "compliance_rows": 39,
+  "placements": 14,
+  "learned_from": [
+   "RAX/PR/2025/041",
+   "RAX/PR/2024/048",
+   "RAX/PR/2026/034"
+  ]
+ },
+ "steps": [
+  {
+   "name": "read_rfq",
+   "models": [
+    "meta:muse-spark-1.3"
+   ],
+   "tokens_in": 57202,
+   "tokens_out": 14192,
+   "cost_usd": 0.1318,
+   "start_s": 11.1,
+   "end_s": 100.8,
+   "summary": "39 requirements from 2 file(s) and your note, cited to pp. 3–13"
+  },
+  {
+   "name": "check_eligibility",
+   "models": [
+    "meta:muse-spark-1.3"
+   ],
+   "tokens_in": 1864,
+   "tokens_out": 4919,
+   "cost_usd": 0.0232,
+   "start_s": 105.0,
+   "end_s": 140.4,
+   "summary": "13 eligibility conditions: 2 gaps (E5 p. 4, E7 p. 4), 11 to confirm"
+  },
+  {
+   "name": "select_solution",
+   "models": [
+    "meta:muse-spark-1.3"
+   ],
+   "tokens_in": 6478,
+   "tokens_out": 15407,
+   "cost_usd": 0.0736,
+   "start_s": 143.1,
+   "end_s": 261.3,
+   "summary": "38 catalogue lines, 6 gaps, 3 past proposals used"
+  },
+  {
+   "name": "compose_bom",
+   "models": [
+    "meta:muse-spark-1.3"
+   ],
+   "tokens_in": 3252,
+   "tokens_out": 12727,
+   "cost_usd": 0.0582,
+   "start_s": 263.1,
+   "end_s": 349.0,
+   "summary": "34 supply lines, 4 work packages, total ₹3,75,86,417"
+  },
+  {
+   "name": "design_architecture",
+   "models": [
+    "meta:muse-spark-1.3"
+   ],
+   "tokens_in": 2038,
+   "tokens_out": 8329,
+   "cost_usd": 0.0379,
+   "start_s": 351.0,
+   "end_s": 404.1,
+   "summary": "20 nodes, 28 zones"
+  },
+  {
+   "name": "floor_plan",
+   "models": [
+    "meta:sam-3.1",
+    "meta:muse-spark-1.3"
+   ],
+   "tokens_in": 15865,
+   "tokens_out": 11697,
+   "cost_usd": 0.0945,
+   "start_s": 406.0,
+   "end_s": 486.6,
+   "summary": "11 SAM-anchored + 3 estimated placements from 45 SAM boxes"
+  },
+  {
+   "name": "compliance_matrix",
+   "models": [
+    "meta:muse-spark-1.3"
+   ],
+   "tokens_in": 3257,
+   "tokens_out": 6398,
+   "cost_usd": 0.0313,
+   "start_s": 489.2,
+   "end_s": 532.4,
+   "summary": "15 complies, 22 partial, 2 deviation"
+  },
+  {
+   "name": "concept_visual",
+   "models": [
+    "meta:muse-image-1.0",
+    "meta:sam-3.1",
+    "meta:muse-spark-1.3"
+   ],
+   "tokens_in": 4671,
+   "tokens_out": 4552,
+   "cost_usd": 0.0502,
+   "start_s": 534.0,
+   "end_s": 584.1,
+   "summary": "generated 410 KB; 7 SAM-anchored + 2 estimated placements from 14 SAM boxes"
+  },
+  {
+   "name": "claim_check",
+   "models": [],
+   "tokens_in": 0,
+   "tokens_out": 0,
+   "cost_usd": 0,
+   "start_s": 585.4,
+   "end_s": 585.5,
+   "summary": "26/30 sentences supported, 4 struck"
+  }
+ ],
+ "floorplan": {
+  "image": "/assets/trace/branch-floorplan.webp",
+  "width": 2400,
+  "height": 1700,
+  "sam_calls": 10,
+  "objects": [
+   {
+    "id": "A1",
+    "what": "north window",
+    "box": [
+     0.5579,
+     0.1465,
+     0.1046,
+     0.0153
+    ]
+   },
+   {
+    "id": "A2",
+    "what": "back door",
+    "box": [
+     0.3725,
+     0.1547,
+     0.005,
+     0.0771
+    ]
+   },
+   {
+    "id": "A3",
+    "what": "north glazing",
+    "box": [
+     0.5579,
+     0.1571,
+     0.1037,
+     0.0118
+    ]
+   },
+   {
+    "id": "A4",
+    "what": "locker bay",
+    "box": [
+     0.1825,
+     0.1759,
+     0.0158,
+     0.0424
+    ]
+   },
+   {
+    "id": "A5",
+    "what": "locker bay",
+    "box": [
+     0.2258,
+     0.1759,
+     0.0167,
+     0.0424
+    ]
+   },
+   {
+    "id": "A6",
+    "what": "locker bay",
+    "box": [
+     0.1979,
+     0.1765,
+     0.015,
+     0.0418
+    ]
+   },
+   {
+    "id": "A7",
+    "what": "locker bay",
+    "box": [
+     0.2121,
+     0.1765,
+     0.015,
+     0.0418
+    ]
+   },
+   {
+    "id": "A8",
+    "what": "strong-room safe",
+    "box": [
+     0.0983,
+     0.1812,
+     0.065,
+     0.0906
+    ]
+   },
+   {
+    "id": "A9",
+    "what": "manager desk",
+    "box": [
+     0.5496,
+     0.1871,
+     0.0971,
+     0.0547
+    ]
+   },
+   {
+    "id": "A10",
+    "what": "east window",
+    "box": [
+     0.7063,
+     0.2171,
+     0.0121,
+     0.1188
+    ]
+   },
+   {
+    "id": "A11",
+    "what": "strong-room door",
+    "box": [
+     0.2475,
+     0.2847,
+     0.0462,
+     0.0065
+    ]
+   },
+   {
+    "id": "A12",
+    "what": "manager door",
+    "box": [
+     0.5475,
+     0.3088,
+     0.005,
+     0.0659
+    ]
+   },
+   {
+    "id": "A15",
+    "what": "UPS",
+    "box": [
+     0.1871,
+     0.3812,
+     0.0429,
+     0.0312
+    ]
+   },
+   {
+    "id": "A17",
+    "what": "cash counter 1",
+    "box": [
+     0.3158,
+     0.4165,
+     0.085,
+     0.0524
+    ]
+   },
+   {
+    "id": "A18",
+    "what": "cash counter 2",
+    "box": [
+     0.4071,
+     0.4165,
+     0.0854,
+     0.0512
+    ]
+   },
+   {
+    "id": "A19",
+    "what": "cash counter 3",
+    "box": [
+     0.4996,
+     0.4165,
+     0.0846,
+     0.0529
+    ]
+   },
+   {
+    "id": "A21",
+    "what": "east window",
+    "box": [
+     0.7008,
+     0.4524,
+     0.0163,
+     0.1771
+    ]
+   },
+   {
+    "id": "A22",
+    "what": "server door",
+    "box": [
+     0.2108,
+     0.4612,
+     0.0421,
+     0.0065
+    ]
+   },
+   {
+    "id": "A23",
+    "what": "counter glass 1",
+    "box": [
+     0.3158,
+     0.4635,
+     0.0854,
+     0.0071
+    ]
+   },
+   {
+    "id": "A24",
+    "what": "counter glass 2",
+    "box": [
+     0.4075,
+     0.4635,
+     0.085,
+     0.0076
+    ]
+   },
+   {
+    "id": "A25",
+    "what": "counter glass 3",
+    "box": [
+     0.4992,
+     0.4635,
+     0.0846,
+     0.0071
+    ]
+   },
+   {
+    "id": "A28",
+    "what": "ATM 1",
+    "box": [
+     0.0988,
+     0.5459,
+     0.0437,
+     0.0553
+    ]
+   },
+   {
+    "id": "A29",
+    "what": "ATM 2",
+    "box": [
+     0.1533,
+     0.5459,
+     0.0433,
+     0.0553
+    ]
+   },
+   {
+    "id": "A30",
+    "what": "shelf",
+    "box": [
+     0.2121,
+     0.5465,
+     0.0304,
+     0.0306
+    ]
+   },
+   {
+    "id": "A31",
+    "what": "enquiry desk",
+    "box": [
+     0.2908,
+     0.5465,
+     0.0762,
+     0.0424
+    ]
+   },
+   {
+    "id": "A32",
+    "what": "form table",
+    "box": [
+     0.5496,
+     0.5465,
+     0.0675,
+     0.0365
+    ]
+   },
+   {
+    "id": "A33",
+    "what": "ATM screen",
+    "box": [
+     0.1596,
+     0.5524,
+     0.0304,
+     0.0224
+    ]
+   },
+   {
+    "id": "A34",
+    "what": "customer seat",
+    "box": [
+     0.4496,
+     0.5576,
+     0.0262,
+     0.0312
+    ]
+   },
+   {
+    "id": "A35",
+    "what": "customer seat",
+    "box": [
+     0.4158,
+     0.5582,
+     0.0271,
+     0.0312
+    ]
+   },
+   {
+    "id": "A36",
+    "what": "customer seat",
+    "box": [
+     0.4829,
+     0.5582,
+     0.0262,
+     0.0312
+    ]
+   },
+   {
+    "id": "A37",
+    "what": "customer seat",
+    "box": [
+     0.5158,
+     0.5582,
+     0.0267,
+     0.0306
+    ]
+   },
+   {
+    "id": "A38",
+    "what": "west window",
+    "box": [
+     0.0754,
+     0.5706,
+     0.0133,
+     0.1412
+    ]
+   },
+   {
+    "id": "A39",
+    "what": "ATM 1 slot",
+    "box": [
+     0.1121,
+     0.5788,
+     0.0175,
+     0.0118
+    ]
+   },
+   {
+    "id": "A40",
+    "what": "ATM 2 slot",
+    "box": [
+     0.1658,
+     0.5788,
+     0.0179,
+     0.0124
+    ]
+   },
+   {
+    "id": "A41",
+    "what": "draft desk",
+    "box": [
+     0.6329,
+     0.6635,
+     0.0596,
+     0.0547
+    ]
+   },
+   {
+    "id": "A42",
+    "what": "south window",
+    "box": [
+     0.5746,
+     0.7365,
+     0.1167,
+     0.0129
+    ]
+   },
+   {
+    "id": "A43",
+    "what": "glass door",
+    "box": [
+     0.1417,
+     0.7388,
+     0.0258,
+     0.0165
+    ]
+   },
+   {
+    "id": "A44",
+    "what": "glass door",
+    "box": [
+     0.1671,
+     0.7388,
+     0.0258,
+     0.0165
+    ]
+   },
+   {
+    "id": "A45",
+    "what": "south window",
+    "box": [
+     0.5746,
+     0.7465,
+     0.1167,
+     0.0112
+    ]
+   }
+  ],
+  "placements": [
+   {
+    "device_sku": "RT-ACS-OTP-KPD",
+    "label": "OTP keypad - strong-room door",
+    "box": [
+     0.2977,
+     0.2699,
+     0.026,
+     0.036
+    ],
+    "source": "sam-3.1",
+    "anchor": "strong-room door"
+   },
+   {
+    "device_sku": "EXT-PIR-SENS",
+    "label": "PIR motion sensor - strong room",
+    "box": [
+     0.1178,
+     0.2758,
+     0.026,
+     0.036
+    ],
+    "source": "sam-3.1",
+    "anchor": "strong-room safe"
+   },
+   {
+    "device_sku": "EXT-VIB-SENS",
+    "label": "Vibration sensor - ATM 1",
+    "box": [
+     0.1077,
+     0.5555,
+     0.026,
+     0.036
+    ],
+    "source": "sam-3.1",
+    "anchor": "ATM 1"
+   },
+   {
+    "device_sku": "EXT-CCTV-IPC-4MP",
+    "label": "IP CCTV camera - ATM lobby",
+    "box": [
+     0.1619,
+     0.5059,
+     0.026,
+     0.036
+    ],
+    "source": "sam-3.1",
+    "anchor": "ATM 2"
+   },
+   {
+    "device_sku": "RT-EVA-G0",
+    "label": "Edge video analytics - ATM lobby",
+    "box": [
+     0.2143,
+     0.5811,
+     0.026,
+     0.036
+    ],
+    "source": "sam-3.1",
+    "anchor": "shelf"
+   },
+   {
+    "device_sku": "RT-2W4G-G0",
+    "label": "4G 2-way communication - ATM lobby",
+    "box": [
+     0.1077,
+     0.6052,
+     0.026,
+     0.036
+    ],
+    "source": "sam-3.1",
+    "anchor": "ATM 1"
+   },
+   {
+    "device_sku": "EXT-PIR-SENS",
+    "label": "PIR motion sensor - teller area",
+    "box": [
+     0.4368,
+     0.4717,
+     0.026,
+     0.036
+    ],
+    "source": "sam-3.1",
+    "anchor": "cash counter 2"
+   },
+   {
+    "device_sku": "EXT-PIR-SENS",
+    "label": "PIR motion sensor - back office",
+    "box": [
+     0.362,
+     0.2358,
+     0.026,
+     0.036
+    ],
+    "source": "sam-3.1",
+    "anchor": "back door"
+   },
+   {
+    "device_sku": "RT-AAP-16Z/32Z/48Z",
+    "label": "Alarm automation panel - server room",
+    "box": [
+     0.1571,
+     0.3788,
+     0.026,
+     0.036
+    ],
+    "source": "sam-3.1",
+    "anchor": "UPS"
+   },
+   {
+    "device_sku": "EXT-UPS-1KVA",
+    "label": "Online UPS - server room",
+    "box": [
+     0.1955,
+     0.3788,
+     0.026,
+     0.036
+    ],
+    "source": "sam-3.1",
+    "anchor": "UPS"
+   },
+   {
+    "device_sku": "RT-R1M2S-26Q",
+    "label": "4G LTE router - server room",
+    "box": [
+     0.1955,
+     0.4164,
+     0.026,
+     0.036
+    ],
+    "source": "sam-3.1",
+    "anchor": "UPS"
+   },
+   {
+    "device_sku": "EXT-SPK-HORN",
+    "label": "Horn speaker - main entrance",
+    "box": [
+     0.434,
+     0.722,
+     0.026,
+     0.036
+    ],
+    "source": "spark-vision"
+   },
+   {
+    "device_sku": "EXT-CCTV-IPC-4MP",
+    "label": "IP CCTV camera - banking hall",
+    "box": [
+     0.487,
+     0.502,
+     0.026,
+     0.036
+    ],
+    "source": "spark-vision"
+   },
+   {
+    "device_sku": "EXT-NVR-16CH",
+    "label": "Network video recorder - server room",
+    "box": [
+     0.617,
+     0.722,
+     0.026,
+     0.036
+    ],
+    "source": "spark-vision"
+   }
+  ]
+ }
+}
