@@ -43,7 +43,7 @@ function sitePhoto(c, g) {
 export function wiring(c, num) {
   const kit = c.p.site_kit, groups = kitGroups(kit);
   if (!groups.length) return [];
-  return groups.map((g, gi) => h('div',
+  return groups.flatMap((g, gi) => [h('div',
     gi === 0 ? sectionHead(`${num}.2`, 'Site Kit & Zone Wiring', 'Proposed Solution & Architecture') : null,
     gi === 0 ? h('p.pd-lead', 'Every site of a type receives the same kit, wired to the alarm panel as shown. Zone inputs, cable and loop type follow the panel’s terminal schedule.') : null,
     g.zones.length ? h('figure.pd-fig-block',
@@ -54,8 +54,8 @@ export function wiring(c, num) {
       h('div.pd-label', `Kit per ${siteName(g.key)}`, !g.zones.length && kit?.sites?.[g.key] ? ` · × ${qty(kit.sites[g.key])} sites` : ''),
       h('div.pd-kit-items', list(g.items).map((i) => h('span.pd-kit-item', h('b', `${qty(i.qty)}×`), c.nameOf(i.sku) || i.sku, h('span.pd-mono.pd-muted', i.sku))))),
     g.zones.length ? h('table.pd-table.pd-zones', h('thead', h('tr', h('th', 'Input'), h('th', 'Zone'), h('th', 'Device'), h('th', 'Wiring'))),
-      h('tbody', g.zones.map((z) => h('tr', h('td.pd-mono', z.input), h('td', z.zone), h('td.pd-mono', z.device_sku), h('td.pd-muted', z.wiring))))) : null,
-    sitePhoto(c, g)));
+      h('tbody', g.zones.map((z) => h('tr', h('td.pd-mono', z.input), h('td', z.zone), h('td.pd-mono', z.device_sku), h('td.pd-muted', z.wiring))))) : null),
+  sitePhoto(c, g)].filter(Boolean));
 }
 
 export function floorplan(c, num) {

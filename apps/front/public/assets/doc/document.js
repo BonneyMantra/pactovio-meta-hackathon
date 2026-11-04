@@ -73,11 +73,54 @@ export function paginate(doc) {
     while (over(body) && guard++ < 200) {
       const next = continuation(sheet);
       if (body.children.length > 1) { next.querySelector('.pd-body').prepend(body.lastElementChild); continue; }
-      if (!splitRows(body.firstElementChild, next.querySelector('.pd-body'), body)) { next.remove(); break; }
+      const nb = next.querySelector('.pd-body'), block = body.firstElementChild;
+      // Split at the block's tail: its last table, its last list, or its last parts, whichever ends it.
+      const tail = block?.lastElementChild;
+      const ends = (sel) => !!tail && (tail.matches(sel) || !!tail.querySelector(sel));
+      const order = ends('table') ? [splitRows, splitList, splitKids] : ends('ol, ul') ? [splitList, splitKids, splitRows] : [splitKids, splitRows, splitList];
+      if (order.some((fn) => fn(block, nb, body))) continue;
+      if (!nb.children.length) next.remove();
+      break;
     }
   }
+  pullUp(doc);
   const all = [...doc.querySelectorAll('.pd-sheet')];
   all.forEach((s, i) => { const n = s.querySelector('.pd-pageno'); if (n) n.textContent = `Page ${i + 1} of ${all.length}`; });
+}
+
+/** Long lists (notes, sources) continue on the next sheet item by item. */
+function splitList(block, target, body) {
+  const list = [...block.querySelectorAll('ol, ul')].filter((l) => l.children.length > 3).pop();
+  if (!list) return false;
+  const cont = list.cloneNode(false), wrap = block.cloneNode(false);
+  wrap.append(cont);
+  target.prepend(wrap);
+  while (over(body) && list.children.length > 2) cont.prepend(list.lastElementChild);
+  return true;
+}
+
+/** A block made of several parts (figure, kit, table) moves its trailing parts to the next sheet. */
+function splitKids(block, target, body) {
+  if (!block || block.children.length < 2) return false;
+  const wrap = block.cloneNode(false);
+  target.prepend(wrap);
+  while (over(body) && block.children.length > 1) wrap.prepend(block.lastElementChild);
+  return true;
+}
+
+/** A continuation sheet that is mostly empty takes the next section's first block when it fits, instead of leaving a blank page. */
+function pullUp(doc) {
+  for (const sheet of [...doc.querySelectorAll('.pd-sheet[data-cont="1"]')]) {
+    const body = sheet.querySelector('.pd-body'), next = sheet.nextElementSibling;
+    const nb = next?.classList.contains('pd-sheet') ? next.querySelector('.pd-body') : null;
+    if (!nb) continue;
+    while (nb.firstElementChild) {
+      const block = nb.firstElementChild;
+      body.append(block);
+      if (over(body)) { nb.prepend(block); break; }
+    }
+    if (!nb.children.length) next.remove();
+  }
 }
 
 function continuation(sheet) {
