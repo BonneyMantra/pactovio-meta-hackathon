@@ -7,8 +7,8 @@ const sum = (xs) => xs.reduce((a, b) => a + (Number(b) || 0), 0);
 
 function thumbCell(c, line) {
   const url = c.thumb(line.sku);
-  if (url) return h('span.pd-thumb', h('img', { src: url, alt: '', loading: 'lazy', onerror: (e) => { e.target.parentElement.classList.add('none'); e.target.remove(); } }));
-  return h('span.pd-thumb.none', String(line.sku || '').replace(/^(RT|EXT|SVC)-/, '').slice(0, 3));
+  if (url) return h('span.pd-thumb', h('img', { src: url, alt: '', onerror: (e) => { e.target.parentElement.classList.add('none'); e.target.remove(); } }));
+  return h('span.pd-thumb.none', String(line.sku || '').replace(/^(RT|EXT|SVC)-/, '').replace(/[^A-Z0-9]/gi, '').slice(0, 3));
 }
 
 export function bom(c, num) {
@@ -58,11 +58,16 @@ export function plan(c, num) {
     h('p.pd-lead', `Indicative programme of ${N} weeks from receipt of purchase order and advance payment.`),
     h('div.pd-gantt', { style: { '--n': N } },
       h('div.pd-g-row.pd-g-head', h('div'), h('div.pd-g-track', ticks)),
-      phases.map((p, i) => h('div.pd-g-row',
-        h('div.pd-g-name', h('b', p.name), h('div.pd-muted.pd-xs', p.deliverables)),
-        h('div.pd-g-track', h(`div.pd-g-bar${/pilot|trial|prototype/i.test(p.name) ? '.alt' : ''}`, { style: { left: `${((p.s - 1) / N) * 100}%`, width: `${(p.weeks / N) * 100}%`, '--d': `${i * 70}ms` } },
-          h('span', `W${p.s}–${p.e}`)))))));
+      phases.map((p, i) => {
+        const narrow = (p.weeks || 1) / N < 0.14, side = p.e > N * 0.8 ? 'l' : 'r';
+        return h('div.pd-g-row',
+          h('div.pd-g-name', h('b', p.name), h('div.pd-muted.pd-xs', p.deliverables)),
+          h('div.pd-g-track', grid(N), h(`div.pd-g-bar${/pilot|trial|prototype/i.test(p.name) ? '.alt' : ''}${narrow ? `.out-${side}` : ''}`, { style: { left: `${((p.s - 1) / N) * 100}%`, width: `${((p.weeks || 1) / N) * 100}%`, '--d': `${i * 70}ms` } },
+            h('span', `W${p.s}–${p.e}`))));
+      })));
 }
+
+const grid = (N) => h('div.pd-g-grid', Array.from({ length: N - 1 }, (_, i) => h('i', { style: { left: `${((i + 1) / N) * 100}%` } })));
 
 function milestones(terms) {
   const out = []; const re = /(\d{1,3})\s*%\s*([^,;.]+)/g; let m;
@@ -80,8 +85,7 @@ export function commercials(c, num) {
     h('table.pd-table.pd-tot', h('tbody', rows.map(([l, v, cls]) => h(`tr${cls ? '.' + cls : ''}`, h('td', l), h('td.r.pd-num', v < 0 ? `− ${inr(-v)}` : inr(v))))),
       h('tfoot', h('tr', h('td', 'Total project value', h('div.pd-muted.pd-xs', 'Indian rupees, all inclusive as above')), h('td.r.pd-num.pd-total', inr(k.total_inr))))),
     h('h3', 'Payment terms'),
-    ms.length ? h('div.pd-ms', ms.map(([v, l]) => h('div', { style: { flex: v } }, h('b', `${v}%`), h('span', l)))) : null,
-    h('p', k.payment_terms), k.note ? h('p.pd-muted', k.note) : null);
+    ms.length ? h('div.pd-ms', ms.map(([v, l]) => h('div', { style: { flex: `${v} 1 0` } }, h('b', `${v}%`), h('span', l)))) : h('p', k.payment_terms), k.note ? h('p.pd-muted', k.note) : null);
 }
 
 export function warranty(c, num) {

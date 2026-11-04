@@ -17,19 +17,23 @@
 .pd-g-row { display: grid; grid-template-columns: 38% 1fr; gap: 4mm; padding: 2.2mm 0; border-bottom: 0.5pt solid var(--pd-rule); align-items: center; }
 .pd-g-head { border-bottom: 0.8pt solid var(--pd-ink); padding: 0 0 1.6mm; }
 .pd-g-name b { font-weight: 600; font-size: 8.4pt; }
-.pd-g-track { position: relative; height: 7mm; background-image: repeating-linear-gradient(to right, var(--pd-rule) 0 0.5px, transparent 0.5px calc(100% / var(--n))); }
-.pd-g-head .pd-g-track { height: 3.4mm; background: none; }
+.pd-g-track { position: relative; height: 7mm; }
+.pd-g-grid i { position: absolute; top: 0; bottom: 0; width: 0; border-left: 0.5pt dotted var(--pd-rule); }
+.pd-g-head .pd-g-track { height: 3.4mm; }
 .pd-g-head .pd-g-track span { position: absolute; font: 6.4pt var(--mono); color: var(--pd-ink3); }
 .pd-g-bar { position: absolute; top: 1.4mm; bottom: 1.4mm; border-radius: 1mm; background: var(--pd-teal); display: flex; align-items: center; overflow: hidden; transform-origin: left center; }
 .pd-g-bar.alt { background: var(--pd-acc); }
 .pd-g-bar span { font: 600 6.4pt var(--mono); color: #fff; padding: 0 1.6mm; white-space: nowrap; }
+.pd-g-bar.out-r, .pd-g-bar.out-l { overflow: visible; }
+.pd-g-bar.out-r span, .pd-g-bar.out-l span { position: absolute; color: var(--pd-ink2); padding: 0; }
+.pd-g-bar.out-r span { left: calc(100% + 1.4mm); } .pd-g-bar.out-l span { right: calc(100% + 1.4mm); }
 
 /* Commercials */
 .pd-tot td { font-size: 9.2pt; }
 .pd-tot .sub td { font-weight: 560; }
 .pd-total { font-size: 15pt !important; font-weight: 640; letter-spacing: -0.02em; }
 .pd-ms { display: flex; gap: 1.5mm; margin: 1mm 0 3mm; }
-.pd-ms > div { border-top: 2.4pt solid var(--pd-teal); padding-top: 1.8mm; min-width: 0; }
+.pd-ms > div { border-top: 2.4pt solid var(--pd-teal); padding-top: 1.8mm; min-width: 24%; }
 .pd-ms > div:nth-child(2) { border-color: #5b98ab; } .pd-ms > div:nth-child(3) { border-color: #a9cbd6; }
 .pd-ms b { display: block; font-size: 12pt; font-weight: 600; }
 .pd-ms span { display: block; font-size: 7.4pt; color: var(--pd-ink2); line-height: 1.3; }
