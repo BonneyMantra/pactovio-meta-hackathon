@@ -1,0 +1,4 @@
+/* Meta-hackathon screens: shared motion bits, proposal run, Company Brain, learning, chat additions, autopilot, prospects. */
+.pd-spin { width: 14px; height: 14px; border-radius: 50%; border: 1.6px solid var(--line-2); border-top-color: var(--ink); animation: pv-spin 800ms linear infinite; display: inline-block; }
+@keyframes pv-spin { to { transform: rotate(360deg); } }
+.pd-running { max-width: 560px; margin: 40px auto; padding: 28px; display: grid; gap: 10px; }

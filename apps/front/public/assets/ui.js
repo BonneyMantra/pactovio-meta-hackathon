@@ -2,7 +2,7 @@
 
 export async function api(path, opts = {}) {
   const init = { credentials: 'same-origin', headers: { accept: 'application/json' }, ...opts };
-  if (opts.body && typeof opts.body !== 'string' && !(opts.body instanceof FormData)) {
+  if (opts.body && typeof opts.body !== 'string' && !(opts.body instanceof FormData) && !(opts.body instanceof Blob)) {
     init.body = JSON.stringify(opts.body);
     init.headers = { ...init.headers, 'content-type': 'application/json' };
   }
@@ -32,7 +32,7 @@ export function h(tag, props, ...kids) {
     if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2).toLowerCase(), v);
     else if (k === 'class') el.className += (el.className ? ' ' : '') + v;
     else if (k === 'html') el.innerHTML = v;
-    else if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
+    else if (k === 'style' && typeof v === 'object') for (const [sk, sv] of Object.entries(v)) { if (sk.startsWith('--')) el.style.setProperty(sk, sv); else el.style[sk] = sv; }
     else el.setAttribute(k, v === true ? '' : v);
   }
   const add = (c) => {
@@ -82,6 +82,10 @@ const ICONS = {
   lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
   shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
   dot: '<circle cx="12" cy="12" r="2"/>',
+  brain: '<path d="M9.5 3A2.5 2.5 0 0 0 7 5.5v.2A3 3 0 0 0 4.6 10a3 3 0 0 0 .9 5.1A3 3 0 0 0 9 19.8a2.5 2.5 0 0 0 3 .2V4a2.5 2.5 0 0 0-2.5-1zM14.5 3A2.5 2.5 0 0 1 17 5.5v.2a3 3 0 0 1 2.4 4.3 3 3 0 0 1-.9 5.1 3 3 0 0 1-3.5 4.7 2.5 2.5 0 0 1-3-.2"/>',
+  mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+  stop: '<rect x="7" y="7" width="10" height="10" rx="2"/>',
+  upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>',
   logo: '<path d="M5 19V6.5A1.5 1.5 0 0 1 6.5 5H13a5 5 0 0 1 0 10H9" stroke-width="2.2"/><circle cx="17.5" cy="18.5" r="1.6" fill="currentColor" stroke="none"/>',
 };
 
