@@ -16,5 +16,6 @@ describe('voice hints', () => {
     expect(tidyTranscript("Hi, I'm uploading an RFP fromFP from Kurinji Commercial Bank")).toBe("Hi, I'm uploading an RFP from Kurinji Commercial Bank");
     expect(tidyTranscript('Hi.Hi. I need it for 120 120 ATMs. It is all in the document..')).toBe('Hi. I need it for 120 ATMs. It is all in the document.');
     expect(tidyTranscript('Alarms for 120 ATMs and 18 branches.')).toBe('Alarms for 120 ATMs and 18 branches.');
+    expect(tidyTranscript("I'm uploading an RFPFP from Kurinji. Send the ATMs, the NVR and the KCBL SOC.")).toBe("I'm uploading an RFP from Kurinji. Send the ATMs, the NVR and the KCBL SOC.");
   });
 });

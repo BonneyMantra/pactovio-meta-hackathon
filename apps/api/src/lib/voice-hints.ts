@@ -52,10 +52,11 @@ export async function keywordsFromFile(name: string, bytes: Uint8Array): Promise
   return [];
 }
 
-/** ASR artefacts at its internal chunk joins: "RFP RFP", "Hi.Hi.", "fromFP from", "document..". */
+/** ASR artefacts at its internal chunk joins: "RFP RFP", "RFPFP", "Hi.Hi.", "fromFP from", "document..". */
 export function tidyTranscript(t: string): string {
   return t
     .replace(/\b([a-z]+)[A-Z]{2,}\s+\1\b/g, '$1')
+    .replace(/\b([A-Z]*([A-Z]{2,}))\2\b/g, '$1')
     .replace(/\b(\w+(?:[\s,.]+\w+){0,2})([\s,.]+)\1\b/gi, '$1')
     .replace(/\.{2,}/g, '.')
     .replace(/\s{2,}/g, ' ')
