@@ -45,26 +45,42 @@ export function knowledge(brain) {
   };
 }
 
-// The company's own logo, fetched from its website by GET /api/workspaces/logo; probed once per session.
-let logoUrl = null, probe = null;
+// The company's own logo, fetched from its website by GET /api/workspaces/logo. Avatars render the image
+// at once (hidden until it loads) and fall back to initials only when there is no logo, so the initials
+// never flash first. The URL carries the workspace id so a workspace switch never shows a cached logo.
+// The last answer per workspace is kept in localStorage purely to skip the image request next time.
+let ws = null, state = 'unknown'; // 'unknown' | 'yes' | 'no'
+const KEY = (id) => `pv:logo:${id}`;
+const src = () => `/api/workspaces/logo?w=${encodeURIComponent(ws || '')}`;
+function remember(v) { state = v; try { localStorage.setItem(KEY(ws), v); } catch { /* optional */ } }
+
 export function probeLogo(ctx) {
-  probe ??= new Promise((resolve) => {
+  ws = ctx?.session?.workspace_id || null;
+  try { const v = localStorage.getItem(KEY(ws)); if (v === 'yes' || v === 'no') state = v; } catch { /* optional */ }
+  return new Promise((resolve) => {
     const img = new Image();
-    const done = (ok) => { logoUrl = ok ? '/api/workspaces/logo' : null; if (ctx) ctx.logo = logoUrl; resolve(logoUrl); };
-    img.onload = () => done(img.naturalWidth > 0);
-    img.onerror = () => done(false);
-    setTimeout(() => done(false), 5000);
-    img.src = '/api/workspaces/logo';
+    img.onload = () => { remember(img.naturalWidth > 0 ? 'yes' : 'no'); resolve(); };
+    img.onerror = () => { remember('no'); resolve(); };
+    setTimeout(resolve, 1500); // never hold the app back; avatars resolve on their own
+    img.src = src();
   });
-  return probe;
 }
-export const companyLogo = () => logoUrl;
+export const companyLogo = () => (state === 'no' ? null : src());
 
 /** The company's mark: its real logo when the website has one, otherwise its initials. */
 export function companyMark(name, size = 34, cls = 'ag-av') {
-  return logoUrl
-    ? h(`span.${cls}.has-logo`, { style: { '--s': `${size}px` }, 'aria-hidden': 'true' }, h('img', { src: logoUrl, alt: '' }))
-    : h(`span.${cls}`, { style: { '--s': `${size}px` }, 'aria-hidden': 'true' }, initials(name));
+  const style = { '--s': `${size}px` };
+  if (state === 'no' || !ws) return h(`span.${cls}`, { style, 'aria-hidden': 'true' }, initials(name));
+  const mark = h(`span.${cls}.has-logo${state === 'yes' ? '' : '.logo-pending'}`, { style, 'aria-hidden': 'true' });
+  const img = h('img', { src: src(), alt: '' });
+  img.addEventListener('load', () => { mark.classList.remove('logo-pending'); if (state !== 'yes') remember('yes'); });
+  img.addEventListener('error', () => {
+    remember('no');
+    mark.classList.remove('has-logo', 'logo-pending');
+    img.replaceWith(document.createTextNode(initials(name)));
+  });
+  mark.append(img);
+  return mark;
 }
 
 /** The agent's avatar: the company mark with a live dot. */
