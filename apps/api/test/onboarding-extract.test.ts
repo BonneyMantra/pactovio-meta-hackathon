@@ -67,7 +67,7 @@ describe('OTP email', () => {
     expect(mail.text).toContain('10 minutes');
     expect(mail.html).toContain('048 213');
     expect(mail.html).toContain('#f2600c');
-    expect(mail.html).toContain('pactovio.pages.dev');
+    expect(mail.html).toContain('pactovio-meta.pages.dev');
     expect(mail.html).toMatch(/didn't request this code/);
     expect(mail.html).not.toContain('<script>');
     expect(mail.html).toContain('buyer+&lt;script&gt;@meridian.example');
