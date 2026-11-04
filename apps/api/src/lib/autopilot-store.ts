@@ -51,7 +51,10 @@ export async function listInbox(env: Env, ws: string, limit = 50): Promise<Inbox
     r.proposal_status = live.status; r.proposal_id = live.proposalId ?? r.proposal_id;
     await env.DB.prepare('UPDATE autopilot_messages SET proposal_status = ?, proposal_id = ?, updated_at = ? WHERE workspace_id = ? AND message_id = ?')
       .bind(live.status, r.proposal_id, new Date().toISOString(), ws, r.message_id).run();
-    if (live.status === 'ready') await env.DB.prepare("UPDATE intakes SET status = 'ready' WHERE id = ? AND workspace_id = ?").bind(r.intake_id, ws).run();
+    if (live.status === 'ready') {
+      await env.DB.prepare("UPDATE intakes SET status = 'ready' WHERE id = ? AND workspace_id = ?").bind(r.intake_id, ws).run();
+      r.status = 'ready';
+    }
   }
   const { files, props } = await enrich(env, ws, list);
   return list.map((r) => {
