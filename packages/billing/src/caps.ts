@@ -28,10 +28,10 @@ export async function searchDayUsed(env: Env): Promise<number> {
  */
 export async function reserveSearch(env: Env, sessionId: string | null): Promise<void> {
   if (sessionId) {
-    const r = await env.DB.prepare('UPDATE judge_sessions SET tavily_used = tavily_used + 1 WHERE id = ? AND tavily_used < ?').bind(sessionId, SESSION_CAPS.search).run();
+    const r = await env.DB.prepare('UPDATE judge_sessions SET search_used = search_used + 1 WHERE id = ? AND search_used < ?').bind(sessionId, SESSION_CAPS.search).run();
     if ((r.meta.changes ?? 0) === 0) throw new HttpError(429, `Judge session limit: ${SESSION_CAPS.search} buyer refreshes`, 'cap_session');
   }
-  const refund = () => sessionId ? env.DB.prepare('UPDATE judge_sessions SET tavily_used = MAX(0, tavily_used - 1) WHERE id = ?').bind(sessionId).run() : Promise.resolve();
+  const refund = () => sessionId ? env.DB.prepare('UPDATE judge_sessions SET search_used = MAX(0, search_used - 1) WHERE id = ?').bind(sessionId).run() : Promise.resolve();
   if ((await searchMonthUsed(env)) >= SEARCH_BUDGET.month) { await refund(); throw new HttpError(429, 'Monthly web-search budget used', 'cap_month'); }
   if ((await searchDayUsed(env)) >= SEARCH_BUDGET.day) { await refund(); throw new HttpError(429, 'Daily web-search cap reached', 'cap_day'); }
   await bump(env, 'web_search', today());

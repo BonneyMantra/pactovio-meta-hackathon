@@ -191,7 +191,7 @@ export const getLimits = defineTool({
   description: 'Real caps and usage for this session: fresh pack runs, web-search refreshes, agent turns per minute, and the shared inference quota.',
   input: z.object({}),
   async run(env, ctx) {
-    const s = ctx.sessionId ? await one<{ runs_used: number; search_used: number }>(env, 'SELECT runs_used, tavily_used AS search_used FROM judge_sessions WHERE id = ?', ctx.sessionId) : null;
+    const s = ctx.sessionId ? await one<{ runs_used: number; search_used: number }>(env, 'SELECT runs_used, search_used FROM judge_sessions WHERE id = ?', ctx.sessionId) : null;
     return {
       pack_runs: { used: s?.runs_used ?? 0, cap: 2 }, search_refreshes: { used: s?.search_used ?? 0, cap: 3 },
       agent_turns_per_minute: AGENT_CAPS.turnsPerMinute, session_token_budget: AGENT_CAPS.sessionTokenBudget,

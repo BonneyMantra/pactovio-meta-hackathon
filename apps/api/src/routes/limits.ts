@@ -15,7 +15,7 @@ const sum = (u: Usage[]) => Number(u.reduce((a, x) => a + x.cost_usd, 0).toFixed
 export const register: Register = (r) => {
   r.on(endpoints.getLimits, async ({ env, db, auth }) => {
     const day = new Date().toISOString().slice(0, 10);
-    const s = auth.sessionId ? await one<{ runs_used: number; search_used: number }>(db, 'SELECT runs_used, tavily_used AS search_used FROM judge_sessions WHERE id = ?', auth.sessionId) : null;
+    const s = auth.sessionId ? await one<{ runs_used: number; search_used: number }>(db, 'SELECT runs_used, search_used FROM judge_sessions WHERE id = ?', auth.sessionId) : null;
     const [today, all, scan] = await Promise.all([
       rows<Usage>(db, `${SELECT} AND s.at >= ? GROUP BY s.model ORDER BY SUM(s.cost_usd) DESC`, auth.workspaceId, `${day}T00:00:00.000Z`),
       rows<Usage>(db, `${SELECT} GROUP BY s.model ORDER BY SUM(s.cost_usd) DESC`, auth.workspaceId),

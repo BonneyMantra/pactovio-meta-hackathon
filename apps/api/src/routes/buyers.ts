@@ -24,7 +24,7 @@ export const register: Register = (r) => {
       await refundCredits(env, workspaceId, credits, 'buyer_refresh_refund', `refund:${ref}`).catch(() => undefined);
       throw e;
     }
-    const s = auth.sessionId ? await one<{ search_used: number }>(db, 'SELECT tavily_used AS search_used FROM judge_sessions WHERE id = ?', auth.sessionId) : null;
+    const s = auth.sessionId ? await one<{ search_used: number }>(db, 'SELECT search_used FROM judge_sessions WHERE id = ?', auth.sessionId) : null;
     return { buyer_key: params.id, refreshed: true, search_used: s?.search_used ?? 0 };
   });
 };

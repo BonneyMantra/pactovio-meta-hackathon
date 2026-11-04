@@ -24,7 +24,7 @@ async function session(): Promise<string> {
   await env.DB.prepare('INSERT INTO judge_sessions (id, workspace_id, created_at) VALUES (?, ?, ?)').bind(id, HARBOUR, new Date().toISOString()).run();
   return id;
 }
-const used = async (id: string) => (await env.DB.prepare('SELECT runs_used, tavily_used AS search_used FROM judge_sessions WHERE id = ?').bind(id).first<{ runs_used: number; search_used: number }>())!;
+const used = async (id: string) => (await env.DB.prepare('SELECT runs_used, search_used FROM judge_sessions WHERE id = ?').bind(id).first<{ runs_used: number; search_used: number }>())!;
 const finishAll = () => env.DB.prepare("UPDATE runs SET status = 'completed' WHERE status IN ('queued','running')").run();
 
 describe('judge caps: fresh pack runs', () => {

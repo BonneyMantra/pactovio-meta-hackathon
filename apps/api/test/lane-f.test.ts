@@ -116,7 +116,7 @@ describe('caps', () => {
     const s = 'ses_f_caps2';
     await env.DB.prepare("INSERT INTO judge_sessions (id, workspace_id, created_at) VALUES (?, 'ws_harbour_digital', ?)").bind(s, new Date().toISOString()).run();
     await expect(reserveSearch(env, s)).rejects.toMatchObject({ code: 'cap_month' });
-    const row = await env.DB.prepare('SELECT tavily_used AS search_used FROM judge_sessions WHERE id = ?').bind(s).first<{ search_used: number }>();
+    const row = await env.DB.prepare('SELECT search_used FROM judge_sessions WHERE id = ?').bind(s).first<{ search_used: number }>();
     expect(row?.search_used).toBe(0);
   });
   it('GET /api/limits returns real structure', async () => {

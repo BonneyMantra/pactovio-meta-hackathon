@@ -24,13 +24,13 @@ export async function refundFreshRun(db: D1Database, sessionId: string | null | 
 /** One web-search buyer refresh for a session (cap 3). Returns the new count. */
 export async function consumeSearchRefresh(db: D1Database, sessionId: string | null | undefined): Promise<number> {
   if (!sessionId) return 0;
-  const r = await db.prepare('UPDATE judge_sessions SET tavily_used = tavily_used + 1 WHERE id = ? AND tavily_used < ?').bind(sessionId, CAPS.searchRefreshes).run();
+  const r = await db.prepare('UPDATE judge_sessions SET search_used = search_used + 1 WHERE id = ? AND search_used < ?').bind(sessionId, CAPS.searchRefreshes).run();
   if ((r.meta.changes ?? 0) === 0) throw new HttpError(429, `This session has used its ${CAPS.searchRefreshes} buyer refreshes.`, 'cap_session');
-  return (await db.prepare('SELECT tavily_used FROM judge_sessions WHERE id = ?').bind(sessionId).first<{ tavily_used: number }>())?.tavily_used ?? 0;
+  return (await db.prepare('SELECT search_used FROM judge_sessions WHERE id = ?').bind(sessionId).first<{ search_used: number }>())?.search_used ?? 0;
 }
 
 export async function refundSearchRefresh(db: D1Database, sessionId: string | null | undefined): Promise<void> {
-  if (sessionId) await db.prepare('UPDATE judge_sessions SET tavily_used = MAX(0, tavily_used - 1) WHERE id = ?').bind(sessionId).run();
+  if (sessionId) await db.prepare('UPDATE judge_sessions SET search_used = MAX(0, search_used - 1) WHERE id = ?').bind(sessionId).run();
 }
 
 /** One live web-search HTTP call against the daily cap (30). Shares the `web_search` counter key with GET /limits. */
