@@ -19,7 +19,7 @@ export function otpEmail(code: string, opts: { email?: string; minutes?: number 
     `It expires in ${minutes} minutes.${opts.email ? ` It was requested for ${opts.email}.` : ''}`,
     'If you did not request this code, you can ignore this email. Nobody can sign in without it.',
     '',
-    'Pactovio - pactovio.pages.dev',
+    'Pactovio - pactovio-meta.pages.dev',
   ].join('\n');
   const font = "font-family:'Mona Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
   const html = `<!doctype html>
@@ -44,7 +44,7 @@ export function otpEmail(code: string, opts: { email?: string; minutes?: number 
 <tr><td style="padding:12px 32px 32px 32px;${font};font-size:14px;color:${MUTED};line-height:21px;">If you didn't request this code, you can safely ignore this email. Nobody can sign in without it.</td></tr>
 </table>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;">
-<tr><td align="center" style="padding:20px 16px;${font};font-size:12px;color:${MUTED};line-height:18px;">Pactovio &middot; <a href="https://pactovio.pages.dev" style="color:${MUTED};text-decoration:underline;">pactovio.pages.dev</a></td></tr>
+<tr><td align="center" style="padding:20px 16px;${font};font-size:12px;color:${MUTED};line-height:18px;">Pactovio &middot; <a href="https://pactovio-meta.pages.dev" style="color:${MUTED};text-decoration:underline;">pactovio-meta.pages.dev</a></td></tr>
 </table>
 </td></tr></table>
 </body></html>`;

@@ -145,3 +145,55 @@
 @media (max-width: 1599px) { .pv-work .lr-row { grid-template-columns: minmax(0, 1fr) auto; } .pv-work .lr-ref { display: none; } }
 .pv-work .lr-row-m { flex-wrap: wrap; row-gap: 2px; white-space: normal; }
 .pv-work .lr-row-m b { white-space: nowrap; }
+
+/* Team (#/team): members + pending invites on the left, the team inbox on the right. */
+.tm-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 20px; align-items: start; max-width: 1080px; }
+@media (max-width: 899px) { .tm-grid { grid-template-columns: 1fr; } }
+.tm-card { padding: 22px 24px; min-width: 0; }
+.tm-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.tm-card h2 { margin: 0; font-size: 17px; font-weight: 560; letter-spacing: -0.015em; }
+.tm-invite { display: grid; gap: 8px; margin: 18px 0 6px; }
+.tm-label { font-size: 13px; font-weight: 520; color: var(--ink-2); }
+.tm-field { display: flex; gap: 8px; }
+.tm-field .input { flex: 1; min-width: 0; height: 40px; }
+.tm-field .input:focus-visible { outline: 0; box-shadow: inset 0 0 0 1px #c58a63, 0 0 0 3px rgba(197, 138, 99, .16); }
+.tm-field .input[aria-invalid="true"] { box-shadow: inset 0 0 0 1px var(--bad); }
+.tm-field .btn { flex: none; min-width: 132px; justify-content: center; }
+.tm-status { margin: 0; min-height: 20px; font-size: 13px; color: var(--ink-2); }
+.tm-status[data-tone="ok"] { color: var(--ok); }
+.tm-status[data-tone="bad"] { color: var(--bad); }
+.tm-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; }
+.tm-row { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 12px 0; border-top: 0.5px solid var(--line-soft); flex-wrap: wrap; }
+.tm-row:has(+ .action-req), .tm-row + .action-req { border: 0; }
+.tm-skel .skeleton { grid-column: 1 / -1; height: 36px; border-radius: 8px; }
+.tm-av { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: var(--ink); color: #fff; font-size: 13px; font-weight: 600; }
+.tm-av-pending { background: var(--surface-2); color: var(--ink-2); box-shadow: inset 0 0 0 1px var(--line); }
+.tm-who { display: grid; min-width: 0; }
+.tm-who strong { font-size: 14px; font-weight: 540; }
+.tm-who span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tm-role { font-size: 13px; color: var(--ink-2); white-space: nowrap; grid-column: 3 / 5; justify-self: end; }
+.tm-sent { display: grid; justify-items: end; gap: 2px; white-space: nowrap; }
+.tm-actions { display: flex; gap: 2px; }
+.tm-new { animation: tm-in .5s cubic-bezier(.2, .7, .2, 1) both; }
+.tm-new .tm-av-pending { animation: tm-ring 1.4s ease-out .2s 1 both; }
+@keyframes tm-in { from { opacity: 0; transform: translateY(6px); } }
+@keyframes tm-ring { 0% { box-shadow: inset 0 0 0 1px var(--line), 0 0 0 0 rgba(242, 96, 12, .35); } 100% { box-shadow: inset 0 0 0 1px var(--line), 0 0 0 10px rgba(242, 96, 12, 0); } }
+.tm-ihead { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.tm-inbox p.small { margin: 0 0 16px; line-height: 1.55; }
+.tm-auto { display: grid; gap: 8px; justify-items: start; margin-bottom: 16px; }
+.tm-iact { display: flex; gap: 8px; flex-wrap: wrap; }
+.tm-inbox .tm-status { margin-top: 10px; }
+@media (max-width: 560px) {
+  .tm-card { padding: 18px 16px; }
+  .tm-row { grid-template-columns: 36px minmax(0, 1fr) auto; }
+  .tm-pending .tm-actions { grid-column: 2 / -1; }
+  .tm-role { grid-column: 3; }
+}
+@media (prefers-reduced-motion: reduce) { .tm-new, .tm-new .tm-av-pending { animation: none; } }
+/* Finished Company Brain in the learning view: voice and payment terms after the section order. */
+.lr-learnt { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); animation: lr-in 400ms var(--ease) backwards;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.ob-learnt { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ob-learnt > div { padding: 12px 14px; border-radius: 12px; background: var(--surface); box-shadow: inset 0 0 0 0.5px var(--line-soft); animation: lr-in 400ms var(--ease) backwards; }
+.ob-learnt p { margin: 4px 0 0; font-size: 13px; line-height: 1.45; color: var(--ink); }
+@media (max-width: 680px) { .ob-learnt { grid-template-columns: 1fr; } }

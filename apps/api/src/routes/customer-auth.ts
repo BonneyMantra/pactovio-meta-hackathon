@@ -5,6 +5,7 @@ import { exec, randomToken, sha256Hex } from '../lib/db';
 import { codeHash, sameOrigin, sixDigits, takeLimit } from '../lib/customer-security';
 import { createCustomerSession, CUSTOMER_COOKIE, customerCookie, sessionInfo } from '../lib/customer-session';
 import { otpEmail } from '../lib/otp-email';
+import { acceptPendingInvite } from '../lib/onboarding-invite';
 import type { AppEnv } from '../lib/types';
 
 export const customerAuthRoutes = new Hono<AppEnv>();
@@ -63,6 +64,7 @@ customerAuthRoutes.post('/code/verify', async (c) => {
     AND code_hash = ? AND delivered = 1 AND consumed_at IS NULL AND expires_at > ? RETURNING email`)
     .bind(now, email, row.challenge, hash, now).first();
   if (!consumed) throw new HttpError(400, 'Invalid or expired code', 'invalid_code');
+  await acceptPendingInvite(db, email);
   const auth = await createCustomerSession(c, email);
   // Rotate/revoke the previous browser session after successful authentication.
   const old = getCookie(c, CUSTOMER_COOKIE);

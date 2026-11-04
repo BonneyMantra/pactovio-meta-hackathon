@@ -25,6 +25,7 @@ import { mcpRoutes } from './routes/mcp';
 import { devRoutes } from './routes/dev';
 import { customerAuthRoutes } from './routes/customer-auth';
 import { onboardingRoutes } from './routes/onboarding';
+import { teamRoutes } from './routes/team';
 import { integrationRoutes } from './routes/integrations';
 import { integrationWorkflowRoutes } from './routes/integration-workflows';
 import { workspaceLogoRoutes } from './routes/workspaces';
@@ -48,6 +49,7 @@ export function buildApp() {
 
   app.route('/api/auth', customerAuthRoutes);
   app.route('/api/onboarding', onboardingRoutes);
+  app.route('/api/team', teamRoutes);
   app.route('/api/integrations', integrationRoutes);
   app.route('/api/integrations/workflows', integrationWorkflowRoutes);
   app.route('/api/products', productImageRoutes);
