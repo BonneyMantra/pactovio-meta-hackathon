@@ -121,8 +121,11 @@ async function createTenderFromRfp(env: Env, job: IntakeJob, msg: InboundMessage
   return id;
 }
 
-/** Workflow step 3: open the right object for the door, start the engine, then announce `intake.classified` (ids included). */
-export async function routeStep(env: Env, job: IntakeJob, ws: string, msg: InboundMessage, cls: Classification): Promise<{ tenderId: string | null; designRequestId: string | null; runId: string | null; note: string | null }> {
+export type Routed = { tenderId: string | null; designRequestId: string | null; runId: string | null; note: string | null };
+
+/** Workflow step 3: open the right object for the door, start the engine, then announce `intake.classified` (ids included).
+ * `announce: false` defers the announcement to `announceIntake`, so a later stage (autopilot) can say what it already started. */
+export async function routeStep(env: Env, job: IntakeJob, ws: string, msg: InboundMessage, cls: Classification, opts: { announce?: boolean } = {}): Promise<Routed> {
   let tenderId: string | null = null; let designRequestId: string | null = null; let runId: string | null = null; let note: string | null = null;
   try {
     if (cls.door === 'design') {
@@ -139,12 +142,20 @@ export async function routeStep(env: Env, job: IntakeJob, ws: string, msg: Inbou
     console.error('intake routing failed', job.intakeId, note);
   }
   if (note) console.error('intake routing note', job.intakeId, note);
+  const routed = { tenderId, designRequestId, runId, note };
+  if (opts.announce !== false) await announceIntake(env, job, ws, msg, cls, routed);
+  return routed;
+}
+
+/** Announce `intake.classified`. With `autopilot.proposalId` the chat says the proposal is already being written, and asks nothing. */
+export async function announceIntake(env: Env, job: IntakeJob, ws: string, msg: InboundMessage, cls: Classification, r: Routed,
+  autopilot?: { action: string; proposalId: string | null } | null): Promise<void> {
   const sender = splitAddress(msg.from);
   await emit(env, ws, 'intake.classified', {
     intake_id: job.intakeId, door: cls.door === 'other' ? 'ignore' : cls.door, title: cls.subject || msg.subject, subject: msg.subject, sender: sender.name || sender.address,
-    confidence: cls.confidence, reason: cls.reason, source: job.source, tender_id: tenderId, design_request_id: designRequestId, run_id: runId,
+    confidence: cls.confidence, reason: cls.reason, source: job.source, tender_id: r.tenderId, design_request_id: r.designRequestId, run_id: r.runId,
+    autopilot: autopilot?.action ?? null, proposal_id: autopilot?.proposalId ?? null,
   });
-  return { tenderId, designRequestId, runId, note };
 }
 
 const ack = (door: Classification['door'], msg: InboundMessage, workspaceName: string): string => {

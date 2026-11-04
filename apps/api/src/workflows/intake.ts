@@ -1,7 +1,7 @@
 import { WorkflowEntrypoint, type WorkflowEvent, type WorkflowStep, type WorkflowStepConfig } from 'cloudflare:workers';
 import { autopilotStep } from '../lib/autopilot';
 import type { Env } from '@pactovio/contracts/env';
-import { classifyStep, draftStep, fetchAndStore, markIntakeStatus, routeStep, type IntakeJob } from '@pactovio/connectors';
+import { announceIntake, classifyStep, draftStep, fetchAndStore, markIntakeStatus, routeStep, type IntakeJob } from '@pactovio/connectors';
 
 export type IntakeParams = IntakeJob;
 
@@ -19,8 +19,11 @@ export class IntakeWorkflow extends WorkflowEntrypoint<Env, IntakeParams> {
     try {
       const msg = await stage('fetch message', () => fetchAndStore(this.env, job));
       const { cls, workspaceId } = await stage('classify', () => classifyStep(this.env, job, msg));
-      await stage('route', () => routeStep(this.env, job, workspaceId, msg, cls));
-      await stage('autopilot', () => autopilotStep(this.env, job, workspaceId, msg, cls));
+      const routed = await stage('route', () => routeStep(this.env, job, workspaceId, msg, cls, { announce: false }));
+      const ap = await stage('autopilot', () => autopilotStep(this.env, job, workspaceId, msg, cls));
+      // Announced after autopilot, so a proposal it already started never leaves a "Start the pack read?" prompt in chat.
+      await stage('announce', () => announceIntake(this.env, job, workspaceId, msg, cls, routed,
+        ap ? { action: ap.action, proposalId: ap.action === 'proposal' ? ap.runId : null } : null));
       await stage('draft reply', () => draftStep(this.env, job, workspaceId, msg, cls));
     } catch (e) {
       console.error('IntakeWorkflow failed', job.intakeId, e instanceof Error ? e.message.slice(0, 200) : 'unknown');

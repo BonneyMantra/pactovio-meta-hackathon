@@ -68,6 +68,9 @@ export function mapEvent(e: EventLike): ProactiveMessage | null {
         };
       }
       const kind = door === 'rfp' ? 'RFP/RFQ' : 'tender';
+      if (str(p, 'autopilot') === 'proposal' && str(p, 'proposal_id')) {
+        return { ...base, text: `New ${kind}${from}: ${clip(title, 120)}. Autopilot is writing the proposal; it will be in Proposals when it is ready.` };
+      }
       return {
         ...base,
         text: `New ${kind}${from}: ${clip(title, 120)}. Start the pack read?`,

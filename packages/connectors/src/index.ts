@@ -8,7 +8,7 @@ export { runEventActions, matchesFilter, EVENT_ACTIONS, type EventActionResult }
 export { splitAddress } from './inbound-mail';
 export { mimeFor } from './util';
 export { handleComposioWebhook, parseEnvelope, mailHint } from './webhook';
-export { fetchAndStore, storeMessage, classifyStep, routeStep, draftStep, markIntakeStatus, docKind, type IntakeJob } from './intake';
+export { fetchAndStore, storeMessage, classifyStep, routeStep, announceIntake, draftStep, markIntakeStatus, docKind, type IntakeJob, type Routed } from './intake';
 export { effectiveRules, getConnector, isLive, listConnectors, saveConnector } from './store';
 export { PROVIDER_ACTIONS } from './providers';
 export { ActionError, type ActionDef, type ActionCtx, type ActionOutput } from './actions';

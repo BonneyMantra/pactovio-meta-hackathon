@@ -21,6 +21,12 @@ describe('event to message mapping', () => {
     expect(r.action?.tool).toBe('start_pack_run');
     expect(mapEvent(ev('intake.classified', { door: 'ignore', title: 'newsletter' }))).toBeNull();
   });
+  it('intake.classified: an RFQ autopilot already turned into a proposal asks nothing; a failed start still asks', () => {
+    const a = mapEvent(ev('intake.classified', { door: 'rfp', title: 'RFQ QGB/PROC/2026/118', tender_id: 'tnd_9', autopilot: 'proposal', proposal_id: 'prp_1' }))!;
+    expect(a.text).toContain('Autopilot is writing the proposal');
+    expect(a.action).toBeUndefined();
+    expect(mapEvent(ev('intake.classified', { door: 'rfp', title: 'RFQ', tender_id: 'tnd_9', autopilot: 'proposal', proposal_id: null }))!.action?.tool).toBe('start_pack_run');
+  });
   it('verdict.ready offers to draft answers for BID and CONDITIONAL, not for NO_BID', () => {
     expect(mapEvent(ev('verdict.ready', { tender_id: 't', title: 'T', decision: 'BID', score: 78, lot: '1' }))!.action?.input).toEqual({ tender_id: 't', lot: '1' });
     expect(mapEvent(ev('verdict.ready', { tender_id: 't', title: 'T', decision: 'NO_BID', score: 22 }))!.action).toBeUndefined();

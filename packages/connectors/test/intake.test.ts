@@ -6,7 +6,7 @@ const lane = vi.hoisted(() => ({ match: vi.fn(), run: vi.fn() }));
 vi.mock('@pactovio/quote', () => ({ matchDesignRequest: lane.match }));
 vi.mock('@pactovio/engine', () => ({ startPackRun: lane.run }));
 
-import { classifyEmail, classifyStep, docKind, draftStep, fetchAndStore, heuristicClassify, routeStep, saveConnector, type InboundMessage, type IntakeJob } from '../src';
+import { announceIntake, classifyEmail, classifyStep, docKind, draftStep, fetchAndStore, heuristicClassify, routeStep, saveConnector, type InboundMessage, type IntakeJob } from '../src';
 import { fetchGmail, fetchOutlook, parseGmailMessage, parseOutlookMessage } from '../src/inbound-mail';
 import { makeEnv } from '../../../apps/api/test/helpers';
 import { fakeComposio } from './fake-composio';
@@ -166,6 +166,17 @@ describe('intake pipeline', () => {
     expect(r.runId).toBeNull();
   });
 
+  it('RFP routed with announce off stays silent until announceIntake, which carries what autopilot started', async () => {
+    await insert('int_rfp_ap');
+    const cls = { door: 'rfp' as const, confidence: 0.95, reason: 'RFQ', customer: 'Qurum Gulf Bank', subject: 'RFQ QGB/PROC/2026/118' };
+    const count = async () => (await env.DB.prepare("SELECT COUNT(*) AS n FROM events WHERE type = 'intake.classified' AND json_extract(payload_json, '$.intake_id') = 'int_rfp_ap'").first<{ n: number }>())!.n;
+    const r = await routeStep(env, job('int_rfp_ap'), 'ws_harbour_digital', RFP, cls, { announce: false });
+    expect(await count()).toBe(0);
+    await announceIntake(env, job('int_rfp_ap'), 'ws_harbour_digital', RFP, cls, r, { action: 'proposal', proposalId: 'prp_ap1' });
+    expect(await count()).toBe(1);
+    const ev = await env.DB.prepare("SELECT payload_json FROM events WHERE type = 'intake.classified' AND json_extract(payload_json, '$.intake_id') = 'int_rfp_ap'").first<{ payload_json: string }>();
+    expect(JSON.parse(ev!.payload_json)).toMatchObject({ door: 'rfp', tender_id: r.tenderId, autopilot: 'proposal', proposal_id: 'prp_ap1' });
+  });
   it('other: the intake is ignored, nothing is created, no draft is written', async () => {
     await insert('int_news');
     const cls = { kind: 'marketing' as const, confidence: 0.9, reason: 'Newsletter', customer: '', subject: 'Weekly' };
