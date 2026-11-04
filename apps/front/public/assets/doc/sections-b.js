@@ -1,6 +1,6 @@
 // Proposal sections: solution and architecture, per-site kits and zone wiring, device placement on the drawing and the site visual.
 import { h } from '../ui.js';
-import { list, qty, assetUrl, paras, sectionHead } from './kit.js';
+import { list, qty, assetUrl, paras, sectionHead, editable } from './kit.js';
 import { architectureSvg, kindLegend } from './arch-svg.js';
 import { wiringSvg } from './wiring-svg.js';
 import { placementFigure, placementLead } from './placement.js';
@@ -10,7 +10,7 @@ export function solution(c, num) {
   const svg = architectureSvg(p.architecture);
   return h('div',
     sectionHead(num, 'Proposed Solution & Architecture'),
-    h('div.pd-prose', paras(p.solution_overview, p.evidence, c.nt)),
+    h('div.pd-prose', paras(p.solution_overview, p.evidence, c.nt).map((el, i) => editable(`solution_overview.p${i}`, el))),
     svg ? h('figure.pd-fig-block',
       h('div.pd-fig-head', h('span.pd-label', `Figure ${num}.1`), h('span', 'System architecture'), h('span.pd-legend', { html: kindLegend(p.architecture?.nodes) })),
       h('div.pd-svg', { html: svg })) : null);

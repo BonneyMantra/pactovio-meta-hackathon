@@ -1,6 +1,6 @@
 // Proposal sections: cover, executive summary, requirement, compliance, assumptions, sign-off.
 import { h, icon } from '../ui.js';
-import { inrShort, qty, list, longDate, assetUrl, paras, sectionHead } from './kit.js';
+import { inrShort, qty, list, longDate, assetUrl, paras, sectionHead, editable } from './kit.js';
 
 export function programmeWeeks(plan) {
   let cursor = 1, end = 0;
@@ -13,7 +13,7 @@ export function cover(c) {
   const meta = [['Reference', p.ref], ['Revision', p.revision], ['Date', longDate(p.date)], ['Valid for', p.validity_days ? `${p.validity_days} days` : '—']];
   return h('div.pd-cover',
     h('div.pd-cover-top', h('div.pd-wordmark', c.supplier), h('div.pd-kicker', 'Technical & Commercial Proposal')),
-    h('h1.pd-title', p.title),
+    editable('title', h('h1.pd-title', p.title)),
     h('p.pd-cover-for', 'Prepared for ', h('strong', p.client?.name), p.client?.city ? `, ${p.client.city}` : '', p.client?.country && p.client.country !== 'India' ? `, ${p.client.country}` : ''),
     src ? h('figure.pd-visual', h('img', { src, alt: cv.label || 'Concept visual', loading: 'eager' }),
       h('figcaption', h('span.pd-visual-tag', cv.label || 'Concept visual — generated, not a product photo'))) : h('div.pd-visual.pd-visual-none'),
@@ -36,14 +36,14 @@ export function executive(c, num) {
   return h('div',
     sectionHead(num, 'Executive Summary'),
     h('div.pd-figures', figures.map(([k, v, s]) => h('div', h('div.pd-label', k), h('div.pd-fig', v), h('div.pd-muted.pd-xs', s)))),
-    h('div.pd-prose', paras(p.executive_summary, p.evidence, c.nt)));
+    h('div.pd-prose', paras(p.executive_summary, p.evidence, c.nt).map((el, i) => editable(`executive_summary.p${i}`, el))));
 }
 
 export function requirement(c, num) {
   return h('div.pd-block',
     sectionHead(num, 'Understanding of Requirement'),
     h('p.pd-lead', 'We understand the requirement as follows.'),
-    h('ol.pd-req', list(c.p.requirement_understanding).map((r, i) => h('li', h('span.pd-req-n', String(i + 1).padStart(2, '0')), h('span', r)))));
+    h('ol.pd-req', list(c.p.requirement_understanding).map((r, i) => h('li', h('span.pd-req-n', String(i + 1).padStart(2, '0')), editable(`requirement_understanding.${i}`, h('span', r))))));
 }
 
 const STATUS = { complies: ['Complies', 'ok'], partial: ['Partial', 'warn'], deviation: ['Deviation', 'bad'] };
@@ -71,8 +71,8 @@ export function assumptions(c, num) {
   return h('div.pd-block',
     sectionHead(num, 'Assumptions & Exclusions'),
     h('div.pd-two',
-      h('div', h('h3', 'Assumptions'), h('ul.pd-list', list(c.p.assumptions).map((a) => h('li', a)))),
-      h('div', h('h3', 'Exclusions'), h('ul.pd-list', list(c.p.exclusions).map((a) => h('li', a))))));
+      h('div', h('h3', 'Assumptions'), h('ul.pd-list', list(c.p.assumptions).map((a, i) => editable(`assumptions.${i}`, h('li', a))))),
+      h('div', h('h3', 'Exclusions'), h('ul.pd-list', list(c.p.exclusions).map((a, i) => editable(`exclusions.${i}`, h('li', a)))))));
 }
 
 export function signoff(c) {

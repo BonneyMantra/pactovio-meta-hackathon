@@ -3,6 +3,8 @@ import { api, h, icon, toast, errorBox, skeleton } from '../ui.js';
 import { buildDocument, paginate } from '../doc/document.js';
 import { rail } from '../doc/rail.js';
 import { liveSteps } from '../doc/steps.js';
+import { eligibilityFlags, flagsSig } from '../doc/flags.js';
+import { reviewControls } from '../doc/review.js';
 import { inrShort } from '../doc/kit.js';
 import { productIndex } from '../brain-api.js';
 import { getProposal, STAGES } from '../doc/api.js';
@@ -30,17 +32,19 @@ export async function render(root, { id }, ctx) {
     ctx.setCrumbs(h('a', { href: '#/proposals' }, 'Proposals'), 'Writing…');
     if (p.status === 'failed') { stopLive(); root.replaceChildren(errorBox(new Error(p.error || 'This proposal run failed. Try the request again from the chat.'))); return; }
     if (!live) {
-      const list = liveSteps(), bar = h('i'), count = h('span'), clock = h('span.num'), title = h('h2.h3');
+      const list = liveSteps(), bar = h('i'), count = h('span'), clock = h('span.num'), title = h('h2.h3'), flags = h('div');
       const t0 = Date.parse(p.created_at) || Date.now();
       const tickClock = () => { const s = Math.max(0, Math.floor((Date.now() - t0) / 1000)); clock.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
-      live = { list, bar, count, title, clock: setInterval(tickClock, 1000) };
+      live = { list, bar, count, title, flags, fsig: '', clock: setInterval(tickClock, 1000) };
       tickClock();
       root.replaceChildren(h('div.card.pd-running',
         h('span.access-step', 'PROPOSAL IN PROGRESS'), title,
         h('p.small.ink2', 'Pactovio is reading the request, pricing it from your catalogue and writing it in your house style. This page opens the document as soon as it is ready.'),
-        h('div.pd-run-meta.xs.muted', count, clock), h('div.pd-run-bar', bar), list.el));
+        h('div.pd-run-meta.xs.muted', count, clock), h('div.pd-run-bar', bar), list.el, flags));
     }
     live.title.textContent = p.title || 'Writing your proposal';
+    const elig = p.partial?.eligibility;
+    if (elig && flagsSig(elig) !== live.fsig) { live.fsig = flagsSig(elig); live.flags.replaceChildren(eligibilityFlags(elig) || ''); }
     const done = live.list.update(p.steps);
     live.count.textContent = `${done} of ${STAGES.length} steps done`;
     live.bar.style.width = `${Math.max(4, (done / STAGES.length) * 100)}%`;
@@ -65,10 +69,12 @@ export async function render(root, { id }, ctx) {
       window.print();
       setTimeout(() => { document.title = was; }, 500);
     };
+    const heading = h('h1', p.title);
+    const review = reviewControls({ p, id, doc, relayout: () => layout(root, stage, doc), onTitle: (t) => { heading.textContent = t; } });
     root.replaceChildren(
       h('div.pd-top',
-        h('div', h('div.xs.muted', [p.client?.name, p.ref, p.commercials?.total_inr ? inrShort(p.commercials.total_inr) : null].filter(Boolean).join(' · ')), h('h1', p.title)),
-        h('div.pd-actions',
+        h('div', h('div.xs.muted', [p.client?.name, p.ref, p.commercials?.total_inr ? inrShort(p.commercials.total_inr) : null].filter(Boolean).join(' · ')), heading),
+        h('div.pd-actions', review.el,
           h('button.btn.btn-secondary.btn-sm', { type: 'button', onclick: async () => { try { await navigator.clipboard.writeText(location.href); toast('Link copied'); } catch { toast('Copy the address bar link to share'); } } }, icon('clip', 14), 'Copy link'),
           h('button.btn.btn-primary.btn-sm', { type: 'button', onclick: print }, icon('download', 14), 'Download PDF'))),
       h('div.pd-wrap', stage, rail(p, brain)));

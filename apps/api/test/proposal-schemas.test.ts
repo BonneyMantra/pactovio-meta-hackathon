@@ -6,6 +6,7 @@ import { NarrativeModel } from '../../../packages/proposal/src/bom';
 import { DesignModel } from '../../../packages/proposal/src/design';
 import { ComplianceModel } from '../../../packages/proposal/src/compliance';
 import { PlaceModel } from '../../../packages/proposal/src/place';
+import { EligibilityModel } from '../../../packages/proposal/src/eligibility';
 
 /** Meta strict structured output rejects any object whose properties are not all listed in `required` (400 at run time). */
 function optionalPaths(node: unknown, path = '$'): string[] {
@@ -28,7 +29,7 @@ describe('model-facing schemas are valid for strict structured output', () => {
     const bad = z.object({ zone_map: z.array(z.object({ site: z.string().optional(), zone: z.string() })) });
     expect(optionalPaths(z.toJSONSchema(bad, { target: 'draft-7', unrepresentable: 'any' })).join()).toContain('site');
   });
-  const schemas = { RfqRead, SelectionModel, NarrativeModel, DesignModel, ComplianceModel, PlaceModel };
+  const schemas = { RfqRead, SelectionModel, NarrativeModel, DesignModel, ComplianceModel, PlaceModel, EligibilityModel };
   for (const [name, s] of Object.entries(schemas)) {
     it(`${name} has no optional properties`, () => {
       expect(optionalPaths(z.toJSONSchema(s, { target: 'draft-7', unrepresentable: 'any' }))).toEqual([]);

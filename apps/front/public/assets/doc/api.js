@@ -6,6 +6,7 @@ const arr = (v) => (Array.isArray(v) ? v : []);
 /** Pipeline stages in run order, with the wording the bid desk sees. */
 export const STAGES = [
   ['read_rfq', 'Reading the RFP pack, page by page'],
+  ['check_eligibility', 'Checking eligibility against your company facts'],
   ['select_solution', 'Matching requirements to your catalogue and past bids'],
   ['compose_bom', 'Pricing the bill of materials in your house style'],
   ['design_architecture', 'Drawing the architecture and zone wiring'],
@@ -78,8 +79,21 @@ export async function startProposal({ file, extras = [], text = '', source = 'ch
   return { id: r.proposalId || r.id, status: r.status };
 }
 
-/** 16 kHz mono WAV → { text, seconds }. */
-export async function transcribe(wav) {
-  const r = await api('/voice/transcribe', { method: 'POST', body: wav, headers: { accept: 'application/json', 'content-type': 'audio/wav' } });
+/** 16 kHz mono WAV → { text, seconds }. keywords (names from the attached RFQ) bias the recogniser's spelling. */
+export async function transcribe(wav, keywords = []) {
+  const form = new FormData();
+  form.append('audio', wav, 'speech.wav');
+  if (keywords.length) form.append('keywords', JSON.stringify(keywords.slice(0, 20)));
+  const r = await api('/voice/transcribe', { method: 'POST', body: form, headers: { accept: 'application/json' } });
   return { text: r.text || '', seconds: r.seconds || 0 };
+}
+
+/** Names on the first page of an attached RFQ (PDF or text) → speech hints. Never throws. */
+export async function speechHints(file) {
+  if (!file || !/\.(pdf|txt|eml|md)$/i.test(file.name)) return [];
+  try {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    return arr((await api('/voice/hints', { method: 'POST', body: form })).keywords);
+  } catch { return []; }
 }

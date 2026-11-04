@@ -4,7 +4,7 @@ export function canRecord() {
   return !!(navigator.mediaDevices?.getUserMedia && window.MediaRecorder && (window.OfflineAudioContext || window.webkitOfflineAudioContext));
 }
 
-/** Starts recording; resolves to { stop(): Promise<Blob wav>, cancel() }. */
+/** Starts recording; resolves to { snapshot(): Promise<Blob wav|null>, stop(): Promise<Blob wav>, cancel() }. */
 export async function startRecording() {
   const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
   const rec = new MediaRecorder(stream);
@@ -13,6 +13,8 @@ export async function startRecording() {
   rec.start(250);
   const release = () => stream.getTracks().forEach((t) => t.stop());
   return {
+    /** WAV of everything heard so far, while recording continues (for live partial transcripts). */
+    snapshot: () => (chunks.length ? toWav16k(new Blob(chunks, { type: rec.mimeType || 'audio/webm' })) : Promise.resolve(null)),
     stop: () => new Promise((resolve, reject) => {
       rec.onstop = async () => {
         release();

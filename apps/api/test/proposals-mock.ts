@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 
 const SAM_SSE = readFileSync(resolve(__dirname, '../../../fixtures/proposal/sam-rectangle-hero.sse'), 'utf8');
 export const TINY_JPEG = '/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==';
-const TOOLS = ['read_rfq', 'select_solution', 'compose_bom', 'design_architecture', 'place_on_floor_plan', 'compliance_matrix', 'concept_visual', 'claim_check'];
+const TOOLS = ['read_rfq', 'check_eligibility', 'select_solution', 'compose_bom', 'design_architecture', 'place_on_floor_plan', 'compliance_matrix', 'concept_visual', 'claim_check'];
 
 export const RFQ_JSON = {
   rfq_ref: 'KCBL/ITD/PROC/2026-27/ESURV/047', title: 'E-surveillance and intrusion alarm for 120 ATMs and 18 branches', due_date: '2026-11-24',
@@ -12,12 +12,12 @@ export const RFQ_JSON = {
   client: { name: 'Kurinji Commercial Bank Limited', sector: 'Banking', city: 'Chennai', country: 'India', contact_name: 'Procurement', contact_title: 'IT Department' },
   sites: { atm: 120, branch: 18 },
   requirements: [
-    { id: 'R1', text: 'ATM site panel with 8 alarm zones and 4G dual SIM communication', category: 'functional', mandatory: true, page: 6, doc: 'rfp.txt' },
-    { id: 'R2', text: 'Edge analytics for loitering and crowding detection at ATM lobby', category: 'functional', mandatory: true, page: 7, doc: 'rfp.txt' },
-    { id: 'R3', text: 'Door contacts and glass-break detectors at every ATM site', category: 'functional', mandatory: true, page: 7, doc: 'rfp.txt' },
-    { id: 'R4', text: 'SecureLink v2 integration over MQTT 5 with the bank SOC', category: 'integration', mandatory: true, page: 9, doc: 'rfp.txt' },
-    { id: 'R5', text: 'Bidder must have staffed service centres in Tamil Nadu and Karnataka', category: 'eligibility', mandatory: true, page: 12, doc: 'rfp.txt' },
-    { id: 'R6', text: 'Pilot at 6 sites within 4 weeks; rollout within 16 weeks', category: 'timeline', mandatory: true, page: 14, doc: 'rfp.txt' },
+    { id: 'R1', text: 'ATM site panel with 8 alarm zones and 4G dual SIM communication', category: 'functional', mandatory: true, page: 6, doc: 'rfp.txt', clause: null },
+    { id: 'R2', text: 'Edge analytics for loitering and crowding detection at ATM lobby', category: 'functional', mandatory: true, page: 7, doc: 'rfp.txt', clause: null },
+    { id: 'R3', text: 'Door contacts and glass-break detectors at every ATM site', category: 'functional', mandatory: true, page: 7, doc: 'rfp.txt', clause: null },
+    { id: 'R4', text: 'SecureLink v2 integration over MQTT 5 with the bank SOC', category: 'integration', mandatory: true, page: 9, doc: 'rfp.txt', clause: null },
+    { id: 'R5', text: 'Bidder must have staffed service centres in Tamil Nadu and Karnataka', category: 'eligibility', mandatory: true, page: 12, doc: 'rfp.txt', clause: 'E7' },
+    { id: 'R6', text: 'Pilot at 6 sites within 4 weeks; rollout within 16 weeks', category: 'timeline', mandatory: true, page: 14, doc: 'rfp.txt', clause: null },
   ],
 };
 const SELECTION = {
@@ -63,6 +63,8 @@ const COMPLIANCE = { rows: [
   { requirement_id: 'R5', status: 'deviation', remark: 'Karnataka service centre not on record; partner needed.' },
 ] };
 
+export const ELIGIBILITY = { rows: [{ requirement_id: 'R5', status: 'gap', remark: 'No staffed service centre in Karnataka in the company facts.' }] };
+
 export interface MockOpts { wonderDown?: boolean; samDown?: boolean }
 export function mockModels(o: MockOpts = {}) {
   const calls: { url: string; model?: string; sys?: string }[] = [];
@@ -82,7 +84,7 @@ export function mockModels(o: MockOpts = {}) {
     }
     const pick = (k: string, v: unknown) => (sys.includes(k) ? chat(JSON.stringify(v)) : null);
     return pick('extract what a bid team needs', RFQ_JSON) ?? pick('Map the buyer', SELECTION) ?? pick('commercial and narrative', NARRATIVE) ?? pick('system architecture', DESIGN)
-      ?? pick('place security devices', PLACEMENTS) ?? pick('compliance reviewer', COMPLIANCE) ?? json({ error: { message: `unmocked: ${sys.slice(0, 60)}` } }, 500);
+      ?? pick('place security devices', PLACEMENTS) ?? pick('eligibility for a tender', ELIGIBILITY) ?? pick('compliance reviewer', COMPLIANCE) ?? json({ error: { message: `unmocked: ${sys.slice(0, 60)}` } }, 500);
   }) as typeof fetch;
   return { fetch: fn, calls };
 }

@@ -27,6 +27,7 @@ const SYSTEM = `You read a buyer's RFQ/RFP pack for a technical B2B supplier and
 - "sites" = the number of ATM sites and branch sites the buyer lists (0 when not stated).
 - "due_date" = the bid submission deadline as ISO "YYYY-MM-DD" (null when not stated).
 - "floorplan_file" = the filename of an attached image that is a floor plan or site drawing, else null.
+- "clause" = the buyer's own clause, criterion or section id for the requirement exactly as printed (e.g. "E7", "4.2.1"), else null.
 - Never invent numbers or page numbers. Ids are R1, R2, ...`;
 
 export const readRfq = (ctx: RunCtx): Promise<string> => runStep(ctx, 'read_rfq', () => !!ctx.state.rfq, async () => {
@@ -37,5 +38,8 @@ export const readRfq = (ctx: RunCtx): Promise<string> => runStep(ctx, 'read_rfq'
   if (!rfq.floorplan_file || !names.has(rfq.floorplan_file)) rfq.floorplan_file = ctx.files.find(isImage)?.filename ?? null;
   rfq.requirements = rfq.requirements.slice(0, 60);
   ctx.state.rfq = rfq;
-  return `${rfq.requirements.length} requirements from ${ctx.files.length} file(s)`;
+  const pages = rfq.requirements.map((r) => r.page).filter((p): p is number => typeof p === 'number');
+  const span = pages.length ? (Math.min(...pages) === Math.max(...pages) ? `, cited to p. ${pages[0]}` : `, cited to pp. ${Math.min(...pages)}–${Math.max(...pages)}`) : '';
+  const docs = ctx.files.filter((f) => f.filename !== 'rfq-text.txt').length;
+  return `${rfq.requirements.length} requirements from ${docs} file(s)${docs < ctx.files.length ? ' and your note' : ''}${span}`;
 });

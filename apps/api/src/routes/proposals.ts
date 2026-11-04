@@ -2,8 +2,9 @@ import { Hono, type Context } from 'hono';
 import { z } from 'zod';
 import { HttpError } from '@pactovio/contracts';
 import { budgetMessage, inspectWav, isBudgetError, MetaApiError, MAX_AUDIO_BYTES, transcribe } from '@pactovio/models';
-import { assetKey, getProposalRow, listProposalRows, listSteps, loadProposalJson, renderProposalHtml, startProposal } from '@pactovio/proposal';
+import { assetKey, getProposalRow, ReviewInput, reviewProposal, listProposalRows, listSteps, loadProposalJson, renderProposalHtml, startProposal } from '@pactovio/proposal';
 import { customerAuth } from '../lib/customer-session';
+import { keywordsFromFile, tidyTranscript } from '../lib/voice-hints';
 import { takeLimit } from '../lib/customer-security';
 import type { AppEnv } from '../lib/types';
 
@@ -81,8 +82,16 @@ proposalRoutes.get('/:id', async (c) => {
   const ws = c.get('auth').workspaceId, id = c.req.param('id');
   const { input, ...row } = await getProposalRow(c.env, ws, id);
   const { proposal, state } = await loadProposalJson(c.env, ws, id);
-  const partial = proposal || !state ? null : { rfq: state.rfq ?? null, selection: state.selection ?? null, design: state.design ?? null, bom_totals: state.bom?.commercials ?? null };
+  const partial = proposal || !state ? null : { rfq: state.rfq ?? null, eligibility: state.eligibility ?? null, selection: state.selection ?? null, design: state.design ?? null, bom_totals: state.bom?.commercials ?? null };
   return c.json({ ...row, files: input.files.map((f) => ({ filename: f.filename, size: f.size })), steps: await listSteps(c.env, ws, id), proposal, partial, models: state?.models ?? {} });
+});
+
+/** PATCH /api/proposals/:id: { edits: [{ path, text }] } to the narrative, or { action: 'approve' } -> { review }. */
+proposalRoutes.patch('/:id', async (c) => {
+  const a = c.get('auth');
+  const input = ReviewInput.parse(await c.req.json().catch(() => { throw new HttpError(400, 'Send a JSON body', 'validation'); }));
+  const who = a.userId ? (await c.env.DB.prepare('SELECT email FROM customer_users WHERE id = ?').bind(a.userId).first<{ email: string }>())?.email : null;
+  return c.json({ review: await reviewProposal(c.env, a.workspaceId, c.req.param('id'), input, who ?? 'bid desk') });
 });
 
 proposalRoutes.get('/:id/assets/:name', async (c) => {
@@ -103,18 +112,40 @@ proposalRoutes.get('/:id/pdf', async (c) => {
   return new Response(renderProposalHtml(proposal, { seller, assetBase: `/api/proposals/${id}/assets` }), { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'content-security-policy': "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'" } });
 });
 
-/** POST /api/voice/transcribe: audio/wav body (or multipart `audio`) -> { text, seconds }. 16/24 kHz mono PCM16, up to 10 minutes. */
+const Keywords = z.array(z.string().trim().min(2).max(60)).max(20);
+
+/**
+ * POST /api/voice/transcribe: audio/wav body (or multipart `audio`, optional `keywords` JSON array) -> { text, seconds }.
+ * 16/24 kHz mono PCM16, up to 10 minutes. Keywords bias the recogniser towards names in the attached RFQ.
+ */
 voiceRoutes.post('/transcribe', async (c) => {
   const ws = c.get('auth').workspaceId;
-  await takeLimit(c.env.DB, `voice:${ws}`, 120, 3600);
-  let wav: Uint8Array;
+  await takeLimit(c.env.DB, `voice:${ws}`, 400, 3600);
+  let wav: Uint8Array; let keywords: string[] = [];
   if (c.req.header('content-type')?.toLowerCase().startsWith('multipart/form-data')) {
-    const f = (await c.req.formData().catch(() => null))?.get('audio');
+    const form = await c.req.formData().catch(() => null);
+    const f = form?.get('audio');
     if (!(f instanceof File)) throw new HttpError(400, 'Send the recording as the "audio" part', 'validation');
     wav = new Uint8Array(await f.arrayBuffer());
+    const k = form?.get('keywords');
+    if (typeof k === 'string' && k) {
+      let raw: unknown;
+      try { raw = JSON.parse(k); } catch { throw new HttpError(400, 'keywords must be a JSON array of strings', 'validation'); }
+      keywords = Keywords.parse(raw);
+    }
   } else wav = new Uint8Array(await c.req.arrayBuffer());
   if (!wav.length || wav.length > MAX_AUDIO_BYTES) throw new HttpError(400, 'Audio must be a WAV file up to 32 MB', 'validation');
   try { inspectWav(wav); } catch (e) { throw new HttpError(400, e instanceof Error ? e.message : 'Invalid audio', 'validation'); }
-  const r = await transcribe(c.env, { wav });
-  return c.json({ text: r.text, seconds: Math.round(r.seconds * 10) / 10 });
+  const r = await transcribe(c.env, { wav, keywords });
+  return c.json({ text: tidyTranscript(r.text), seconds: Math.round(r.seconds * 10) / 10 });
+});
+
+/** POST /api/voice/hints: multipart `file` (the RFQ being attached) -> { keywords } from its first page. No model call. */
+voiceRoutes.post('/hints', async (c) => {
+  const ws = c.get('auth').workspaceId;
+  await takeLimit(c.env.DB, `voice-hints:${ws}`, 120, 3600);
+  const f = (await c.req.formData().catch(() => null))?.get('file');
+  if (!(f instanceof File) || !f.size || f.size > MAX_FILE) throw new HttpError(400, 'Send the RFQ as the "file" part, up to 15 MB', 'validation');
+  if (!/\.(pdf|txt|eml|md)$/i.test(f.name)) return c.json({ keywords: [] });
+  return c.json({ keywords: await keywordsFromFile(f.name, new Uint8Array(await f.arrayBuffer())) });
 });

@@ -10,3 +10,4 @@ export { createProposal, getProposalRow, listProposalRows, listSteps, loadPropos
 export { inputKey, assetKey, assetName } from './assets';
 export { renderProposalHtml } from './html';
 export { startProposal, type StartInput } from './start';
+export { ReviewInput, reviewProposal, type Review } from './review';

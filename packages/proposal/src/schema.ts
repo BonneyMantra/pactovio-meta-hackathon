@@ -48,7 +48,7 @@ export const Proposal = z.object({
     amc_pct_of_hardware: z.number(), amc_hardware_base_inr: z.number().int(), amc_annual_inr: z.number().int(), text: z.string(),
   }),
   assumptions: z.array(z.string()), exclusions: z.array(z.string()),
-  compliance: z.array(z.object({ requirement: z.string(), status: z.enum(['complies', 'partial', 'deviation']), remark: z.string(), page: z.number().int().nullable().optional() })),
+  compliance: z.array(z.object({ requirement: z.string(), status: z.enum(['complies', 'partial', 'deviation']), remark: z.string(), page: z.number().int().nullable().optional(), clause: z.string().nullable().optional() })),
   outcome: z.object({ status: z.enum(['won', 'lost', 'pending']), decided_on: z.string().nullable(), reason: z.string() }),
   prepared_by: z.object({ name: z.string(), title: z.string() }),
   turnaround_days: z.number().int().min(0).max(60),
@@ -83,6 +83,8 @@ export const Requirement = z.object({
   id: z.string(), text: z.string(),
   category: z.enum(['functional', 'commercial', 'eligibility', 'sla', 'timeline', 'integration', 'other']),
   mandatory: z.boolean(), page: z.number().int().nullable(), doc: z.string(),
+  /** The buyer's own clause or section id ("E7", "4.2.1"), so citations read the way the RFP does. */
+  clause: z.string().nullable(),
 });
 export type Requirement = z.infer<typeof Requirement>;
 
@@ -96,5 +98,5 @@ export const RfqRead = z.object({
 });
 export type RfqRead = z.infer<typeof RfqRead>;
 
-export const STEP_NAMES = ['read_rfq', 'select_solution', 'compose_bom', 'design_architecture', 'floor_plan', 'compliance_matrix', 'concept_visual', 'claim_check'] as const;
+export const STEP_NAMES = ['read_rfq', 'check_eligibility', 'select_solution', 'compose_bom', 'design_architecture', 'floor_plan', 'compliance_matrix', 'concept_visual', 'claim_check'] as const;
 export type StepName = (typeof STEP_NAMES)[number];

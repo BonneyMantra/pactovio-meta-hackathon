@@ -91,3 +91,6 @@ export const KIND = {
   custom: { label: 'Custom-engineered', tone: 'cus' }, client_system: { label: 'Client system', tone: 'cli' },
   service: { label: 'Service', tone: 'svc' },
 };
+
+/** Marks an element as editable in review mode; `path` is the proposal field it was rendered from. */
+export const editable = (path, el) => { el.dataset.edit = path; return el; };

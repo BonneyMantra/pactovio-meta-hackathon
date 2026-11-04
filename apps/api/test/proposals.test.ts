@@ -6,7 +6,7 @@ import { assetKey, computeTotals, createProposal, getProposalRow, groupInr, inpu
 import { buildApp } from '../src/app';
 import { makeEnv } from './helpers';
 import { customerFixture } from './customer-fixture';
-import { mockModels, TINY_JPEG } from './proposals-mock';
+import { mockModels, RFQ_JSON, TINY_JPEG } from './proposals-mock';
 
 let env: Env, dispose: () => Promise<void>, cookie: string, other: string;
 const WS = 'ws_harbour_digital';
@@ -68,6 +68,17 @@ describe('full pipeline with scripted models', () => {
     expect(p.scope_of_supply.find((l) => l.sku === 'EXT-DOORCONTACT')!.budgetary).toBe(true);
     expect(p.scope_of_supply.filter((l) => cat.has(l.sku)).every((l) => !l.budgetary)).toBe(true);
     expect(p.assumptions.some((a) => /marked budgetary/.test(a))).toBe(true);
+  });
+  it('checks eligibility right after reading, cites the buyer clause, and the matrix and go/no-go reuse that verdict', async () => {
+    const steps = await listSteps(env, WS, id);
+    const names = steps.map((s) => s.name);
+    expect(names.indexOf('check_eligibility')).toBe(names.indexOf('read_rfq') + 1);
+    expect(steps.find((s) => s.name === 'check_eligibility')!.summary).toBe('1 eligibility conditions: 1 gap (E7 p. 12)');
+    const r5 = p.compliance.find((c) => /Karnataka/.test(c.requirement))!;
+    expect(r5.status).toBe('deviation');
+    expect(r5.clause).toBe('E7');
+    expect(p.go_no_go!.reasons.some((x) => x.startsWith('Gap: E7 · '))).toBe(true);
+    expect(p.compliance.map((c) => c.requirement)).toEqual(RFQ_JSON.requirements.map((r) => r.text));
   });
   it('totals re-derive from lines and follow the brain style', () => {
     expect(totalsConsistent(p)).toBe(true);
@@ -148,6 +159,26 @@ describe('API', () => {
     expect(((await (await call('/api/proposals', {}, other)).json()) as { items: unknown[] }).items.find((x) => (x as { id: string }).id === id)).toBeUndefined();
     expect(await env.FILES.get(assetKey('ws_kestrel_sensing', id, 'concept.jpg'))).toBeNull();
   });
+  it('review: edits the narrative, approves, and an edit after approval withdraws it; other tenants and bad paths are refused', async () => {
+    const patch = (body: unknown, ck?: string) => call(`/api/proposals/${id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }, ck);
+    const before = await (await call(`/api/proposals/${id}`)).json() as { updated_at: string; proposal: Proposal };
+    let r = await patch({ edits: [{ path: 'assumptions.0', text: 'Site access between 09:00 and 18:00 on working days.' }, { path: 'executive_summary.p0', text: 'Thank you for inviting Rax Tech to bid.' }] });
+    expect(r.status).toBe(200);
+    expect(((await r.json()) as { review: { status: string; edits: number } }).review).toMatchObject({ status: 'in_review', edits: 2 });
+    r = await patch({ action: 'approve' });
+    expect(((await r.json()) as { review: { status: string; approved_by: string } }).review.status).toBe('approved');
+    const after = await (await call(`/api/proposals/${id}`)).json() as { updated_at: string; proposal: Proposal & { review: { status: string } } };
+    expect(after.proposal.assumptions[0]).toBe('Site access between 09:00 and 18:00 on working days.');
+    expect(after.proposal.executive_summary.split(/\n{2,}/)[0]).toBe('Thank you for inviting Rax Tech to bid.');
+    expect(after.proposal.commercials.total_inr).toBe(before.proposal.commercials.total_inr);
+    expect(after.updated_at).toBe(before.updated_at);
+    expect(after.proposal.review.status).toBe('approved');
+    r = await patch({ edits: [{ path: 'exclusions.0', text: 'Civil works.' }] });
+    expect(((await r.json()) as { review: { status: string } }).review.status).toBe('in_review');
+    expect((await patch({ action: 'approve' }, other)).status).toBe(404);
+    expect((await patch({ edits: [{ path: 'commercials.total_inr', text: '1' }] })).status).toBe(400);
+    expect((await patch({ edits: [{ path: 'assumptions.999', text: 'x' }] })).status).toBe(400);
+  });
   it('validates input at the boundary', async () => {
     const post = (body: BodyInit, type?: string) => call('/api/proposals', { method: 'POST', body, headers: type ? { 'content-type': type } : {} });
     expect((await post('{}', 'application/json')).status).toBe(400);
@@ -171,5 +202,18 @@ describe('API', () => {
     const r = await call('/api/voice/transcribe', { method: 'POST', headers: { 'content-type': 'audio/wav' }, body: new Uint8Array(100) });
     expect(r.status).toBe(400);
     expect((await call('/api/voice/transcribe', { method: 'POST', body: new Uint8Array(0) }, other)).status).toBe(400);
+  });
+  it('voice keywords are validated, and hints come from the attached RFQ without a model call', async () => {
+    const wav = new Uint8Array(44 + 3200); const v = new DataView(wav.buffer);
+    [...'RIFF'].forEach((ch, i) => v.setUint8(i, ch.charCodeAt(0))); v.setUint32(4, 36 + 3200, true); [...'WAVEfmt '].forEach((ch, i) => v.setUint8(8 + i, ch.charCodeAt(0)));
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, 16000, true); v.setUint32(28, 32000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+    [...'data'].forEach((ch, i) => v.setUint8(36 + i, ch.charCodeAt(0))); v.setUint32(40, 3200, true);
+    const fd = new FormData(); fd.append('audio', new File([wav], 'a.wav', { type: 'audio/wav' })); fd.append('keywords', 'not json');
+    const bad = await call('/api/voice/transcribe', { method: 'POST', body: fd });
+    expect(bad.status).toBe(400); expect(((await bad.json()) as { code: string }).code).toBe('validation');
+    const hf = new FormData(); hf.append('file', new File(['KURINJI COMMERCIAL BANK\nIssued by Kurinji Commercial Bank Limited, Coimbatore, Tamil Nadu. Kurinji House.'], 'rfp.txt', { type: 'text/plain' }));
+    const h = await (await call('/api/voice/hints', { method: 'POST', body: hf })).json() as { keywords: string[] };
+    expect(h.keywords[0]).toBe('Kurinji Commercial Bank'); expect(h.keywords).toContain('Coimbatore');
+    expect((await call('/api/voice/hints', { method: 'POST', body: hf }, '')).status).toBe(401);
   });
 });

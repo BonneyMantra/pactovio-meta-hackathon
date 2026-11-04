@@ -12,6 +12,7 @@ export interface RunState {
   bom?: import('./bom').BomResult;
   design?: import('./design').DesignResult;
   floorplan?: import('./floorplan').FloorplanResult | { skipped: string };
+  eligibility?: import('./eligibility').EligibilityRow[];
   compliance?: import('./compliance').ComplianceRow[];
   visual?: import('./visual').VisualState | { skipped: string };
   claims?: import('./claims').ClaimReport;

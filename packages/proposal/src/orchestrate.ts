@@ -5,6 +5,7 @@ import { buildCompliance } from './compliance';
 import type { RunCtx, StepRow } from './ctx';
 import { composeBom } from './bom';
 import { designArchitecture } from './design';
+import { checkEligibility } from './eligibility';
 import { planFloor } from './floorplan';
 import { readRfq } from './read';
 import { selectSolution } from './select';
@@ -15,6 +16,7 @@ type StepFn = (ctx: RunCtx) => Promise<string>;
 /** Pipeline order, dependencies and whether a failure may be tolerated (decorative or optional-input steps). */
 export const PIPELINE: { name: StepName; run: StepFn; optional: boolean; tool: string; about: string }[] = [
   { name: 'read_rfq', run: readRfq, optional: false, tool: 'read_rfq', about: 'Read the RFQ documents (PDF native) into a requirements list with page citations' },
+  { name: 'check_eligibility', run: checkEligibility, optional: false, tool: 'check_eligibility', about: 'Check every mandatory eligibility condition against the company facts before pricing (needs read_rfq)' },
   { name: 'select_solution', run: selectSolution, optional: false, tool: 'select_solution', about: 'Match requirements to the catalogue and to similar past proposals (needs read_rfq)' },
   { name: 'compose_bom', run: composeBom, optional: false, tool: 'compose_bom', about: 'Compose the BoM, custom engineering and totals in the company style (needs select_solution)' },
   { name: 'design_architecture', run: designArchitecture, optional: false, tool: 'design_architecture', about: 'Architecture graph and per-site zone/wiring map (needs compose_bom)' },
@@ -24,7 +26,7 @@ export const PIPELINE: { name: StepName; run: StepFn; optional: boolean; tool: s
   { name: 'claim_check', run: claimCheckStep, optional: false, tool: 'claim_check', about: 'Check every claim against evidence; strike unsupported sentences (run last, needs compliance_matrix)' },
 ];
 
-const SYSTEM = `You are the bid-desk orchestrator for a B2B supplier. Produce a proposal from an RFQ by calling the tools below. Each tool performs one stage on the shared run and returns a one-line result. Order: read_rfq first, then select_solution, compose_bom; after compose_bom the stages design_architecture, place_on_floor_plan, compliance_matrix and concept_visual may be called in any order; claim_check last. Call one tool per turn. If a tool returns an error, continue with the others. When claim_check has returned, reply with the single word DONE.`;
+const SYSTEM = `You are the bid-desk orchestrator for a B2B supplier. Produce a proposal from an RFQ by calling the tools below. Each tool performs one stage on the shared run and returns a one-line result. Order: read_rfq first, then check_eligibility, select_solution, compose_bom; after compose_bom the stages design_architecture, place_on_floor_plan, compliance_matrix and concept_visual may be called in any order; claim_check last. Call one tool per turn. If a tool returns an error, continue with the others. When claim_check has returned, reply with the single word DONE.`;
 
 export interface OrchestrationResult { orchestrator: string; wonderFailed: boolean; row: StepRow }
 

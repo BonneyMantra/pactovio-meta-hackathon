@@ -147,3 +147,25 @@
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; animation: none !important; }
   .pd-fn a, .pd-cite { text-decoration: none; }
 }
+/* Chat: the agent's first reply, the live transcript while recording, eligibility flags during a run. */
+.rq-reply { margin: 0 0 8px; font-size: 14px; line-height: 20px; color: var(--ink); }
+textarea.rq-hearing { color: var(--ink-2); }
+.rq-flags { margin-top: 12px; padding: 12px 14px; border-radius: 10px; background: var(--surface-2); display: grid; gap: 10px; animation: pd-sum-in 380ms var(--ease) both; }
+.rq-flags-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; font-size: 13.5px; }
+.rq-flag { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 9px; align-items: start; font-size: 13px; line-height: 18px; }
+.rq-flag-ico { width: 18px; height: 18px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; margin-top: 1px; }
+.rq-flag.gap .rq-flag-ico { background: var(--bad); } .rq-flag.gap .rq-flag-ico svg { stroke-width: 3; }
+.rq-flag.confirm .rq-flag-ico { background: var(--warn); }
+.rq-flag-t { color: var(--ink); }
+.rq-flag-c { font-family: var(--mono); font-size: 11.5px; font-weight: 500; margin-right: 7px; padding: 1px 6px; border-radius: 5px; background: var(--surface); box-shadow: var(--hair); }
+.rq-flag-r { color: var(--ink-2); font-size: 12.5px; margin-top: 2px; }
+.pd-running .rq-flags { margin-top: 4px; }
+/* Review: status chip, edit mode outlines on the narrative the bid desk may change. */
+.pd-review { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pd-review-chip { display: inline-flex; align-items: center; gap: 5px; font-weight: 550; }
+.pd-review-note:empty { display: none; }
+.pd-actions { align-items: center; }
+.pd-editing [data-edit] { outline: 1px dashed color-mix(in srgb, var(--pd-teal, #0b5f78) 55%, transparent); outline-offset: 2px; border-radius: 2px; cursor: text; transition: background 160ms; }
+.pd-editing [data-edit]:hover { background: rgba(11, 95, 120, 0.05); }
+.pd-editing [data-edit]:focus { outline: 1.5px solid var(--pd-teal, #0b5f78); background: rgba(11, 95, 120, 0.06); }
+@media print { .pd-editing [data-edit] { outline: none; background: none; } }

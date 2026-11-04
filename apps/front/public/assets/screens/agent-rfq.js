@@ -1,8 +1,9 @@
 // Chat additions: drop an RFQ (and drawings) to start a proposal run, live run card with the model behind each step,
 // and a microphone that sends 16 kHz WAV to /api/voice/transcribe.
-import { h, icon, toast } from '../ui.js';
+import { api, h, icon, toast } from '../ui.js';
 import { agentLabel } from '../agent-id.js';
-import { startProposal, getProposal, transcribe, STAGES } from '../doc/api.js';
+import { startProposal, getProposal, transcribe, speechHints, STAGES } from '../doc/api.js';
+import { eligibilityFlags, flagsSig } from '../doc/flags.js';
 import { canRecord, startRecording } from '../voice.js';
 import { steps, liveSteps } from '../doc/steps.js';
 import { inrShort, assetUrl } from '../doc/kit.js';
@@ -12,7 +13,10 @@ const GO = { go: 'Go', conditional: 'Bid with conditions', no_go: 'No bid' };
 const kb = (n) => (n > 1e6 ? `${(n / 1e6).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1e3))} KB`);
 
 export function rfqKit({ win, ta, feed, scroll, threadId, setBusy }) {
-  let files = [], rec = null, timer = null;
+  let files = [], rec = null, timer = null, hints = [], base = '', heard = '';
+  // The company's short name for the agent's first reply ("the way Rax writes them").
+  let company = null;
+  api('/brain').then((b) => { const n = b?.profile?.legal_name || b?.profile?.name || ''; company = n.split(/\s+/)[0] || null; }).catch(() => {});
   const input = h('input', { type: 'file', accept: ACCEPT, multiple: true, hidden: true, onchange: () => { add([...input.files]); input.value = ''; } });
   const tray = h('div.rq-tray', { hidden: true });
   const attach = h('button.rq-btn', { type: 'button', title: 'Attach an RFQ or drawing', 'aria-label': 'Attach an RFQ or drawing', onclick: () => input.click() }, icon('clip', 17));
@@ -31,6 +35,9 @@ export function rfqKit({ win, ta, feed, scroll, threadId, setBusy }) {
     if (ok.length < list.length) toast('Files over 25 MB were left out.');
     files = [...files, ...ok].slice(0, 6);
     draw();
+    // Names on the RFQ's first page help the recogniser spell them (the buyer, places, people); fetched once per RFQ.
+    const doc = files.find((f) => /\.(pdf|txt|eml|md)$/i.test(f.name));
+    if (doc && doc !== hints.file) { hints = Object.assign([], { file: doc }); speechHints(doc).then((k) => { if (hints.file === doc) hints = Object.assign(k, { file: doc }); }); }
     ta.focus();
   }
   function draw() {
@@ -41,23 +48,39 @@ export function rfqKit({ win, ta, feed, scroll, threadId, setBusy }) {
     ta.placeholder = files.length ? 'Add a note for this proposal (optional)…' : 'Ask about a tender, an RFQ or a quote…';
   }
 
+  const show = (t) => { ta.value = `${base}${t}`; ta.dispatchEvent(new Event('input')); };
+  // While recording, everything heard so far is re-transcribed about every two seconds, so the words appear as they are spoken.
+  async function listen(r) {
+    while (rec === r) {
+      const t0 = Date.now();
+      try {
+        const wav = await r.snapshot();
+        if (wav && rec === r) { const { text } = await transcribe(wav, hints); if (rec === r && text) { heard = text; show(text); } }
+      } catch { /* a missed partial is fine: the final pass runs on stop */ }
+      await new Promise((ok) => setTimeout(ok, Math.max(400, 2000 - (Date.now() - t0))));
+    }
+  }
+
   async function toggleMic() {
     if (rec) {
-      clearInterval(timer); mic.classList.remove('rec'); mic.classList.add('busy'); mic.disabled = true;
+      clearInterval(timer); mic.classList.remove('rec'); mic.classList.add('busy'); mic.disabled = true; ta.classList.remove('rq-hearing');
+      const r = rec; rec = null;
       try {
-        const wav = await rec.stop(); rec = null;
-        const { text } = await transcribe(wav);
-        if (text) { ta.value = `${ta.value ? `${ta.value.trim()} ` : ''}${text}`; ta.dispatchEvent(new Event('input')); ta.focus(); }
+        const wav = await r.stop();
+        const { text } = await transcribe(wav, hints);
+        if (text || heard) { show(text || heard); ta.focus(); }
         else toast('No speech was recognised. Try again a little closer to the microphone.');
-      } catch (e) { toast(e.message || 'Voice transcription failed.'); }
-      finally { rec = null; mic.classList.remove('busy'); mic.disabled = false; mic.replaceChildren(icon('mic', 17)); }
+      } catch (e) { if (heard) show(heard); else toast(e.message || 'Voice transcription failed.'); }
+      finally { mic.classList.remove('busy'); mic.disabled = false; mic.replaceChildren(icon('mic', 17)); }
       return;
     }
     try { rec = await startRecording(); } catch { toast('Microphone access was blocked. Allow it in the browser to speak to the agent.'); return; }
+    base = ta.value.trim() ? `${ta.value.trim()} ` : ''; heard = '';
     const t0 = Date.now();
-    mic.classList.add('rec');
+    mic.classList.add('rec'); ta.classList.add('rq-hearing');
     const tick = () => { const s = Math.floor((Date.now() - t0) / 1000); mic.replaceChildren(h('i'), h('span', `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`)); if (s >= 120) toggleMic(); };
     tick(); timer = setInterval(tick, 500);
+    listen(rec);
   }
 
   async function run(text) {
@@ -66,15 +89,16 @@ export function rfqKit({ win, ta, feed, scroll, threadId, setBusy }) {
     feed.querySelector('.welcome')?.remove();
     feed.append(h('div.msg.user', h('div.bubble', text ? h('p', text) : null, h('div.rq-sent', [rfq, ...extras].map((f) => h('span', icon('file', 13), f.name))))));
     const list = h('div', steps([{ label: `Uploading ${[rfq, ...extras].length > 1 ? `${[rfq, ...extras].length} files` : 'the request'}`, status: 'running' }])), bar = h('i'), result = h('div');
-    const orch = h('span.xs.muted');
-    const card = h('div.rq-run', h('div.rq-head', h('span.rq-ico', icon('file', 16)), h('div', h('strong', 'Writing the proposal'), h('div.xs.muted', rfq.name, ' ', orch))), list, h('div.rq-bar', bar), result);
-    feed.append(h('div.msg.assistant', h('span.agent-av', icon('logo', 14)), h('div.msg-col', h('div.msg-who', agentLabel(), h('span.xs.muted', 'now')), card)));
+    const orch = h('span.xs.muted'), flags = h('div');
+    const reply = h('p.rq-reply', `Got it. Reading it now. I'll check eligibility first, then build it the way ${company || 'you'} write${company ? 's' : ''} them.`);
+    const card = h('div.rq-run', h('div.rq-head', h('span.rq-ico', icon('file', 16)), h('div', h('strong', 'Writing the proposal'), h('div.xs.muted', rfq.name, ' ', orch))), list, h('div.rq-bar', bar), flags, result);
+    feed.append(h('div.msg.assistant', h('span.agent-av', icon('logo', 14)), h('div.msg-col', h('div.msg-who', agentLabel(), h('span.xs.muted', 'now')), reply, card)));
     scroll(); setBusy(true);
     let id;
     try { id = (await startProposal({ file: rfq, extras, text })).id; }
     catch (e) { list.replaceChildren(h('div.error-box', e.message)); setBusy(false); return; }
     setBusy(false);
-    let fails = 0;
+    let fails = 0, fsig = '';
     const live = liveSteps();
     const poll = async () => {
       let p;
@@ -85,6 +109,8 @@ export function rfqKit({ win, ta, feed, scroll, threadId, setBusy }) {
       const ps = p, st = ps.steps || [];
       // Rows update in place, so each finished step ticks visibly instead of the list re-rendering.
       if (st.length) { live.update(st); if (!live.el.isConnected) { list.replaceChildren(live.el); scroll(); } }
+      const elig = ps.partial?.eligibility;
+      if (elig && flagsSig(elig) !== fsig) { fsig = flagsSig(elig); flags.replaceChildren(eligibilityFlags(elig) || ''); scroll(); }
       if (ps.orchestrator) orch.textContent = `· orchestrated by ${ps.orchestrator}`;
       const done = st.filter((s) => s.status === 'done').length;
       bar.style.width = `${ps.status === 'ready' ? 100 : (done / STAGES.length) * 92 + 4}%`;

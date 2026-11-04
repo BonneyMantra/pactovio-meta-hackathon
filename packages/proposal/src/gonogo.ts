@@ -41,8 +41,9 @@ export function goNoGo(ctx: RunCtx, today = new Date()): GoNoGo | undefined {
   reasons.push(`Catalogue and engineering cover ${met} of ${fn.length} technical requirements in full${partial ? `, ${partial} in part` : ''}.`);
   if (winRate !== null) reasons.push(`Won ${won} of ${similar.length} closest past bids (${similar.slice(0, 3).map((p) => p.ref).join(', ')}).`);
   if (bom.custom_engineering.length) reasons.push(`${bom.custom_engineering.length} custom-engineering package${bom.custom_engineering.length > 1 ? 's' : ''} (${bom.custom_engineering.reduce((a, w) => a + w.person_days, 0)} person-days) close the gaps.`);
-  for (const r of eligDev.slice(0, 3)) reasons.push(`Gap: ${short(r.requirement)}${r.req?.page ? ` (p. ${r.req.page})` : ''}.`);
-  for (const r of eligPart.slice(0, Math.max(0, 3 - eligDev.length))) reasons.push(`To confirm: ${short(r.requirement)}${r.req?.page ? ` (p. ${r.req.page})` : ''}.`);
+  const cite = (r: (typeof rows)[number]) => `${r.req?.clause ? `${r.req.clause} · ` : ''}${short(r.requirement)}${r.req?.page ? ` (p. ${r.req.page})` : ''}`;
+  for (const r of eligDev.slice(0, 3)) reasons.push(`Gap: ${cite(r)}.`);
+  for (const r of eligPart.slice(0, Math.max(0, 3 - eligDev.length))) reasons.push(`To confirm: ${cite(r)}.`);
   let days: number | null = null;
   const due = parseDue(rfq.due_date);
   if (due !== null) {
