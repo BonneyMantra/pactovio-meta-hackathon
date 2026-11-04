@@ -4,7 +4,6 @@ import { api, h, icon, fmt, chip, empty, errorBox, skeleton } from '../ui.js';
 import { listProposals } from '../brain-api.js';
 import { inrShort } from '../doc/kit.js';
 import { dash, doorChip, sourceMark, senderName, fitRing, sectionTitle } from './work-kit.js';
-import { setupPanel } from './setup-results.js';
 import { agentHero } from './today-agent.js';
 import { loadBrain } from '../agent-id.js';
 
@@ -85,12 +84,11 @@ function approvalRow(a) {
 export async function render(root, _params, ctx) {
   ctx.setCrumbs('Home');
   root.classList.add('hm-page');
-  const panel = setupPanel(ctx);
-  const setup = panel?.childElementCount ? panel : null;
   const hero = h('div', h('div.card.ag-hero-skel', skeleton(5)));
   const work = h('div.grid.hm-work', [0, 1, 2].map(() => h('div.card.hm-card', skeleton(3))));
   const lists = h('div');
-  root.append(...[setup, hero, sectionTitle('Working for you'), work, lists].filter(Boolean));
+  // The agent onboarding replaced the older v2 setup checklist, so Home no longer shows its 'Continue setup' card.
+  root.append(hero, sectionTitle('Working for you'), work, lists);
 
   const [, t, props, auto, pros] = await Promise.all([
     loadBrain(ctx, { fresh: true }),

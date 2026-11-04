@@ -79,8 +79,11 @@ function composer(company) {
 function stylePanel(company, k) {
   const st = k.style;
   if (!st) {
-    return h('aside.card.ag-style.ag-style-empty', h('div.bs-k', 'House style'), h('p.small.ink2', `Once I’ve read ${company}’s past proposals, the structure, voice and terms I’ll apply show here.`),
-      h('a.btn.btn-secondary.btn-sm', { href: '#/brain/learning' }, icon('refresh', 14), 'Teach it from Drive'));
+    const learn = ['Section order', 'Voice and phrasing', 'Payment terms', 'Warranty and AMC', 'Discount pattern', 'Win rate by sector'];
+    return h('aside.card.ag-style.ag-style-empty', h('div.bs-k', 'House style'),
+      h('p.small.ink2', `Point me at ${company}’s past proposals in Google Drive and I’ll learn:`),
+      h('ol.ag-order.ghost', learn.map((s, i) => h('li', h('span.num', String(i + 1).padStart(2, '0')), s))),
+      h('a.btn.btn-secondary.btn-sm', { href: '#/brain/learning' }, icon('refresh', 14), 'Teach me from Drive'));
   }
   const order = st.section_order || [];
   const rule = (st.voice_rules || [])[0];
