@@ -63,7 +63,7 @@ export async function render(root, _p, ctx) {
     sub.textContent = id === 'thr_inbox' ? 'Proactive messages from tenders, email and runs. Cards wait for your decision.' : 'Private to this session';
     headRight.replaceChildren(...(id === 'thr_inbox' ? [h('button.btn.btn-secondary.btn-sm', { onclick: runDigest }, icon('clock', 14), 'Run digest')] : []));
     chips.style.display = id === 'thr_inbox' ? 'none' : '';
-    feed.replaceChildren(skeleton(4));
+    if (!feed.querySelector('.welcome')) feed.replaceChildren(welcome()); // greet at once; history replaces it if there is any
     try {
       const r = await api(`/agent/threads/${id}/messages`);
       const items = r.items || [];
@@ -190,6 +190,7 @@ export async function render(root, _p, ctx) {
     ws.onclose = () => { state.wsOpen = false; dot.classList.remove('on'); dot.title = 'Reconnecting'; if (state.busy) setBusy(false); setTimeout(connect, 2500); };
   }
 
+  feed.replaceChildren(welcome());
   await loadThreads();
   connect();
   const prefill = sessionStorage.getItem('pv_prefill');

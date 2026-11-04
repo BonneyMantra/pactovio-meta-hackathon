@@ -6,7 +6,6 @@ import { gateFrame, leaveGate, gateLayout, gateError, renderAuth } from './acces
 import { renderOnboarding } from './onboarding.js';
 import { clearCompanyDraft } from './company-form.js';
 import { rememberSetupReturn, restoreSetupReturn, clearSetupReturn } from './onboarding-return.js';
-import { setupPending } from './screens/setup-results.js';
 import { rememberDeepLink, restoreDeepLink, clearDeepLink } from './deep-link.js';
 import { agentAvatar, companyMark, initials, loadBrain, probeLogo, sideAgentCard } from './agent-id.js';
 
@@ -63,7 +62,6 @@ async function openIdentityMenu(anchor) {
   const list = h('div.pv-menu-list', h('div.xs.muted', { style: { padding: '6px 10px' } }, 'Loading workspaces…'));
   const menu = h('div.pv-menu', { role: 'menu' },
     h('div.pv-menu-head.xs.muted', 'Switch workspace'), list, h('div.pv-menu-sep'),
-    setupPending(ctx.setup) ? h('a.pv-menu-item', { href: '#/setup', role: 'menuitem' }, icon('spark'), 'Continue setup') : null,
     h('a.pv-menu-item', { href: '#/settings', role: 'menuitem' }, icon('card'), 'Billing & usage'),
     h('a.pv-menu-item', { href: '#/company', role: 'menuitem' }, icon('settings'), 'Company settings'),
     h('a.pv-menu-item', { href: '#/team', role: 'menuitem' }, icon('team'), 'Team'),
@@ -207,8 +205,8 @@ async function boot() {
     if (current !== generation) return;
     await Promise.all([refreshCounts(), refreshSetup(), loadBrain(ctx), probeLogo(ctx)]);
     if (current !== generation) return;
-    // Provider sign-ins return to #/onboarding; a returning customer still finishing v2 setup goes back to #/setup.
-    if (setupPending(ctx.setup) && /^#\/onboarding(\?|$)/.test(location.hash)) history.replaceState(null, '', `/app#/setup${location.hash.slice(12)}`);
+    // Inside the app onboarding is complete, so the retired v2 'setup' checklist is never offered again
+    // (the v3 onboarding never sets its completed_at, which kept 'Continue setup' and #/setup redirects alive).
     restoreSetupReturn(session.workspace_id);
     restoreDeepLink();
     leaveGate(); ready = true; route();
