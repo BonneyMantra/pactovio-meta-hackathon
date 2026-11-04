@@ -6,7 +6,10 @@ import type { AppEnv } from './types';
 export function sameOrigin(c: Context<AppEnv>): void {
   const origin = c.req.header('origin');
   const expected = c.env.PUBLIC_ORIGIN ?? new URL(c.req.url).origin;
-  if (c.req.header('sec-fetch-site') === 'cross-site' || !origin || origin !== expected) {
+  // EXTRA_ORIGINS: exact extra browser origins served by this same Worker (e.g. the qa Pages alias).
+  const extra = String(c.env.EXTRA_ORIGINS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+  const allowed = origin === expected || (!!origin && extra.includes(origin) && origin === new URL(c.req.url).origin);
+  if (c.req.header('sec-fetch-site') === 'cross-site' || !origin || !allowed) {
     throw new HttpError(403, 'A same-origin request is required', 'origin_forbidden');
   }
 }

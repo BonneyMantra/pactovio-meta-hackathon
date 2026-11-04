@@ -17,6 +17,8 @@ LANE_AGENT = "meta:muse-spark-1.3@medium"
 LANE_FAST = "meta:muse-spark-1.3@minimal"
 LANE_VISION = "meta:muse-spark-1.3@medium"
 PUBLIC_ORIGIN = "https://pactovio-meta.pages.dev"
+# The qa Pages alias shares this Worker; sign-in and writes from it must pass the same-origin check.
+EXTRA_ORIGINS = "https://qa.pactovio-meta.pages.dev"
 # Hard daily cap on every model call (USD at list prices, resets 00:00 UTC = 08:00 MYT).
 MODEL_DAILY_CAP_USD = "20"
 # Kill switch: "1" stops every model call. Also settable without a deploy: KV key config:models_disabled = "1".

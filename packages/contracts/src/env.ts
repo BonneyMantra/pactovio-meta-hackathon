@@ -26,6 +26,8 @@ export interface Env {
   MODAL_BASE_URL?: string;
   /** Public origin used to build approve/decline and OAuth callback links outside a request (queue consumer). */
   PUBLIC_ORIGIN?: string;
+  /** Comma-separated exact extra origins (e.g. a qa Pages alias) accepted for same-origin browser mutations. */
+  EXTRA_ORIGINS?: string;
   DODO_BRAND_ID?: string;
   DODO_API_BASE?: string;
 
