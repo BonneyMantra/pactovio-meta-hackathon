@@ -54,10 +54,10 @@ export async function worldwide(box, { q = '' } = {}) {
   }
   const notices = r.notices || [];
   const scored = notices.filter((n) => n.fit?.method === 'ai').length;
-  meta.replaceChildren(
+  meta.replaceChildren(...[
     h('span', `${(r.total ?? notices.length).toLocaleString('en-IN')} open notices worldwide · top ${notices.length} ranked against your catalogue and past proposals`),
     scored ? h('span', { style: { display: 'inline-flex', gap: '6px', alignItems: 'center' } }, 'by', modelChip('Muse Spark')) : null,
-    r.sources_failed?.length ? h('span.xs.muted', `${r.sources_failed.join(', ')} not answering`) : null);
+    r.sources_failed?.length ? h('span.xs.muted', `${r.sources_failed.join(', ')} not answering`) : null].filter(Boolean));
   if (r.ai?.code && AI_MSG[r.ai.code]) meta.append(h('div.xs.muted', { style: { width: '100%' } }, AI_MSG[r.ai.code]));
   list.replaceChildren(...(notices.length ? notices.map((n, i) => card(n, i, onSave))
     : [h('div.card', empty('Nothing open matches right now', q ? 'Try a broader keyword.' : 'New notices are pulled from public portals every day.'))]));

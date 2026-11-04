@@ -71,16 +71,16 @@ export function autopilotPanel() {
         : running.length ? `Writing ${running.length === 1 ? 'a proposal' : `${running.length} proposals`} from your inbox` : s.enabled ? 'Watching your inbox' : 'Autopilot is paused';
     const sub = !mb.connected ? 'Every new email is classified on Muse Spark. RFQs and RFPs start a proposal run; marketing is ignored, never deleted.'
       : `Gmail connected${mb.connected_at ? ` ${fmt.ago(mb.connected_at)}` : ''}${s.last_checked_at ? ` · checked ${fmt.ago(s.last_checked_at)}` : ''} · RFQs above ${Math.round((s.threshold ?? 0.7) * 100)}% confidence start a proposal`;
-    el.replaceChildren(
+    el.replaceChildren(...[
       h('div.ap-head',
         h('div.ap-title', logoTile('gmail', 34), h('div', h('div.ap-k', `AUTOPILOT · GMAIL${mb.connected ? (s.enabled ? ' · ON' : ' · PAUSED') : ''}`), h('h2', title), h('div.small.ink2', sub))),
         mb.connected && (c.received || items.length)
           ? h('div.ap-stats', stat(c.received ?? items.length, 'emails'), stat(c.proposals_started, 'RFQs', 'acc'), stat(c.proposals_ready, 'proposals', 'ok'), stat(c.ignored, 'ignored'))
           : null),
       h('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap' } }, action),
-      ready.length || running.length ? h('div.ap-list', [...running, ...ready].map(item)) : null,
+      ready.length || running.length ? h('div.ap-list', [...ready, ...running].map(item)) : null,
       left.length ? h('div.ap-list', left.map(item)) : null,
-      ignored.length ? h('div.ap-foot', toggle) : null, ign);
+      ignored.length ? h('div.ap-foot', toggle) : null, ign].filter(Boolean));
     timer = setTimeout(load, running.length ? 5000 : s.enabled ? 20000 : 60000);
   }
   load();

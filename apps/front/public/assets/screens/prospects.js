@@ -56,8 +56,8 @@ export async function render(root, _p, ctx) {
       const got = r.prospects || [];
       const ids = new Set(got.map((p) => p.id));
       items = [...got, ...items.filter((p) => !ids.has(p.id))];
-      status.replaceChildren(h('span', `${got.length} buyer${got.length === 1 ? '' : 's'} found with `), modelChip('Muse Spark'), h('span', ' web search'),
-        r.dropped_without_source ? h('span.xs.muted', `· ${r.dropped_without_source} dropped with no verifiable source page`) : null);
+      status.replaceChildren(...[h('span', `${got.length} buyer${got.length === 1 ? '' : 's'} found with `), modelChip('Muse Spark'), h('span', ' web search'),
+        r.dropped_without_source ? h('span.xs.muted', `· ${r.dropped_without_source} dropped with no verifiable source page`) : null].filter(Boolean));
       draw(ids);
     } catch (e) {
       status.replaceChildren(h('span', { style: { color: 'var(--bad)' } }, e.code === 'company_incomplete' ? 'Finish your company profile first.' : e.message));
