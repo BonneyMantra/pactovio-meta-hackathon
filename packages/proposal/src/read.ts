@@ -23,7 +23,7 @@ export function rfqParts(files: RfqFile[]): Record<string, unknown>[] {
 
 const SYSTEM = `You read a buyer's RFQ/RFP pack for a technical B2B supplier and extract what a bid team needs. Rules:
 - Every requirement is one atomic, testable statement in the buyer's own terms, with the document filename and the page number where it appears (null page for emails or text without pages).
-- Capture eligibility conditions, functional requirements, integrations, SLAs, timeline, commercial terms. Up to 45 requirements, most important first; merge duplicates.
+- Capture eligibility conditions, functional requirements, integrations, SLAs, timeline, commercial terms. At most 40 requirements, most important first; merge duplicates and keep each under 30 words.
 - "sites" = the number of ATM sites and branch sites the buyer lists (0 when not stated).
 - "floorplan_file" = the filename of an attached image that is a floor plan or site drawing, else null.
 - Never invent numbers or page numbers. Ids are R1, R2, ...`;
@@ -31,9 +31,10 @@ const SYSTEM = `You read a buyer's RFQ/RFP pack for a technical B2B supplier and
 export const readRfq = (ctx: RunCtx): Promise<string> => runStep(ctx, 'read_rfq', () => !!ctx.state.rfq, async () => {
   if (!ctx.files.length) throw new Error('No RFQ documents to read');
   const messages = [{ role: 'system', content: SYSTEM }, { role: 'user', content: [...rfqParts(ctx.files), { type: 'text', text: 'Extract the RFQ now as JSON.' }] }] as unknown as ChatMessage[];
-  const rfq = await ask(ctx, RfqRead, { purpose: 'Read RFQ (native PDF)', role: 'reason', messages, maxTokens: 9000, name: 'rfq_read' });
+  const rfq = await ask(ctx, RfqRead, { purpose: 'Read RFQ (native PDF)', role: 'reason', messages, maxTokens: 9000, name: 'rfq_read', timeoutMs: 170_000 });
   const names = new Set(ctx.files.map((f) => f.filename));
   if (rfq.floorplan_file && !names.has(rfq.floorplan_file)) rfq.floorplan_file = ctx.files.find(isImage)?.filename ?? null;
+  rfq.requirements = rfq.requirements.slice(0, 60);
   ctx.state.rfq = rfq;
   return `${rfq.requirements.length} requirements from ${ctx.files.length} file(s)`;
 });

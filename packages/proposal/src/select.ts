@@ -41,7 +41,7 @@ ${short.map((c) => `${c.sku} | ${c.name} | ${c.family} | ${c.price_inr} | ${c.de
 
 Similar past proposals:
 ${past.length ? past.map((p) => `${p.ref} | ${p.title} | ${p.solution_type} | skus: ${(p.skus ?? []).slice(0, 12).join(', ')}`).join('\n') : '(none learned yet)'}`;
-  const out = await ask(ctx, SelectionModel, { purpose: 'Select solution from catalogue', role: 'reason', messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: user }], maxTokens: 5000, name: 'selection' });
+  const out = await ask(ctx, SelectionModel, { purpose: 'Select solution from catalogue', role: 'agent', messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: user }], maxTokens: 5000, name: 'selection' });
   const have = new Map(ctx.catalogue.map((c) => [c.sku, c]));
   const lines = out.lines.filter((l) => have.has(l.sku));
   const refs = new Set(past.map((p) => p.ref));

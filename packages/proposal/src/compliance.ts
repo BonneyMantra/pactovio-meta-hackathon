@@ -33,7 +33,7 @@ Custom engineering: ${bom.custom_engineering.map((w) => `${w.work_package}: ${w.
 Gaps noted: ${selection.gaps.map((g) => `${g.kind} ${g.item}`).join('; ') || 'none'}
 
 Company facts:\n${await companyFacts(ctx)}`;
-  const out = await ask(ctx, ComplianceModel, { purpose: 'Compliance matrix', role: 'reason', messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: user }], maxTokens: 7000, name: 'compliance' });
+  const out = await ask(ctx, ComplianceModel, { purpose: 'Compliance matrix', role: 'agent', messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: user }], maxTokens: 7000, name: 'compliance' });
   const byId = new Map(rfq.requirements.map((r) => [r.id, r]));
   const rows: ComplianceRow[] = [];
   for (const r of out.rows) {

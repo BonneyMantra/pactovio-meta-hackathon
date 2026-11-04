@@ -46,10 +46,10 @@ export function addUsage(ctx: RunCtx, u: { model: string; tokensIn?: number; tok
 export const onModelStep = (ctx: RunCtx) => (s: StepRecord): void => addUsage(ctx, { model: s.model, tokensIn: s.tokensIn, tokensOut: s.tokensOut, costUsd: s.costUsd, ms: s.ms });
 
 /** Structured Spark call inside a step; usage is attributed to the running step. */
-export async function ask<S extends z.ZodType>(ctx: RunCtx, schema: S, o: { purpose: string; role?: ModelRole; messages: ChatMessage[]; maxTokens: number; name?: string }): Promise<z.output<S>> {
+export async function ask<S extends z.ZodType>(ctx: RunCtx, schema: S, o: { purpose: string; role?: ModelRole; messages: ChatMessage[]; maxTokens: number; name?: string; timeoutMs?: number }): Promise<z.output<S>> {
   const { data } = await chatJSON(schema, {
     env: ctx.env, role: o.role ?? 'reason', purpose: o.purpose, messages: o.messages, maxTokens: o.maxTokens,
-    schemaName: o.name, onStep: onModelStep(ctx), fetch: ctx.fetchImpl, timeoutMs: 170_000,
+    schemaName: o.name, onStep: onModelStep(ctx), fetch: ctx.fetchImpl, timeoutMs: o.timeoutMs ?? 110_000,
   });
   return data;
 }

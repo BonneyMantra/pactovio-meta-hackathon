@@ -26,7 +26,7 @@ export interface WonderResult extends ToolLoopResult { orchestrator: string; won
  */
 export async function wonderLoop(r: WonderRun): Promise<WonderResult> {
   const messages: ChatMessage[] = [{ role: 'system', content: r.system }, { role: 'user', content: r.task }];
-  const base = { env: r.env, purpose: r.purpose, role: 'agent' as const, messages, tools: r.tools, maxSteps: r.maxSteps ?? 14, onStep: r.onStep, fetch: r.fetch, maxTokens: 1500 };
+  const base = { env: r.env, purpose: r.purpose, role: 'agent' as const, messages, tools: r.tools, maxSteps: r.maxSteps ?? 14, onStep: r.onStep, fetch: r.fetch, maxTokens: 1500, timeoutMs: 90_000 };
   if (!r.forceSpark) {
     try {
       const res = await toolLoop({ ...base, model: WONDER_LANE });

@@ -20,7 +20,7 @@ export const designArchitecture = (ctx: RunCtx): Promise<string> => runStep(ctx,
 Supply lines: ${bom.scope_of_supply.map((s) => `${s.sku} (${s.type}) ${s.description.slice(0, 80)}`).join('\n')}
 Custom work: ${bom.custom_engineering.map((w) => `${w.work_package}: ${w.description.slice(0, 100)}`).join(' | ') || 'none'}
 Integration requirements: ${rfq.requirements.filter((r) => r.category === 'integration' || /api|mqtt|soc|cmms|ticket|dashboard/i.test(r.text)).map((r) => r.text).join(' | ').slice(0, 1500)}`;
-  const d = await ask(ctx, DesignModel, { purpose: 'Architecture and zone map', role: 'reason', messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: user }], maxTokens: 4500, name: 'design' });
+  const d = await ask(ctx, DesignModel, { purpose: 'Architecture and zone map', role: 'agent', messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: user }], maxTokens: 4500, name: 'design' });
   const ids = new Set(d.nodes.map((n) => n.id));
   const skus = new Set(bom.scope_of_supply.map((s) => s.sku));
   ctx.state.design = {

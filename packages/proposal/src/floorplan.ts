@@ -76,7 +76,7 @@ export const planFloor = (ctx: RunCtx): Promise<string> => runStep(ctx, 'floor_p
     { type: 'text', text: `SAM boxes:\n${cands.map((c) => `${c.id}: [${c.box.join(', ')}] (${c.concept})`).join('\n') || '(none)'}\n\nDevice kit (sku: qty per site):\n${kit.map((k) => `${k.sku} x${k.qty} - ${names.get(k.sku) ?? ''}`).join('\n')}` },
     { type: 'image_url', image_url: { url: `data:${mime};base64,${bytesToB64(file.bytes)}` } },
   ];
-  const out = await ask(ctx, PlaceModel, { purpose: 'Place devices on floor plan (SAM anchors)', role: 'vision', messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: user }] as unknown as ChatMessage[], maxTokens: 4500, name: 'placements' });
+  const out = await ask(ctx, PlaceModel, { purpose: 'Place devices on floor plan (SAM anchors)', role: 'vision', timeoutMs: 150_000, messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: user }] as unknown as ChatMessage[], maxTokens: 4500, name: 'placements' });
 
   const byId = new Map(cands.map((c) => [c.id, c]));
   const skus = new Set(kit.map((k) => k.sku));

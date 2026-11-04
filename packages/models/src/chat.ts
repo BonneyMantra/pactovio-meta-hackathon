@@ -37,8 +37,13 @@ export async function chat(p: ChatParams): Promise<ChatResult> {
     ...portableExtra(lane, p.extra),
   };
   const t0 = Date.now();
+  // The SDK's own timeout stops at response headers; a stalled body read would hang forever. Hard deadline over the whole request.
+  const guard = p.timeoutMs ? new AbortController() : null;
+  const timer = guard ? setTimeout(() => guard.abort(), p.timeoutMs!) : null;
+  const signal = guard && p.signal ? AbortSignal.any([guard.signal, p.signal]) : guard?.signal ?? p.signal;
   try {
-    const res = await limit(() => client({ ...p, role }).chat.completions.create(body as never, { signal: p.signal })) as OpenAI.Chat.Completions.ChatCompletion;
+    const res = await limit(() => client({ ...p, role }).chat.completions.create(body as never, { signal })) as OpenAI.Chat.Completions.ChatCompletion;
+    if (timer) clearTimeout(timer);
     const ms = Date.now() - t0;
     const msg = res.choices[0]?.message;
     const usage = res.usage as (OpenAI.CompletionUsage & { prompt_tokens_details?: { cached_tokens?: number } }) | undefined;
@@ -54,6 +59,7 @@ export async function chat(p: ChatParams): Promise<ChatResult> {
       raw: res,
     };
   } catch (err) {
+    if (timer) clearTimeout(timer);
     await p.onStep?.({ purpose: p.purpose, model: label, status: 'error', tokensIn: 0, tokensOut: 0, tokensCached: 0, ms: Date.now() - t0, costUsd: 0, summary: err instanceof Error ? err.message.slice(0, 300) : 'error' });
     throw err;
   }
