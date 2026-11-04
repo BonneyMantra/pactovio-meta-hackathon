@@ -2,8 +2,9 @@
 // workspace WebSocket (HTTP fallback). State-changing tools arrive as action cards to confirm.
 import { api, h, icon, toast, skeleton, errorBox } from '../ui.js';
 import { messageEl, richText, toolGroup, actionCard } from './agent-thread.js';
+import { rfqKit } from './agent-rfq.js';
 
-const SUGGEST = ["What's on today?", 'Summarise the Met Éireann verdict', 'Draft a reply to the latest design request', 'Which connectors are live?'];
+const SUGGEST = ["What's on today?", 'What is our win rate on banking bids?', 'Which open tenders fit us best?', 'Summarise the newest RFQ in the inbox'];
 
 export async function render(root, _p, ctx) {
   ctx.setCrumbs('Agent');
@@ -20,7 +21,9 @@ export async function render(root, _p, ctx) {
   const chips = h('div.suggest', SUGGEST.map((s) => h('button.chip.outline', { onclick: () => send(s) }, s)));
   const dot = h('span.live-dot', { title: 'Connecting' });
 
-  root.append(h('div.agent-win.card',
+  const composer = h('div.composer', ta, h('span.xs.muted.hint', '↵ send · ⇧↵ new line'), sendBtn);
+  const composerWrap = h('div.composer-wrap', chips, composer);
+  const win = h('div.agent-win.card',
     h('div.agent-side',
       h('div.agent-side-head', h('span.small', { style: { fontWeight: 510 } }, 'Conversations'),
         h('button.btn.btn-ghost.btn-xs', { onclick: newThread, title: 'New conversation' }, icon('spark', 14), 'New')),
@@ -28,7 +31,12 @@ export async function render(root, _p, ctx) {
     h('div.agent-main',
       h('div.conv-head', h('div', { style: { minWidth: 0 } }, h('div', { style: { display: 'flex', alignItems: 'center', gap: '8px' } }, dot, title), sub), headRight),
       feed,
-      h('div.composer-wrap', chips, h('div.composer', ta, h('span.xs.muted.hint', '↵ send · ⇧↵ new line'), sendBtn)))));
+      composerWrap));
+  root.append(win);
+  const kit = rfqKit({ win, ta, feed, scroll: () => { feed.scrollTop = feed.scrollHeight; }, threadId: () => state.current, setBusy: (b) => setBusy(b) });
+  composer.prepend(kit.attach);
+  composer.insertBefore(kit.mic, sendBtn);
+  composerWrap.insertBefore(kit.tray, composer);
 
   ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = `${Math.min(160, ta.scrollHeight)}px`; });
   ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(ta.value); } });
@@ -67,7 +75,7 @@ export async function render(root, _p, ctx) {
 
   function welcome() {
     return h('div.welcome', h('span.agent-av.lg', icon('logo', 20)), h('div.h3', 'What can I take off your plate?'),
-      h('div.muted', { style: { maxWidth: '440px', textAlign: 'center' } }, 'I read tenders, RFQs and design requests, check them against your evidence and datasheets, and ask before I change anything.'));
+      h('div.muted', { style: { maxWidth: '440px', textAlign: 'center' } }, 'Drop an RFQ here and I write the proposal from your catalogue, in your house style. I also read tenders and email, and ask before I change anything.'));
   }
 
   function append(msg) {
@@ -102,6 +110,7 @@ export async function render(root, _p, ctx) {
 
   async function send(content) {
     content = String(content || '').trim();
+    if (kit.hasFiles() && !state.busy) { ta.value = ''; ta.style.height = 'auto'; kit.run(content); return; }
     if (!content || state.busy) return;
     ta.value = ''; ta.style.height = 'auto';
     if (state.current === 'thr_inbox') { state.current = null; feed.replaceChildren(); title.textContent = 'New conversation'; sub.textContent = 'Private to this session'; headRight.replaceChildren(); chips.style.display = ''; }

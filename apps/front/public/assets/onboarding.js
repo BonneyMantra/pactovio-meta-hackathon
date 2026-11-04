@@ -1,48 +1,71 @@
-import { h, icon } from './ui.js';
-import { getCompany, completeCompany, friendlyError } from './customer-api.js';
-import { gateLayout, gateError } from './access.js';
-import { companyForm, companyReady } from './company-form.js';
-import { setupConnectors } from './setup-connectors.js';
+// First-run onboarding: 01 website → profile, 02 HubSpot catalogue, 03 Drive proposals → learning, 04 ready → chat.
+// The step is derived from server state on every load, so provider sign-ins (OAuth) resume in the right place.
+import { api, h, icon } from './ui.js';
+import { getCompany } from './customer-api.js';
+import { gateError } from './access.js';
+import { companyReady } from './company-form.js';
+import { ingestState, catalogueImport } from './brain-api.js';
+import { websiteStep } from './onb/website.js';
+import { catalogueStep } from './onb/catalogue.js';
+import { readyStep } from './onb/ready.js';
+import { learningView } from './brain/learning.js';
+
+const STEPS = ['Company', 'Catalogue', 'Proposals', 'Ready'];
+const SKIP = 'pv:onb-skip:';
+const skipped = (ws, k) => { try { return sessionStorage.getItem(SKIP + ws + k) === '1'; } catch { return false; } };
+const skip = (ws, k) => { try { sessionStorage.setItem(SKIP + ws + k, '1'); } catch { /* optional */ } };
 
 export async function renderOnboarding(root, session, onComplete, onLogout) {
-  let form = null, disposed = false, company = {};
-  const dispose = () => { disposed = true; form?.dispose(); };
-  async function start() {
-    gateLayout(root, h('section.card.access-card', h('p.ink2', { role: 'status' }, 'Loading your company setup…')), true);
+  let disposed = false, inner = null;
+  const ws = session.workspace_id;
+  // A provider that redirects back into this same document only changes the hash; re-derive the step.
+  const onHash = () => { if (!disposed && /^#\/onboarding/.test(location.hash)) resolve(); };
+  window.addEventListener('hashchange', onHash);
+  const dispose = () => { disposed = true; inner?.(); window.removeEventListener('hashchange', onHash); };
+
+  function layout(step, wide) {
+    const body = h('div.ob-body');
+    root.replaceChildren(
+      h('header.access-header', h('a.brand', { href: '/' }, h('img', { src: '/assets/brand/lockup.svg', alt: 'Pactovio', width: 134, height: 32 })),
+        h('div.ob-steps', STEPS.map((s, i) => h(`span${i === step ? '.on' : i < step ? '.done' : ''}`, h('b', i < step ? '✓' : String(i + 1).padStart(2, '0')), h('em', s)))),
+        h('div.ob-who.small.ink2', h('span', session.user.email), h('button.btn.btn-ghost.btn-sm', { type: 'button', onclick: onLogout }, 'Sign out'))),
+      h(`main.ob-main${wide ? '.wide' : ''}`, body));
+    window.scrollTo(0, 0);
+    return body;
+  }
+
+  async function resolve() {
+    inner?.(); inner = null;
+    const wait = layout(0);
+    wait.append(h('div.lr-wait', h('span.pd-spin'), 'Loading your setup…'));
     try {
-      const result = await getCompany(); if (disposed) return; company = result.company || {};
-      if (companyReady(company)) connections(); else details();
-    } catch (e) { if (!disposed) gateError(root, e, start); }
+      const [c, conns, ingest, imp] = await Promise.all([getCompany(), api('/connectors').catch(() => ({ items: [] })), ingestState().catch(() => null), catalogueImport().catch(() => null)]);
+      if (disposed) return;
+      const company = c.company || {};
+      const has = (p) => (conns.items || []).some((x) => x.provider === p && x.status === 'connected');
+      if (!companyReady(company)) return show(0, (b) => websiteStep(b, { company, workspace: ws, onNext: resolve }));
+      const products = imp ? imp.imported || imp.items.length : 0;
+      if (!skipped(ws, 'crm') && (!has('hubspot') || (imp?.status !== 'done' && products === 0) || imp?.status === 'running')) {
+        return show(1, (b) => catalogueStep(b, { connected: has('hubspot'), onNext: () => { skip(ws, 'crm'); resolve(); }, onSkip: () => { skip(ws, 'crm'); resolve(); } }), has('hubspot'));
+      }
+      if (!skipped(ws, 'files') && ingest?.status !== 'done') {
+        return show(2, (b) => {
+          const wrap = h('div'), foot = h('div.ob-actions.ob-skip', h('button.btn.btn-ghost.btn-sm', { type: 'button', onclick: () => { skip(ws, 'files'); resolve(); } }, 'Skip for now'));
+          b.append(wrap, ingest?.status === 'running' ? null : foot);
+          const stop = learningView(wrap, { returnTo: '/app#/onboarding', onDone: () => { foot.remove(); skip(ws, 'files'); resolve(); } });
+          return stop;
+        }, true);
+      }
+      show(3, (b) => { let d = null; readyStep(b, { onComplete }).then((x) => { d = x; }); return () => d?.(); });
+    } catch (e) { if (!disposed) gateError(root, e, resolve); }
   }
-  function frame(step, title, description, content) {
-    gateLayout(root, h('section.card.access-card.company-card',
-      h('div.setup-progress', h('span', { class: step === 1 ? 'on' : '' }, '01 Company'), h('span', { class: step === 2 ? 'on' : '' }, '02 Connections')),
-      h('h2.h2', { tabindex: '-1' }, title), h('p.ink2', description), content,
-      h('div.setup-identity.small.ink2', h('span', session.user.email), h('button.btn.btn-ghost.btn-sm', { type: 'button', onclick: onLogout }, 'Sign out'))), true);
-    root.querySelector('h2')?.focus({ preventScroll: true }); window.scrollTo(0, 0);
+
+  function show(step, mount, wide) {
+    const body = layout(step, wide);
+    inner = mount(body) || null;
   }
-  function details() {
-    form?.dispose();
-    form = companyForm(company, session.workspace_id, async (result) => { company = result.company; if (!disposed) connections(); });
-    frame(1, 'Tell us about your company', 'Give Pactovio the context to understand what you can deliver. Add evidence once your workspace is ready.', form.element);
-    root.querySelector('input')?.focus();
-  }
-  function connections() {
-    form?.dispose(); form = null;
-    const body = h('div'), status = h('div.access-status.small.ink2', { role: 'status' });
-    const params = new URLSearchParams(location.hash.split('?')[1] || '');
-    if (params.get('status') === 'failed') status.textContent = 'The connection did not complete. You can reconnect below or continue without it.';
-    if (params.get('status') === 'success') status.textContent = 'You’re back. Checking the provider’s current connection status below.';
-    const finish = h('button.btn.btn-primary', { type: 'button', onclick: async () => {
-      finish.disabled = true; status.textContent = 'Finishing your workspace…';
-      try { await completeCompany(); if (!disposed) await onComplete(); }
-      catch (e) { if (!disposed) { status.textContent = friendlyError(e); finish.disabled = false; } }
-    } }, 'Open my workspace', icon('arrow'));
-    frame(2, 'Connect what you work with', 'Optional. Connect email, files or your CRM now, or start with a request you add yourself. You can manage connections later.',
-      h('div', body, status, h('div.company-actions', h('button.btn.btn-ghost', { type: 'button', onclick: details }, 'Back to company'), finish)));
-    setupConnectors(body);
-  }
-  await start();
+
+  await resolve();
   return dispose;
 }
 
