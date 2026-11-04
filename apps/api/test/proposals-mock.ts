@@ -50,7 +50,7 @@ const NARRATIVE = {
 const DESIGN = {
   nodes: [{ id: 'n1', label: 'ATM site panel', kind: 'rax_product' }, { id: 'n2', label: 'Bank SOC', kind: 'client_system' }],
   links: [{ from: 'n1', to: 'n2', label: 'MQTT 5' }, { from: 'n1', to: 'n9', label: 'dangling' }],
-  zone_map: [{ zone: 'Z1', device_sku: 'EXT-PIR-SENS', input: 'IN1', wiring: 'NC loop, 2-core' }, { zone: 'Z2', device_sku: 'NOT-SUPPLIED', input: 'IN2', wiring: 'n/a' }],
+  zone_map: [{ site: 'atm', zone: 'Z1', device_sku: 'EXT-PIR-SENS', input: 'IN1', wiring: 'NC loop, 2-core' }, { site: 'atm', zone: 'Z2', device_sku: 'NOT-SUPPLIED', input: 'IN2', wiring: 'n/a' }],
 };
 const PLACEMENTS = { anchors: [{ id: 'A1', what: 'ATM 1' }, { id: 'A2', what: 'legend swatch' }], placements: [
   { device_sku: 'EXT-PIR-SENS', label: 'PIR - ATM lobby', anchor_id: 'A1', where: 'above', approx_xy: null },
