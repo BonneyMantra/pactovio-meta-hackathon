@@ -53,6 +53,11 @@ name = "pactovio-intake"
 binding = "INTAKE"
 class_name = "IntakeWorkflow"
 
+[[workflows]]
+name = "pactovio-brain"
+binding = "BRAIN"
+class_name = "BrainLearnWorkflow"
+
 [[durable_objects.bindings]]
 name = "AGENT"
 class_name = "AgentHub"

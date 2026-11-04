@@ -1,0 +1,369 @@
+{
+  "ref": "RAX/PR/2025/041",
+  "revision": "R1",
+  "date": "2025-03-18",
+  "validity_days": 60,
+  "client": {
+    "name": "Vaigai Mercantile Bank Ltd",
+    "sector": "Banking",
+    "city": "Madurai",
+    "country": "India",
+    "contact_name": "Mr. Subramanian Pillai",
+    "contact_title": "Chief Manager, Physical Security & Premises"
+  },
+  "rfq_ref": "VMB/PSD/ATM-ES/2025/007 dated 21 February 2025",
+  "title": "E-Surveillance Retrofit for 40 ATM Sites",
+  "solution_type": "own_plus_external",
+  "executive_summary": "Thank you for your RFQ VMB/PSD/ATM-ES/2025/007 dated 21 February 2025. Rax Tech International is pleased to submit our technical and commercial proposal for the retrofit of electronic surveillance at 40 ATM sites of Vaigai Mercantile Bank Ltd across Tamil Nadu.\n\nWe propose a uniform site kit built around the Rax Alarm Panel (8/4 zone), Edge Video Analytics unit (RT-EVA-G0), PCMU power and battery monitor and a 4G two-way communication unit, all designed and manufactured in-house at our Chennai facility. These are complemented by 4 MP IP cameras, a 16-channel NVR, surveillance storage and PIR and vibration sensors sourced from established OEMs. Rax remains the single point of accountability for the integrated system, including the third-party items.\n\nThe kit is surveyed, installed and commissioned site by site over 15 weeks, with every site reporting to the bank's control room over 4G. Backed by over 25 years of experience in electronics design and manufacturing and single-window support from our Chennai service desk, the total project value is ₹65,06,803 including GST. This offer is valid for 60 days.",
+  "requirement_understanding": [
+    "Retrofit of electronic surveillance at 40 existing ATM sites with a standard, remotely monitored kit.",
+    "Detection of intrusion, vibration or shock on the ATM, shutter tampering and loitering, with immediate alert to the control room.",
+    "Local video recording of at least 30 days at 4 MP, with remote retrieval on demand.",
+    "Health monitoring of mains, battery and communication at every site, with alerts before a failure occurs.",
+    "Two-way voice communication between the control room and the ATM cubicle over 4G.",
+    "Integration of site alarms with the bank's existing security operations dashboard.",
+    "Completion within 16 weeks of order without disturbing ATM uptime."
+  ],
+  "solution_overview": "The solution is arranged in three layers. At the ATM cubicle, the Rax Alarm Panel aggregates PIR, vibration and door inputs and drives the siren and strobe; the PCMU supplies regulated power and reports mains and battery state; Edge Video Analytics runs on the camera stream to detect loitering, face covering and cubicle crowding without sending video to the cloud. A 4G two-way unit carries alarms, health data and voice to the bank's control room.\n\nEach Rax product maps directly to a bank requirement: the alarm panel to intrusion and tamper detection, EVA to analytics, PCMU to uptime and battery health, and the 4G two-way unit to voice intervention. Cameras, NVR and storage are standard OEM components selected for compatibility with our analytics and supplied under Rax's single-window warranty and support. Interfacing to the bank's security operations dashboard is carried out by our software integration team over the agreed HTTPS alert API.",
+  "architecture": {
+    "nodes": [
+      {
+        "id": "sens",
+        "label": "PIR and vibration sensors",
+        "kind": "external"
+      },
+      {
+        "id": "cam",
+        "label": "4 MP IP cameras (3 per site)",
+        "kind": "external"
+      },
+      {
+        "id": "ap",
+        "label": "Rax Alarm Panel 8 zone",
+        "kind": "rax_product"
+      },
+      {
+        "id": "eva",
+        "label": "Rax Edge Video Analytics",
+        "kind": "rax_product"
+      },
+      {
+        "id": "nvr",
+        "label": "16-ch NVR and 4 TB disk",
+        "kind": "external"
+      },
+      {
+        "id": "pcmu",
+        "label": "Rax PCMU power and battery monitor",
+        "kind": "rax_product"
+      },
+      {
+        "id": "g",
+        "label": "Rax 4G two-way unit",
+        "kind": "rax_product"
+      },
+      {
+        "id": "cr",
+        "label": "Bank control room dashboard",
+        "kind": "client_system"
+      }
+    ],
+    "links": [
+      {
+        "from": "sens",
+        "to": "ap",
+        "label": "wired zones"
+      },
+      {
+        "from": "cam",
+        "to": "eva",
+        "label": "RTSP"
+      },
+      {
+        "from": "cam",
+        "to": "nvr",
+        "label": "PoE / RTSP"
+      },
+      {
+        "from": "pcmu",
+        "to": "ap",
+        "label": "power and status"
+      },
+      {
+        "from": "ap",
+        "to": "g",
+        "label": "alarms"
+      },
+      {
+        "from": "eva",
+        "to": "g",
+        "label": "analytic events"
+      },
+      {
+        "from": "g",
+        "to": "cr",
+        "label": "4G, HTTPS"
+      }
+    ]
+  },
+  "scope_of_supply": [
+    {
+      "sku": "RT-AP-8Z",
+      "description": "Alarm Panel, 8/4 zone, with siren and strobe outputs, one per ATM site",
+      "type": "rax_product",
+      "qty": 40,
+      "unit": "each",
+      "unit_price_inr": 18500,
+      "amount_inr": 740000
+    },
+    {
+      "sku": "RT-EVA-G0",
+      "description": "Edge Video Analytics unit, loitering, face-cover and crowd detection, one per site",
+      "type": "rax_product",
+      "qty": 40,
+      "unit": "each",
+      "unit_price_inr": 8500,
+      "amount_inr": 340000
+    },
+    {
+      "sku": "RT-PCMU-G1-00",
+      "description": "Power Control and Monitoring Unit with battery health reporting, one per site",
+      "type": "rax_product",
+      "qty": 40,
+      "unit": "each",
+      "unit_price_inr": 9000,
+      "amount_inr": 360000
+    },
+    {
+      "sku": "RT-2W4G-G0",
+      "description": "4G two-way voice and alarm communication unit, one per site",
+      "type": "rax_product",
+      "qty": 40,
+      "unit": "each",
+      "unit_price_inr": 2800,
+      "amount_inr": 112000
+    },
+    {
+      "sku": "EXT-CCTV-IPC-4MP",
+      "description": "IP CCTV camera, 4 MP IR bullet (3 per site)",
+      "type": "external",
+      "qty": 120,
+      "unit": "each",
+      "unit_price_inr": 4200,
+      "amount_inr": 504000
+    },
+    {
+      "sku": "EXT-NVR-16CH",
+      "description": "Network video recorder, 16 channel, one per site",
+      "type": "external",
+      "qty": 40,
+      "unit": "each",
+      "unit_price_inr": 24500,
+      "amount_inr": 980000
+    },
+    {
+      "sku": "EXT-HDD-4TB-SURV",
+      "description": "Surveillance hard disk 4 TB, 30-day retention at 4 MP",
+      "type": "external",
+      "qty": 40,
+      "unit": "each",
+      "unit_price_inr": 7800,
+      "amount_inr": 312000
+    },
+    {
+      "sku": "EXT-PIR-SENS",
+      "description": "PIR motion sensor, wired (2 per site)",
+      "type": "external",
+      "qty": 80,
+      "unit": "each",
+      "unit_price_inr": 650,
+      "amount_inr": 52000
+    },
+    {
+      "sku": "EXT-VIB-SENS",
+      "description": "Vibration and shock sensor (2 per site)",
+      "type": "external",
+      "qty": 80,
+      "unit": "each",
+      "unit_price_inr": 750,
+      "amount_inr": 60000
+    },
+    {
+      "sku": "EXT-BAT-12V7AH",
+      "description": "SMF battery 12V 7Ah for panel backup, one per site",
+      "type": "external",
+      "qty": 40,
+      "unit": "each",
+      "unit_price_inr": 950,
+      "amount_inr": 38000
+    },
+    {
+      "sku": "EXT-SIM-4G-DATA",
+      "description": "4G IoT data SIM, Year 1 plan, one per site",
+      "type": "external",
+      "qty": 40,
+      "unit": "per SIM per year",
+      "unit_price_inr": 1800,
+      "amount_inr": 72000
+    },
+    {
+      "sku": "EXT-CABLE-CAT6",
+      "description": "Cat6 and control cabling, supplied and laid (60 m per site)",
+      "type": "external",
+      "qty": 2400,
+      "unit": "per metre",
+      "unit_price_inr": 65,
+      "amount_inr": 156000
+    },
+    {
+      "sku": "SVC-SURVEY",
+      "description": "Pre-installation site survey and drawing, per site",
+      "type": "service",
+      "qty": 40,
+      "unit": "per site",
+      "unit_price_inr": 12000,
+      "amount_inr": 480000
+    },
+    {
+      "sku": "SVC-INSTALL",
+      "description": "Installation, testing and commissioning, per site",
+      "type": "service",
+      "qty": 40,
+      "unit": "per site",
+      "unit_price_inr": 35000,
+      "amount_inr": 1400000
+    },
+    {
+      "sku": "SVC-SW-INT",
+      "description": "Integration of alarms with bank security dashboard (10 person-days)",
+      "type": "service",
+      "qty": 10,
+      "unit": "per day",
+      "unit_price_inr": 12000,
+      "amount_inr": 120000
+    },
+    {
+      "sku": "SVC-TRAINING",
+      "description": "Control-room operator training (2 days)",
+      "type": "service",
+      "qty": 2,
+      "unit": "per day",
+      "unit_price_inr": 9000,
+      "amount_inr": 18000
+    }
+  ],
+  "custom_engineering": [],
+  "implementation_plan": [
+    {
+      "name": "Site survey & design freeze",
+      "weeks": 3,
+      "deliverables": "Survey reports for 40 sites, approved kit layout and cable routes."
+    },
+    {
+      "name": "Procurement & manufacturing",
+      "weeks": 4,
+      "start_week": 3,
+      "deliverables": "Rax panels, EVA and PCMU built and burned-in; OEM items received."
+    },
+    {
+      "name": "Dashboard integration",
+      "weeks": 4,
+      "start_week": 5,
+      "deliverables": "Alarm API integration with bank SOC tested on pilot sites."
+    },
+    {
+      "name": "Delivery & pilot (4 sites)",
+      "weeks": 2,
+      "start_week": 8,
+      "deliverables": "Material at site; pilot commissioned and accepted."
+    },
+    {
+      "name": "Rollout (36 sites)",
+      "weeks": 6,
+      "start_week": 10,
+      "deliverables": "Installation and commissioning, 6 sites per week."
+    },
+    {
+      "name": "Training & handover",
+      "weeks": 1,
+      "start_week": 15,
+      "deliverables": "Operator training, as-built documents, handover certificate."
+    }
+  ],
+  "warranty_amc": {
+    "warranty_months_from_commissioning": 12,
+    "warranty_months_from_dispatch": 18,
+    "amc_pct_of_hardware": 10,
+    "amc_hardware_base_inr": 3654000,
+    "amc_annual_inr": 365400,
+    "text": "Rax products carry a warranty of 12 months from the date of commissioning or 18 months from the date of dispatch, whichever is earlier. Third-party items are covered by the OEM warranty, handled back-to-back by Rax as single point of contact. Faulty units are repaired or replaced at no charge; attendance within 48 hours at sites in the agreed service cities."
+  },
+  "assumptions": [
+    "The bank provides 230 VAC mains with earthing and a clear cubicle ceiling or wall space for equipment at each site.",
+    "The bank's security dashboard exposes an HTTPS alert API and a test environment is available by week 5.",
+    "Each site has 4G coverage of at least two bars from any Indian operator.",
+    "Third-party items are supplied under OEM warranty with Rax as single point of contact.",
+    "Site access is arranged by the bank within 3 working days of each survey or installation request."
+  ],
+  "exclusions": [
+    "Civil, false-ceiling and electrical works other than the cabling listed in the scope.",
+    "ATM machine, existing UPS and air-conditioning.",
+    "4G SIM data cost beyond Year 1.",
+    "Statutory approvals, if any, and travel outside the 40 sites listed in the RFQ.",
+    "Changes to the bank's security dashboard software beyond the agreed alert API."
+  ],
+  "compliance": [
+    {
+      "requirement": "ISO 9001:2015 certified manufacturer",
+      "status": "complies",
+      "remark": "Certificate IND.25.902/QM/U, Bureau Veritas, valid until September 2028."
+    },
+    {
+      "requirement": "RoHS compliant electronics",
+      "status": "complies",
+      "remark": "All Rax-made units are RoHS compliant."
+    },
+    {
+      "requirement": "Make in India for alarm and monitoring units",
+      "status": "complies",
+      "remark": "Designed and manufactured in-house at our Chennai facility."
+    },
+    {
+      "requirement": "30 days local video retention at 4 MP, 3 cameras",
+      "status": "complies",
+      "remark": "4 TB disk sized for 30 days at 4 Mbps average per camera."
+    },
+    {
+      "requirement": "Control-room alert within 10 seconds of event",
+      "status": "complies",
+      "remark": "Typical end-to-end latency 3-6 seconds over 4G."
+    },
+    {
+      "requirement": "Completion within 16 weeks of order",
+      "status": "partial",
+      "remark": "Planned for 15 weeks; dependent on timely site access by the bank."
+    }
+  ],
+  "outcome": {
+    "status": "won",
+    "decided_on": "2025-04-22",
+    "reason": "Selected on technical score and single-window support; the second-ranked bidder quoted 7% lower but offered no in-house analytics."
+  },
+  "prepared_by": {
+    "name": "Karthikeyan Ravichandran",
+    "title": "Senior Manager, Key Accounts (Banking)"
+  },
+  "turnaround_days": 25,
+  "commercials": {
+    "supply_subtotal_inr": 5744000,
+    "engineering_subtotal_inr": 0,
+    "subtotal": 5744000,
+    "discount_pct": 4,
+    "discount_inr": 229760,
+    "taxable_inr": 5514240,
+    "gst_pct": 18,
+    "gst_inr": 992563,
+    "total_inr": 6506803,
+    "payment_terms": "40% advance with purchase order, 50% on delivery of material at site, 10% on completion of commissioning."
+  }
+}

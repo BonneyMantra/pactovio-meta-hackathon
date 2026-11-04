@@ -1,0 +1,328 @@
+{
+  "ref": "RAX/PR/2026/012",
+  "revision": "R1",
+  "date": "2026-02-10",
+  "validity_days": 90,
+  "client": {
+    "name": "Jebel Qara Water Services SAOC",
+    "sector": "Water utility",
+    "city": "Salalah",
+    "country": "Oman",
+    "contact_name": "Eng. Khalid Al Hinai",
+    "contact_title": "Manager, SCADA & Telemetry"
+  },
+  "rfq_ref": "JQWS/TLM/2026/003 dated 12 January 2026",
+  "title": "Pumping Station Telemetry Controller and Monitoring Dashboard for 18 Stations",
+  "solution_type": "fully_custom_engineered",
+  "executive_summary": "Thank you for your RFQ JQWS/TLM/2026/003 dated 12 January 2026. Rax Tech International is pleased to submit our technical and commercial proposal for a purpose-built telemetry controller and monitoring dashboard for 18 water pumping stations of Jebel Qara Water Services SAOC in the Dhofar region.\n\nThe requirement cannot be met by an off-the-shelf unit: the stations need a controller that reads pump, level and pressure signals, speaks Modbus to existing VFDs, survives 55 °C enclosure temperatures and reports over 4G with local buffering. We propose to engineer this controller in-house at our Chennai facility, building on the proven Rax embedded platform, together with a dashboard and alarm management service tailored to your operating procedures. Rax water quality sensors and Industrial Edge IoT Gateways are included where they fit the specification.\n\nThe work is delivered in four phases over 26 weeks, including prototype, field trial at two stations and factory acceptance testing before shipment. As a single point of accountability, Rax delivers hardware, firmware, cloud and integration with single-window support. Total project value is ₹45,84,026, with GST not applicable on export. This offer is valid for 90 days.",
+  "requirement_understanding": [
+    "Telemetry at 18 pumping stations: pump run and trip status, motor current, tank level, discharge pressure and flow.",
+    "Operation in ambient temperatures up to 55 °C inside the control kiosk, with IP65 field enclosures.",
+    "Modbus RTU and TCP communication to existing variable frequency drives and flow meters.",
+    "4G reporting with at least 72 hours of local buffering and automatic back-fill on reconnection.",
+    "Dashboard with alarm management, trends, shift reports and role-based access, hosted on the client's cloud tenancy.",
+    "Integration of alarms with the utility's central SCADA over OPC UA.",
+    "Water quality (residual chlorine and turbidity) monitoring at six selected stations."
+  ],
+  "solution_overview": "The solution has three engineered parts. The Rax-designed telemetry controller (CUS-TLM-RTU) is a DIN-rail unit with isolated analog and digital I/O, two RS-485 ports, 4G with dual SIM and an industrial-temperature design verified in our environmental chamber. It is housed in a stainless IP66 enclosure with surge protection and a local operator display.\n\nFour large stations also receive a Rax Industrial Edge IoT Gateway to aggregate multiple pumps and run local logic, and six stations receive Rax Water Quality Sensors. The telemetry dashboard is engineered by our software team on the client's cloud tenancy and exposes an OPC UA server for the central SCADA. All custom work is designed, built and tested in-house at our Chennai facility, with a factory acceptance test performed in the presence of the client's engineers before shipment.",
+  "architecture": {
+    "nodes": [
+      {
+        "id": "pump",
+        "label": "Pumps, VFDs and flow meters",
+        "kind": "client_system"
+      },
+      {
+        "id": "wq",
+        "label": "Rax Water Quality Sensors (6)",
+        "kind": "rax_product"
+      },
+      {
+        "id": "rtu",
+        "label": "Custom telemetry controller (18)",
+        "kind": "custom"
+      },
+      {
+        "id": "gw",
+        "label": "Rax Edge IoT Gateway (4 large stations)",
+        "kind": "rax_product"
+      },
+      {
+        "id": "cloud",
+        "label": "Custom telemetry dashboard and alarm engine",
+        "kind": "custom"
+      },
+      {
+        "id": "scada",
+        "label": "Central SCADA (OPC UA)",
+        "kind": "client_system"
+      }
+    ],
+    "links": [
+      {
+        "from": "pump",
+        "to": "rtu",
+        "label": "Modbus, 4-20 mA"
+      },
+      {
+        "from": "wq",
+        "to": "rtu",
+        "label": "RS-485"
+      },
+      {
+        "from": "pump",
+        "to": "gw",
+        "label": "Modbus TCP"
+      },
+      {
+        "from": "rtu",
+        "to": "cloud",
+        "label": "4G, MQTT/TLS"
+      },
+      {
+        "from": "gw",
+        "to": "cloud",
+        "label": "4G"
+      },
+      {
+        "from": "cloud",
+        "to": "scada",
+        "label": "OPC UA"
+      }
+    ]
+  },
+  "scope_of_supply": [
+    {
+      "sku": "CUS-TLM-RTU",
+      "description": "Rax-designed pumping-station telemetry controller, 8 DI, 4 DO, 4 AI, 2 RS-485, dual-SIM 4G, -10 to 70 °C",
+      "type": "custom",
+      "qty": 18,
+      "unit": "each",
+      "unit_price_inr": 58000,
+      "amount_inr": 1044000
+    },
+    {
+      "sku": "CUS-ENC-IP66",
+      "description": "Stainless IP66 enclosure with surge protection, fusing and local display",
+      "type": "custom",
+      "qty": 18,
+      "unit": "each",
+      "unit_price_inr": 14500,
+      "amount_inr": 261000
+    },
+    {
+      "sku": "CUS-TST-JIG",
+      "description": "Factory acceptance test jig and calibration fixture",
+      "type": "custom",
+      "qty": 1,
+      "unit": "lot",
+      "unit_price_inr": 85000,
+      "amount_inr": 85000
+    },
+    {
+      "sku": "CUS-SW-DASH",
+      "description": "Telemetry dashboard and alarm engine deployed on client cloud, Year 1 licence and hosting support",
+      "type": "custom",
+      "qty": 1,
+      "unit": "lot",
+      "unit_price_inr": 420000,
+      "amount_inr": 420000
+    },
+    {
+      "sku": "RT-WQF-W",
+      "description": "Water Quality Sensor for residual chlorine and turbidity, six stations",
+      "type": "rax_product",
+      "qty": 6,
+      "unit": "each",
+      "unit_price_inr": 18500,
+      "amount_inr": 111000
+    },
+    {
+      "sku": "RT-IEI-E-G0",
+      "description": "Industrial Edge IoT Gateway for four large multi-pump stations",
+      "type": "rax_product",
+      "qty": 4,
+      "unit": "each",
+      "unit_price_inr": 14500,
+      "amount_inr": 58000
+    },
+    {
+      "sku": "EXT-SIM-4G-DATA",
+      "description": "4G IoT data SIM, dual SIM per controller, Year 1",
+      "type": "external",
+      "qty": 36,
+      "unit": "per SIM per year",
+      "unit_price_inr": 1800,
+      "amount_inr": 64800
+    },
+    {
+      "sku": "SVC-SURVEY",
+      "description": "Pre-design site survey and I/O list, per station",
+      "type": "service",
+      "qty": 18,
+      "unit": "per site",
+      "unit_price_inr": 12000,
+      "amount_inr": 216000
+    },
+    {
+      "sku": "SVC-TRAINING",
+      "description": "Operator and maintenance training (4 days, Salalah)",
+      "type": "service",
+      "qty": 4,
+      "unit": "per day",
+      "unit_price_inr": 9000,
+      "amount_inr": 36000
+    }
+  ],
+  "custom_engineering": [
+    {
+      "work_package": "WP-1 Controller hardware design",
+      "description": "Schematic, PCB layout, thermal design and pre-compliance for the telemetry controller.",
+      "person_days": 38,
+      "rate_inr": 14000
+    },
+    {
+      "work_package": "WP-2 Controller firmware",
+      "description": "Real-time firmware: I/O, Modbus master, buffering, dual-SIM failover, secure OTA.",
+      "person_days": 55,
+      "rate_inr": 14000
+    },
+    {
+      "work_package": "WP-3 Cloud backend and dashboard",
+      "description": "Ingestion, time-series store, alarms, trends, reports and role-based access.",
+      "person_days": 48,
+      "rate_inr": 12000
+    },
+    {
+      "work_package": "WP-4 SCADA integration",
+      "description": "OPC UA server mapping and acceptance with the central SCADA.",
+      "person_days": 18,
+      "rate_inr": 12000
+    },
+    {
+      "work_package": "WP-5 Environmental and EMC testing",
+      "description": "Thermal chamber, surge and EMC pre-compliance on prototype units.",
+      "person_days": 12,
+      "rate_inr": 14000
+    },
+    {
+      "work_package": "WP-6 Field trial and documentation",
+      "description": "Two-station field trial, FAT procedure, O&M and as-built documents.",
+      "person_days": 14,
+      "rate_inr": 12000
+    }
+  ],
+  "implementation_plan": [
+    {
+      "name": "Survey & design freeze",
+      "weeks": 4,
+      "deliverables": "I/O lists for 18 stations; hardware and software design approved."
+    },
+    {
+      "name": "Prototype & firmware",
+      "weeks": 8,
+      "start_week": 3,
+      "deliverables": "Working prototypes, environmental test report."
+    },
+    {
+      "name": "Dashboard & SCADA integration",
+      "weeks": 8,
+      "start_week": 7,
+      "deliverables": "Dashboard live on client tenancy; OPC UA tested."
+    },
+    {
+      "name": "Field trial (2 stations)",
+      "weeks": 4,
+      "start_week": 15,
+      "deliverables": "Trial report and design adjustments."
+    },
+    {
+      "name": "Series production & FAT",
+      "weeks": 6,
+      "start_week": 17,
+      "deliverables": "18 controllers built; FAT in Chennai with client engineers."
+    },
+    {
+      "name": "Shipment & rollout support",
+      "weeks": 4,
+      "start_week": 23,
+      "deliverables": "Dispatch to Salalah, remote commissioning support, training."
+    }
+  ],
+  "warranty_amc": {
+    "warranty_months_from_commissioning": 12,
+    "warranty_months_from_dispatch": 18,
+    "amc_pct_of_hardware": 10,
+    "amc_hardware_base_inr": 1559000,
+    "amc_annual_inr": 155900,
+    "text": "Hardware carries a warranty of 12 months from commissioning or 18 months from dispatch, whichever is earlier. Firmware and dashboard defects are corrected free of charge during the warranty period. Source code for the controller firmware remains with Rax; an escrow arrangement can be offered on request."
+  },
+  "assumptions": [
+    "The client provides I/O lists, Modbus register maps and VFD documentation within 2 weeks of order.",
+    "The dashboard is deployed in the client's cloud tenancy, which the client provisions and secures.",
+    "Two stations are made available for field trial in weeks 15 to 18.",
+    "Installation at stations is carried out by the client's contractor under Rax remote guidance.",
+    "Change requests after design freeze are priced in person-days at the rates in Section 5."
+  ],
+  "exclusions": [
+    "Installation labour, civil works and field wiring at stations.",
+    "Omani customs duty, VAT and local agent charges.",
+    "Cloud hosting charges and 4G data cost beyond Year 1.",
+    "Modifications to existing VFDs, flow meters or SCADA software."
+  ],
+  "compliance": [
+    {
+      "requirement": "ISO 9001:2015 certified design and manufacturing",
+      "status": "complies",
+      "remark": "Certificate IND.25.902/QM/U, Bureau Veritas."
+    },
+    {
+      "requirement": "RoHS compliant hardware",
+      "status": "complies",
+      "remark": "Applies to all controllers and Rax products."
+    },
+    {
+      "requirement": "CE marking of telemetry controller",
+      "status": "partial",
+      "remark": "CE self-declaration planned after pre-compliance; third-party test report available at additional cost."
+    },
+    {
+      "requirement": "Operating temperature up to 55 °C ambient",
+      "status": "complies",
+      "remark": "Designed for -10 to 70 °C; verified in thermal chamber."
+    },
+    {
+      "requirement": "OPC UA integration to central SCADA",
+      "status": "complies",
+      "remark": "OPC UA server built in WP-4."
+    },
+    {
+      "requirement": "Local data hosting inside Oman",
+      "status": "complies",
+      "remark": "Dashboard deployed in client's own cloud tenancy."
+    }
+  ],
+  "outcome": {
+    "status": "pending",
+    "decided_on": null,
+    "reason": "Technical clarification meeting held 24 February 2026; client evaluation under way."
+  },
+  "prepared_by": {
+    "name": "Karthikeyan Ravichandran",
+    "title": "Senior Manager, Key Accounts (Middle East)"
+  },
+  "turnaround_days": 29,
+  "commercials": {
+    "supply_subtotal_inr": 2295800,
+    "engineering_subtotal_inr": 2430000,
+    "subtotal": 4725800,
+    "discount_pct": 3,
+    "discount_inr": 141774,
+    "taxable_inr": 4584026,
+    "gst_pct": 0,
+    "gst_inr": 0,
+    "total_inr": 4584026,
+    "payment_terms": "30% advance by T/T with purchase order, 60% against shipment documents, 10% on completion of commissioning.",
+    "note": "Prices are in INR, ex-works Chennai; export supplies are zero-rated for GST under LUT. Delivery CIP Salalah (Incoterms 2020); Omani duties and taxes are excluded."
+  }
+}

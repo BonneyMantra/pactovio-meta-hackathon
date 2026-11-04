@@ -16,6 +16,7 @@
     "@hono/zod-openapi": "^1.1.0",
     "@pactovio/agent": "*",
     "@pactovio/billing": "*",
+    "@pactovio/brain": "*",
     "@pactovio/connectors": "*",
     "@pactovio/contracts": "*",
     "@pactovio/engine": "*",
