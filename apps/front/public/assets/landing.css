@@ -14,11 +14,11 @@
 .l-cta .btn { height: 32px; padding: 0 11px; font-size: 14px; border-radius: 8px; }
 
 .l-hero { padding: 112px 0 0; }
-.l-hero .top { display: grid; grid-template-columns: minmax(0, 1fr) 176px; gap: 40px; align-items: end; }
+.l-hero .top { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
 .l-hero .display { max-width: 760px; }
 .l-hero .lead { margin-top: 22px; max-width: 620px; }
-.l-hero .stack { display: flex; flex-direction: column; gap: 8px; }
-.l-hero .stack .btn { width: 100%; }
+.l-hero .stack { display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; }
+.l-hero .stack .btn { width: auto; height: 40px; padding: 0 18px; }
 .teal { position: relative; margin-top: 40px; border-radius: var(--r-win); background: linear-gradient(180deg, var(--teal-1), var(--teal-2)); overflow: hidden; }
 .teal::before { content: ''; position: absolute; inset: 0; background: radial-gradient(60% 50% at 50% 0%, rgba(255, 255, 255, 0.16), transparent 70%); pointer-events: none; }
 .l-hero .teal { padding: 56px 9% 0; height: 640px; }
@@ -290,5 +290,5 @@
 .digits.terms span { width: auto; padding: 0 10px; font-size: 18px; font-weight: 550; }
 .tiles.tiles4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 /* Laptop-height desktops (e.g. 1280x800): keep the hero and the agent's reply in the first screen. */
-@media (min-width: 1001px) and (max-height: 900px) { .l-hero { padding-top: 52px; } .l-hero .lead { margin-top: 14px; } .l-hero .teal { margin-top: 26px; padding-top: 34px; } .pw-body { padding-top: 16px; } .pw-msgs { gap: 16px; } }
+@media (min-width: 1001px) and (max-height: 900px) { .l-hero { padding-top: 48px; } .l-hero .lead { margin-top: 14px; } .l-hero .top { gap: 22px; } .l-hero .teal { margin-top: 26px; padding-top: 34px; } .pw-body { padding-top: 16px; } .pw-msgs { gap: 16px; } }
 @media (max-width: 760px) { .tiles.tiles4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
