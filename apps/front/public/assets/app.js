@@ -22,13 +22,14 @@ const NAV = [
   { group: 'What it knows' },
   { id: 'brain', label: 'Company Brain', icon: 'brain', mod: 'brain' },
   { id: 'catalogue', label: 'Catalogue', icon: 'box', mod: 'catalogue' },
+  { group: 'Workspace' },
   { id: 'connections', label: 'Connections', icon: 'plug', mod: 'connections' },
+  { id: 'team', label: 'Team', icon: 'team', mod: 'team' },
 ];
 const HIDDEN = [
   { id: 'quotes', label: 'Quotes', mod: 'quotes' },
   { id: 'evidence', label: 'Evidence', mod: 'evidence' },
   { id: 'company', label: 'Company settings', mod: 'company' },
-  { id: 'team', label: 'Team', mod: 'team' },
   { id: 'settings', label: 'Billing & usage', mod: 'settings' },
   { id: 'how', label: 'How it works', mod: 'how' },
   { id: 'pricing', label: 'Pricing', mod: 'pricing' },
