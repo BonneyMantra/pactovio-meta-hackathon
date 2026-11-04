@@ -16,7 +16,8 @@ export async function getSettings(env: Env, ws: string): Promise<AutopilotSettin
 export async function saveSettings(env: Env, ws: string, p: { enabled?: boolean; threshold?: number }): Promise<AutopilotSettings> {
   const cur = await getSettings(env, ws);
   const enabled = p.enabled ?? cur.enabled;
-  // Turning autopilot on starts the cursor at "now": old mail is never back-filled into proposals.
+  // cursor_ms is "autopilot on since": switching on (or back on after a pause) sets it to now, so mail received before that,
+  // or while paused, is never back-filled into proposals. Polls look back from now to this floor (autopilot-poll.ts).
   const cursor = enabled && (!cur.enabled || cur.cursor_ms === null) ? Date.now() : cur.cursor_ms;
   await env.DB.prepare(`INSERT INTO autopilot_settings (workspace_id, enabled, threshold, cursor_ms, last_checked_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)
     ON CONFLICT (workspace_id) DO UPDATE SET enabled = excluded.enabled, threshold = excluded.threshold, cursor_ms = excluded.cursor_ms, updated_at = excluded.updated_at`)
