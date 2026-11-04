@@ -21,6 +21,7 @@ export async function readyStep(s, { nav, onComplete, companyName }) {
   const nums = tiles.map(() => h('div.ob-tile-v.num', '—'));
   const phrase = b?.style?.phrases?.[0]?.text;
   const order = b?.style?.section_order || [];
+  const voice = b?.style?.voice_rules?.[0]?.text, terms = b?.style?.payment_terms;
   const status = h('p.pv-status', { role: 'status' });
   const go = h('button.pv-btn', { type: 'button', onclick: async () => {
     go.disabled = true; go.replaceChildren(h('span.pv-spin', { 'aria-hidden': 'true' }), 'Opening your workspace…'); status.textContent = '';
@@ -35,6 +36,9 @@ export async function readyStep(s, { nav, onComplete, companyName }) {
   s.work(h('div.pv-panel',
     h('div.pv-panel-head', h('div', h('div.pv-kicker', 'Company Brain'), h('h2', `What it learned about ${name}`)), h('span.pv-tag-ok', icon('check', 13), 'Ready')),
     tiles.length ? h('div.ob-tiles', tiles.map(([k, , , sub], i) => h('div.ob-tile', { style: { animationDelay: `${i * 90}ms` } }, h('div.xs.muted', k), nums[i], h('div.xs.muted', sub)))) : null,
+    voice || terms ? h('div.ob-learnt',
+      voice ? h('div', { style: { animationDelay: '220ms' } }, h('div.pv-kicker', 'Your voice'), h('p', voice)) : null,
+      terms ? h('div', { style: { animationDelay: '300ms' } }, h('div.pv-kicker', 'Your payment terms'), h('p', terms)) : null) : null,
     phrase ? h('blockquote.ob-quote', `“${phrase}”`, h('span', 'A phrase it learned from your proposals')) : null,
     order.length ? h('div.ob-structure', h('div.pv-kicker', `Your ${order.length}-section structure`),
       h('ol', order.map((sec, i) => h('li', { style: { animationDelay: `${300 + i * 60}ms` } }, sec)))) : null));

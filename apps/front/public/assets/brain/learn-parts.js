@@ -73,11 +73,13 @@ export function livePanel() {
   function final(b) {
     const st = b?.stats;
     if (st && st.won + st.lost) countUp(win, (st.won / (st.won + st.lost)) * 100, (v) => `${Math.round(v)}%`, 500);
-    const order = b?.style?.section_order || [], phrase = b?.style?.phrases?.[0]?.text;
+    const order = b?.style?.section_order || [], voice = b?.style?.voice_rules?.[0]?.text, terms = b?.style?.payment_terms;
+    const at = (i) => ({ style: { animationDelay: `${i * 80}ms` } });
     style.replaceChildren(
       order.length ? h('div.lr-sub', 'Your section order') : null,
-      order.length ? h('ol.lr-order', order.map((s, i) => h('li', { style: { animationDelay: `${i * 80}ms` } }, s))) : null,
-      phrase ? h('div.lr-sub', 'A phrase you use') : null, phrase ? h('blockquote.lr-phrase', `“${phrase}”`) : null);
+      order.length ? h('ol.lr-order', order.map((s, i) => h('li', at(i), s))) : null,
+      voice ? h('div.lr-sub', 'Your voice') : null, voice ? h('p.lr-learnt', at(order.length + 1), voice) : null,
+      terms ? h('div.lr-sub', 'Your payment terms') : null, terms ? h('p.lr-learnt', at(order.length + 3), terms) : null);
   }
   return { el, update, style, final };
 }

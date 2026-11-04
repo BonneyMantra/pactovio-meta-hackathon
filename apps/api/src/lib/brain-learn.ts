@@ -7,7 +7,8 @@ import { syncOutcomes } from './brain-outcomes';
 import { addEvent, learnedDocs, saveBrain, type BrainEnv } from './brain-store';
 
 export const MAX_FILES = 60;
-export interface LearnParams { runId: string; workspaceId: string; folderId: string }
+/** A run instance has no `read`; each per-document child instance carries the one file it reads. */
+export interface LearnParams { runId: string; workspaceId: string; folderId: string; read?: { doc: DocRef; index: number; total: number } }
 export interface DocRef { docId: string; driveFileId: string; name: string }
 type Out = { ok: boolean; output?: unknown };
 const details = <T>(r: Out): T => ((r.output as { details?: T }).details ?? {}) as T;
@@ -94,6 +95,20 @@ export async function failStep(env: BrainEnv, p: LearnParams, d: DocRef, index: 
     env.DB.prepare('UPDATE brain_learn_runs SET failed = failed + 1 WHERE id = ?').bind(p.runId),
   ]);
   await addEvent(env.DB, p.workspaceId, p.runId, 'brain.learn.file_failed', { index: index + 1, total, filename: d.name, error: msg });
+}
+
+/** While the run waits on its readers: how many of its documents are still pending or being read. */
+export async function progressStep(env: BrainEnv, p: LearnParams): Promise<number> {
+  const r = await env.DB.prepare("SELECT COUNT(*) AS n FROM brain_documents WHERE run_id = ? AND workspace_id = ? AND status IN ('pending','reading')").bind(p.runId, p.workspaceId).first<{ n: number }>();
+  return r?.n ?? 0;
+}
+
+/** A reader that never reported back (lost instance, timeout) is recorded as failed so the run can finish with the rest. */
+export async function sweepStep(env: BrainEnv, p: LearnParams, docs: DocRef[]): Promise<number> {
+  const rows = (await env.DB.prepare("SELECT id FROM brain_documents WHERE run_id = ? AND workspace_id = ? AND status IN ('pending','reading')").bind(p.runId, p.workspaceId).all<{ id: string }>()).results;
+  const open = new Set(rows.map((r) => r.id));
+  for (const [i, d] of docs.entries()) if (open.has(d.docId)) await failStep(env, p, d, i, docs.length, new Error('The read did not finish in time.'));
+  return open.size;
 }
 
 /** Step 3: style (Spark, grounded in refs) + stats (code) from everything this workspace has learned. */

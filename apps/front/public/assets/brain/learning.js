@@ -123,7 +123,7 @@ export function learningView(root, opts = {}) {
       title.textContent = 'Company Brain ready';
       setPhase(`Learned from ${b?.proposals_learned ?? done} proposals · ${b?.style?.voice_rules?.length ?? 0} writing rules, each grounded in your documents`, false);
       live.final(b);
-      tick = setTimeout(() => finished(b), 3200);
+      tick = setTimeout(() => finished(b), 5200); // long enough to read what it learned
     }
     pull(); step();
   }
