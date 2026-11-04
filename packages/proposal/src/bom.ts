@@ -4,7 +4,7 @@ import { DEFAULT_STYLE } from './brain';
 import { ask, runStep, type RunCtx } from './ctx';
 import type { Proposal } from './schema';
 
-const NarrativeModel = z.object({
+export const NarrativeModel = z.object({
   external_items: z.array(z.object({ sku: z.string(), description: z.string(), unit: z.string(), qty_basis: z.enum(['per_atm_site', 'per_branch_site', 'central', 'project']), qty: z.number().positive(), unit_price_inr: z.number().int().min(0) })),
   work_packages: z.array(z.object({ work_package: z.string(), description: z.string(), person_days: z.number().positive(), kind: z.enum(['firmware', 'software', 'other']) })),
   plan: z.array(z.object({ name: z.string(), weeks: z.number().int().min(1), deliverables: z.string() })).min(2),

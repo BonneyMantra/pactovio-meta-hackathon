@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { ask, runStep, type RunCtx } from './ctx';
 import type { Proposal } from './schema';
 
-const DesignModel = z.object({
+export const DesignModel = z.object({
   nodes: z.array(z.object({ id: z.string(), label: z.string(), kind: z.enum(['rax_product', 'external', 'custom', 'client_system']) })).min(2),
   links: z.array(z.object({ from: z.string(), to: z.string(), label: z.string() })).min(1),
   zone_map: z.array(z.object({ site: z.string(), zone: z.string(), device_sku: z.string(), input: z.string(), wiring: z.string() })),

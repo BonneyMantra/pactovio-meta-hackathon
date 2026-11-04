@@ -2,6 +2,20 @@ import type { RunCtx } from './ctx';
 import type { GoNoGo } from './schema';
 import { similarPast } from './select';
 
+const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+/** Deadline as UTC midnight from ISO ("2026-11-24"), "24 November 2026" or "24/11/2026"; null when unreadable. */
+export function parseDue(s: string | null | undefined): number | null {
+  if (!s) return null;
+  let m = /(\d{4})-(\d{2})-(\d{2})/.exec(s);
+  if (m) return Date.UTC(+m[1]!, +m[2]! - 1, +m[3]!);
+  m = /(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]{3,9})\.?,?\s+(\d{4})/.exec(s);
+  if (m && MONTHS.includes(m[2]!.slice(0, 3).toLowerCase())) return Date.UTC(+m[3]!, MONTHS.indexOf(m[2]!.slice(0, 3).toLowerCase()), +m[1]!);
+  m = /(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})/.exec(s);
+  if (m) return Date.UTC(+m[3]!, +m[2]! - 1, +m[1]!);
+  return null;
+}
+const dayLabel = (t: number) => new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+
 const short = (s: string, n = 90) => (s.length > n ? `${s.slice(0, n - 1).trimEnd()}…` : s);
 
 /**
@@ -30,9 +44,10 @@ export function goNoGo(ctx: RunCtx, today = new Date()): GoNoGo | undefined {
   for (const r of eligDev.slice(0, 3)) reasons.push(`Gap: ${short(r.requirement)}${r.req?.page ? ` (p. ${r.req.page})` : ''}.`);
   for (const r of eligPart.slice(0, Math.max(0, 3 - eligDev.length))) reasons.push(`To confirm: ${short(r.requirement)}${r.req?.page ? ` (p. ${r.req.page})` : ''}.`);
   let days: number | null = null;
-  if (rfq.due_date) {
-    const due = Date.parse(rfq.due_date.slice(0, 10));
-    if (Number.isFinite(due)) { days = Math.round((due - today.getTime()) / 86_400_000); if (days >= 0) reasons.push(`Bid due ${rfq.due_date.slice(0, 10)}: ${days} days to close the gaps.`); }
+  const due = parseDue(rfq.due_date);
+  if (due !== null) {
+    days = Math.round((due - today.getTime()) / 86_400_000);
+    if (days >= 0) reasons.push(`Bid due ${dayLabel(due)}: ${days} days to close the gaps.`);
   }
 
   let conf = 0.2 + 0.4 * coverage + 0.35 * (winRate ?? 0.5) - 0.06 * Math.min(3, eligDev.length) - Math.min(0.12, 0.015 * eligPart.length) - (days !== null && days < 10 ? 0.05 : 0);

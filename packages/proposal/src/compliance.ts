@@ -3,7 +3,7 @@ import { ask, runStep, type RunCtx } from './ctx';
 import type { Proposal } from './schema';
 
 export type ComplianceRow = Proposal['compliance'][number];
-const ComplianceModel = z.object({ rows: z.array(z.object({ requirement_id: z.string(), status: z.enum(['complies', 'partial', 'deviation']), remark: z.string() })) });
+export const ComplianceModel = z.object({ rows: z.array(z.object({ requirement_id: z.string(), status: z.enum(['complies', 'partial', 'deviation']), remark: z.string() })) });
 
 /** Company facts the matrix may rely on: the saved workspace profile plus the Company Brain profile. Nothing else counts as evidence of capability. */
 export async function companyFacts(ctx: RunCtx): Promise<string> {

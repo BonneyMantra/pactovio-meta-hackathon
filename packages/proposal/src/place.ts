@@ -38,7 +38,7 @@ export function placeRelative(anchor: Box, where: Where): Box {
   return [clamp(Math.min(x, 1 - DEVICE_W)), clamp(Math.min(y, 1 - DEVICE_H)), DEVICE_W, DEVICE_H];
 }
 
-const PlaceModel = z.object({
+export const PlaceModel = z.object({
   /** What each SAM box is on the image ("ATM 1", "strong-room door", "legend swatch"). */
   anchors: z.array(z.object({ id: z.string(), what: z.string() })),
   placements: z.array(z.object({

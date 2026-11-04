@@ -25,6 +25,7 @@ const SYSTEM = `You read a buyer's RFQ/RFP pack for a technical B2B supplier and
 - Every requirement is one atomic, testable statement in the buyer's own terms, with the document filename and the page number where it appears (null page for emails or text without pages).
 - Capture eligibility conditions, functional requirements, integrations, SLAs, timeline, commercial terms. At most 40 requirements, most important first; merge duplicates and keep each under 30 words.
 - "sites" = the number of ATM sites and branch sites the buyer lists (0 when not stated).
+- "due_date" = the bid submission deadline as ISO "YYYY-MM-DD" (null when not stated).
 - "floorplan_file" = the filename of an attached image that is a floor plan or site drawing, else null.
 - Never invent numbers or page numbers. Ids are R1, R2, ...`;
 
