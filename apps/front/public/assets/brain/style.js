@@ -1,5 +1,6 @@
 // "How you write": the learned section order, voice rules, signature phrases and commercial conventions.
 import { h, icon } from '../ui.js';
+import { companyMark } from '../agent-id.js';
 
 const arr = (v) => (Array.isArray(v) ? v : []);
 const refs = (r) => h('span.bs-refs', arr(r).slice(0, 3).map((x) => h('span.bs-ref', x)), arr(r).length > 3 ? h('span.bs-ref', `+${arr(r).length - 3}`) : null);
@@ -34,7 +35,7 @@ export function profileCard(profile, catalogueCount, products) {
   const offices = arr(p.sites).map((x) => x?.city).filter((c) => c && c !== city);
   const thumbs = [...(products?.values?.() || [])].filter((x) => x.thumb).slice(0, 10);
   return h('section.card.bp',
-    h('div.bp-head', h('span.avatar.bp-av', name.split(/\s+/).slice(0, 2).map((w) => w[0]).join('')),
+    h('div.bp-head', companyMark(name, 40, 'avatar.bp-av'),
       h('div', h('div.h4', name), h('div.small.ink2', [city ? `${city}, ${country(ctry)}` : country(ctry), p.founded ? `since ${p.founded}` : null, people ? `${people} people` : null].filter(Boolean).join(' · ')))),
     p.tagline || p.description ? h('p.small.ink2.bp-tag', p.tagline || p.description) : null,
     offices.length ? h('div.xs.muted', `Also in ${offices.join(', ')}`) : null,

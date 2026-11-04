@@ -277,6 +277,12 @@
 .pw-agent .ag { width: 24px; height: 24px; border-radius: 7px; font-size: 9.5px; }
 .pw-agent .ag i { position: absolute; right: -2px; bottom: -2px; width: 7px; height: 7px; border-radius: 50%; background: #2fb36a; box-shadow: 0 0 0 1.5px #fff; }
 .msg .av.ag-bot { border-radius: 8px; font-size: 10px; }
+.pw-agent .ag, .msg .av.ag-bot { background: #fff; box-shadow: inset 0 0 0 0.5px var(--line-2); padding: 3px; }
+.pw-agent .ag img, .msg .av.ag-bot img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.srcs .logo-tile, .mini-row .logo-tile, .vsync .logo-tile { vertical-align: middle; }
+.ico-tile .ico { color: var(--ink-2); }
+.l-sub .logo-tile { vertical-align: -4px; margin-right: 2px; }
+.tile .appico .logo-tile { box-shadow: none; }
 .digits.terms span { width: auto; padding: 0 10px; font-size: 18px; font-weight: 550; }
 .tiles.tiles4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 @media (max-width: 760px) { .tiles.tiles4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

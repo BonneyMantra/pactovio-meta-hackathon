@@ -1,4 +1,5 @@
 // Shared UI helpers for every screen: API client, element builder, formatting, icons, states, toasts.
+import { brandTile } from './brand-logos.js';
 
 export async function api(path, opts = {}) {
   const init = { credentials: 'same-origin', headers: { accept: 'application/json' }, ...opts };
@@ -165,6 +166,5 @@ export const PROVIDER = {
   docusign: { name: 'DocuSign', color: '#FFCC22', cat: 'Signing' }, quickbooks: { name: 'QuickBooks', color: '#2CA01C', cat: 'Accounting' }, xero: { name: 'Xero', color: '#13B5EA', cat: 'Accounting' },
 };
 export function providerMark(id, size = 20) {
-  const p = PROVIDER[id] || { name: id, color: '#8d8b85' };
-  return h('span', { title: p.name, style: { width: `${size}px`, height: `${size}px`, borderRadius: '6px', background: p.color, color: '#fff', display: 'inline-grid', placeItems: 'center', fontSize: `${Math.round(size * 0.5)}px`, fontWeight: 650, flex: 'none' } }, p.name[0]);
+  return brandTile(id, size, PROVIDER[id]?.name || '');
 }

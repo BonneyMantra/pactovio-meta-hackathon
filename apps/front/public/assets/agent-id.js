@@ -45,9 +45,33 @@ export function knowledge(brain) {
   };
 }
 
-/** The avatar: company initials on the brand teal with a live dot. */
+// The company's own logo, fetched from its website by GET /api/workspaces/logo; probed once per session.
+let logoUrl = null, probe = null;
+export function probeLogo(ctx) {
+  probe ??= new Promise((resolve) => {
+    const img = new Image();
+    const done = (ok) => { logoUrl = ok ? '/api/workspaces/logo' : null; if (ctx) ctx.logo = logoUrl; resolve(logoUrl); };
+    img.onload = () => done(img.naturalWidth > 0);
+    img.onerror = () => done(false);
+    setTimeout(() => done(false), 5000);
+    img.src = '/api/workspaces/logo';
+  });
+  return probe;
+}
+export const companyLogo = () => logoUrl;
+
+/** The company's mark: its real logo when the website has one, otherwise its initials. */
+export function companyMark(name, size = 34, cls = 'ag-av') {
+  return logoUrl
+    ? h(`span.${cls}.has-logo`, { style: { '--s': `${size}px` }, 'aria-hidden': 'true' }, h('img', { src: logoUrl, alt: '' }))
+    : h(`span.${cls}`, { style: { '--s': `${size}px` }, 'aria-hidden': 'true' }, initials(name));
+}
+
+/** The agent's avatar: the company mark with a live dot. */
 export function agentAvatar(name, size = 34) {
-  return h('span.ag-av', { style: { '--s': `${size}px` }, 'aria-hidden': 'true' }, initials(name), h('i.ag-live'));
+  const m = companyMark(name, size);
+  m.append(h('i.ag-live'));
+  return m;
 }
 
 /** Sidebar card: who the agent works for and what it knows; links to the Company Brain. */

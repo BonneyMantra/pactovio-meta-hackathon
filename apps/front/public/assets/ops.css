@@ -7,9 +7,6 @@
 .t-ok { color: var(--ok); } .t-warn { color: var(--warn); } .t-bad { color: var(--bad); }
 
 /* Brand tiles */
-.logo-tile { display: inline-grid; place-items: center; flex: none; box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06); }
-.logo-tile.neutral { background: var(--surface-2); color: var(--ink-2); font-weight: 610; letter-spacing: -0.02em; box-shadow: inset 0 0 0 0.5px var(--line-2); }
-.logo-glyph { background: #fff; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; -webkit-mask-size: contain; mask-size: contain; }
 .src-marks { display: inline-flex; gap: 3px; margin-left: 6px; vertical-align: -3px; }
 
 /* Design request */

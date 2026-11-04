@@ -81,7 +81,7 @@ export async function render(root, _p, ctx) {
       card('Sectors', 'Won · lost · open, by number of proposals', hbars(sectors), h('div.bc-legend', h('span', h('i', { style: { background: WON } }), 'Won'), h('span', h('i', { style: { background: LOST } }), 'Lost'), h('span', h('i', { style: { background: OPEN } }), 'Open'))),
       regionCard(s.by_region)),
     card('Products you quote most', 'By value across learned proposals; I price new bids from the same catalogue', h('div.bb-prods.bb-prods-2', prods.map((p) => h('div.bb-prod',
-      h('span.pd-thumb', products.get(p.sku)?.thumb ? h('img', { src: products.get(p.sku).thumb, alt: '' }) : p.sku.slice(3, 6)),
+      h('span.pd-thumb', products.get(p.sku)?.thumb ? h('img', { src: products.get(p.sku).thumb, alt: '' }) : icon('box', 18)),
       h('div', { style: { minWidth: 0 } }, h('div.small.wk-ellipsis', products.get(p.sku)?.name || p.description), h('div.xs.muted.mono', p.sku)),
       h('div.r', h('div.small.num', inrShort(p.value_inr)), h('div.xs.muted', `${p.qty} units · ${p.proposals} bids`)))))),
     card('How you write', 'Learned from your proposals; every rule cites at least two of them', styleSection(brain.style)),

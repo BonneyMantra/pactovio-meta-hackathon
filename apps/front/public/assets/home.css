@@ -2,6 +2,9 @@
 .ag-av { --s: 34px; position: relative; flex: none; width: var(--s); height: var(--s); border-radius: calc(var(--s) * 0.32); display: inline-grid; place-items: center;
   background: linear-gradient(145deg, #0a86ad 0%, #00597a 100%); color: #fff; font-weight: 610; font-size: calc(var(--s) * 0.38); letter-spacing: -0.02em;
   box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.25), 0 1px 2px rgba(0, 60, 80, 0.2); }
+.ag-av.has-logo, .avatar.has-logo { background: #fff; box-shadow: inset 0 0 0 0.5px var(--line-2), 0 1px 2px rgba(0, 0, 0, 0.05); padding: calc(var(--s) * 0.12); }
+.has-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.avatar.has-logo { width: var(--s); height: var(--s); }
 .ag-live { position: absolute; right: -2px; bottom: -2px; width: calc(var(--s) * 0.3); height: calc(var(--s) * 0.3); min-width: 7px; min-height: 7px; border-radius: 50%; background: #2fb36a; box-shadow: 0 0 0 2px var(--surface); }
 .ag-live::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: #2fb36a; animation: ag-ping 2.4s var(--ease) infinite; }
 @keyframes ag-ping { 0% { transform: scale(1); opacity: 0.6; } 70%, 100% { transform: scale(2.4); opacity: 0; } }

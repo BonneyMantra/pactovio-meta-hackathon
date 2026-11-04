@@ -1,33 +1,10 @@
 // Shared pieces for the ops screens (quotes, agent, connections, billing).
 import { h, fmt } from '../ui.js';
+import { brandTile } from '../brand-logos.js';
 
-const SI = 'https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/';
-// Brand tiles: official Simple Icons glyph in white on the brand colour. Providers missing from
-// Simple Icons (Microsoft apps, DocuSign) get a neutral tile with initials.
-export const BRAND = {
-  gmail: { slug: 'gmail', color: '#EA4335' }, slack: { slug: 'slack', color: '#4A154B' }, hubspot: { slug: 'hubspot', color: '#FF7A59' },
-  salesforce: { slug: 'salesforce', color: '#00A1E0' }, googledrive: { slug: 'googledrive', color: '#1FA463' }, dropbox: { slug: 'dropbox', color: '#0061FE' },
-  googlecalendar: { slug: 'googlecalendar', color: '#4285F4' }, jira: { slug: 'jira', color: '#0052CC' }, asana: { slug: 'asana', color: '#F06A6A' },
-  quickbooks: { slug: 'quickbooks', color: '#2CA01C' }, xero: { slug: 'xero', color: '#13B5EA' },
-  outlook: { initials: 'Ol' }, outlook_calendar: { initials: 'OC' }, microsoft_teams: { initials: 'Tm' }, docusign: { initials: 'DS' },
-};
-
-export function logoTile(provider, size = 36, name = '') {
-  const b = BRAND[provider] || { initials: (name || provider || '?').slice(0, 2) };
-  const tile = h('span.logo-tile', { title: name || provider, style: { width: `${size}px`, height: `${size}px`, borderRadius: `${Math.round(size * 0.28)}px` } });
-  if (b.slug) {
-    tile.style.background = b.color;
-    const g = h('span.logo-glyph');
-    const url = `url(${SI}${b.slug}.svg)`;
-    Object.assign(g.style, { width: `${Math.round(size * 0.52)}px`, height: `${Math.round(size * 0.52)}px`, WebkitMaskImage: url, maskImage: url });
-    tile.appendChild(g);
-  } else {
-    tile.classList.add('neutral');
-    tile.style.fontSize = `${Math.round(size * 0.36)}px`;
-    tile.textContent = b.initials;
-  }
-  return tile;
-}
+// Brand tiles live in ../brand-logos.js (real Simple Icons glyphs or official brand files).
+export { BRAND } from '../brand-logos.js';
+export function logoTile(provider, size = 36, name = '') { return brandTile(provider, size, name); }
 
 /** Small stacked brand marks ("4 sources used"). */
 export function sourceMarks(providers) {

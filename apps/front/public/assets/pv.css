@@ -252,3 +252,9 @@ textarea.input { height: auto; min-height: 88px; padding: 10px 12px; resize: ver
 .pv-faq summary::-webkit-details-marker { display: none; }
 .pv-faq[open] summary .ico { transform: rotate(180deg); }
 @media (max-width: 600px) { .pv-how { grid-template-columns: 32px 1fr !important; } .pv-how > a { grid-column: 2; justify-self: start; } }
+
+/* Brand tiles (connectors, models): brand colour with a white Simple Icons glyph, or the official file on white. */
+.logo-tile { display: inline-grid; place-items: center; flex: none; box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06); }
+.logo-tile.neutral { background: var(--surface-2); color: var(--ink-2); font-weight: 610; letter-spacing: -0.02em; box-shadow: inset 0 0 0 0.5px var(--line-2); }
+.logo-tile.file { background: #fff; box-shadow: inset 0 0 0 0.5px var(--line-2), 0 1px 2px rgba(0, 0, 0, 0.05); }
+.logo-glyph { background: #fff; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; -webkit-mask-size: contain; mask-size: contain; }

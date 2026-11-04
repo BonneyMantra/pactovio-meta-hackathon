@@ -24,7 +24,7 @@ function productCard(p, onEdit) {
   const [kind, cls] = KIND[kindOf(p)];
   const img = p.image_url || null;
   return h('article.ct-card',
-    h('div.ct-img', img ? h('img', { src: img, alt: '', loading: 'lazy' }) : h('span.ct-mono', p.sku.replace(/^(RT|EXT|SVC)-/i, '').slice(0, 7))),
+    h('div.ct-img', img ? h('img', { src: img, alt: '', loading: 'lazy' }) : h('span.ct-noimg', { title: 'No product photo published' }, icon(kindOf(p) === 'service' ? 'settings' : 'box', 30))),
     h('div.ct-body',
       h('div.ct-tags', h(`span.ct-kind.${cls}`, kind), p.family ? h('span.xs.muted', p.family) : null),
       h('div.ct-name', p.name),

@@ -1,40 +1,38 @@
 // Static content for the landing page. The worked example is Rax Tech International (Chennai) and the
 // Kurinji Commercial Bank RFP; figures come from its Company Brain and a real proposal run on 4 Nov 2026.
-const SI = (slug) => `https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/${slug}.svg`;
 
-// `core` = the three connections the agent is built around.
 export const CONNECTORS = [
-  { name: 'HubSpot', role: 'Products, prices and deal outcomes', slug: 'hubspot', brand: '#FF7A59', core: true },
-  { name: 'Google Drive', role: 'Every past proposal', slug: 'googledrive', brand: '#1FA463', core: true },
-  { name: 'Gmail', role: 'RFQs as they arrive', slug: 'gmail', brand: '#EA4335', core: true },
-  { name: 'Outlook', role: 'Email', text: 'Outlook', brand: '#0A64AD' },
-  { name: 'Slack', role: 'Chat', slug: 'slack', brand: '#4A154B' },
-  { name: 'Microsoft Teams', role: 'Chat', text: 'Teams', brand: '#5059C9' },
-  { name: 'Salesforce', role: 'CRM', slug: 'salesforce', brand: '#00A1E0' },
-  { name: 'Dropbox', role: 'Files', slug: 'dropbox', brand: '#0061FF' },
-  { name: 'Google Calendar', role: 'Calendar', slug: 'googlecalendar', brand: '#4285F4' },
-  { name: 'Outlook Calendar', role: 'Calendar', text: 'Outlook', brand: '#0A64AD' },
-  { name: 'Jira', role: 'Projects', slug: 'jira', brand: '#0052CC' },
-  { name: 'Asana', role: 'Projects', slug: 'asana', brand: '#F06A6A' },
-  { name: 'DocuSign', role: 'Signing', text: 'DocuSign', brand: '#4C00FF' },
-  { name: 'QuickBooks', role: 'Accounting', slug: 'quickbooks', brand: '#2CA01C' },
-  { name: 'Xero', role: 'Accounting', slug: 'xero', brand: '#13B5EA' },
-].map((c) => ({ ...c, src: c.slug ? SI(c.slug) : null }));
+  { name: 'HubSpot', role: 'CRM', brand: 'hubspot' },
+  { name: 'Google Drive', role: 'Files', brand: 'googledrive' },
+  { name: 'Gmail', role: 'Email', brand: 'gmail' },
+  { name: 'Outlook', role: 'Email', brand: 'outlook' },
+  { name: 'Slack', role: 'Chat', brand: 'slack' },
+  { name: 'Microsoft Teams', role: 'Chat', brand: 'microsoft_teams' },
+  { name: 'Salesforce', role: 'CRM', brand: 'salesforce' },
+  { name: 'Dropbox', role: 'Files', brand: 'dropbox' },
+  { name: 'Google Calendar', role: 'Calendar', brand: 'googlecalendar' },
+  { name: 'Outlook Calendar', role: 'Calendar', brand: 'outlook_calendar' },
+  { name: 'Jira', role: 'Projects', brand: 'jira' },
+  { name: 'Asana', role: 'Projects', brand: 'asana' },
+  { name: 'DocuSign', role: 'Signing', brand: 'docusign' },
+  { name: 'QuickBooks', role: 'Accounting', brand: 'quickbooks' },
+  { name: 'Xero', role: 'Accounting', brand: 'xero' },
+];
 
 export const MODELS = [
-  { name: 'Muse Spark 1.3', role: 'Reads every PDF and RFQ, learns the house style, writes the proposal', text: 'Spark' },
-  { name: 'Muse Wonder 1.0', role: 'Orchestrates the bid from RFQ to finished document', text: 'Wonder' },
-  { name: 'SAM 3.1', role: 'Segments the branch floor plan so every device lands in the right room', text: 'SAM' },
-  { name: 'Muse Image 1.0', role: 'Draws the concept visual, always labelled as generated', text: 'Image' },
-  { name: 'Muse Voice Transcribe', role: 'Takes an RFQ by voice in the chat', text: 'Voice' },
-].map((m) => ({ ...m, src: null }));
+  { name: 'Muse Spark 1.3', role: 'Reads every PDF and RFQ, learns the house style, writes the proposal' },
+  { name: 'Muse Wonder 1.0', role: 'Orchestrates the bid from RFQ to finished document' },
+  { name: 'SAM 3.1', role: 'Segments the branch floor plan so every device lands in the right room' },
+  { name: 'Muse Image 1.0', role: 'Draws the concept visual, always labelled as generated' },
+  { name: 'Muse Voice Transcribe', role: 'Takes an RFQ by voice in the chat' },
+].map((m) => ({ ...m, brand: 'meta' }));
 
 export const AGENTS = [
-  { name: 'MCP server', role: 'POST /mcp · tenders, verdicts, quotes as tools', text: 'MCP' },
-  { name: 'REST API', role: '/v1 with workspace API keys', text: 'API' },
-  { name: 'Webhooks', role: 'Signed events when a proposal is ready', text: 'Hooks' },
-  { name: 'Calendar feed', role: 'Bid deadlines as an ICS feed', text: 'ICS' },
-].map((a) => ({ ...a, src: null }));
+  { name: 'MCP server', role: 'POST /mcp · tenders, verdicts, quotes as tools', brand: 'mcp' },
+  { name: 'REST API', role: '/v1 with workspace API keys', ico: 'globe' },
+  { name: 'Webhooks', role: 'Signed events when a proposal is ready', ico: 'bolt' },
+  { name: 'Calendar feed', role: 'Bid deadlines as an ICS feed', ico: 'clock' },
+];
 
 // The story, one step per item: each swaps the answer panel. [n] marks become citation chips.
 export const CAPS = [
@@ -51,4 +49,5 @@ export const CAPS = [
   { t: 'Find tenders and buyers', q: 'Who else should we be bidding for?', a: 'Public tenders worldwide ranked against what Rax sells and wins [1], and banks with public buying signals found by web search, each with its source link and a drafted outreach email [2]. Nothing is sent without you.', src: ['T', 'W'], act: 'Review the drafted outreach' },
 ];
 
-export const MARKS = { G: ['#EA4335', 'G'], D: ['#1FA463', 'D'], P: ['#21201c', 'P'], H: ['#FF7A59', 'H'], W: ['#00759b', 'W'], T: ['#5f5e59', 'T'] };
+// Source marks: real brand tiles for connectors, icons for the RFP pack (P), the web (W) and tender feeds (T).
+export const MARKS = { G: { brand: 'gmail' }, D: { brand: 'googledrive' }, H: { brand: 'hubspot' }, P: { ico: 'file' }, W: { ico: 'globe' }, T: { ico: 'tender' } };

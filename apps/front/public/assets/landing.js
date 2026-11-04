@@ -1,6 +1,7 @@
 // Landing interactions: icons, sticky nav hairline, hero reveal, composer typing, capability list, logo wall, rosters.
 import { icon } from './ui.js';
 import { AGENTS, CAPS, CONNECTORS, MARKS, MODELS } from './landing-data.js';
+import { brandTile, brandTileHTML } from './brand-logos.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -14,12 +15,10 @@ function fillIcons(root = document) {
   });
 }
 
-const mark = (k) => `<span class="mk" style="background:${MARKS[k][0]}">${MARKS[k][1]}</span>`;
+const iconTile = (name, size) => `<span class="logo-tile neutral ico-tile" style="width:${size}px;height:${size}px;border-radius:${Math.round(size * 0.28)}px">${icon(name, Math.round(size * 0.66)).outerHTML}</span>`;
+const mark = (k) => (MARKS[k].brand ? brandTileHTML(MARKS[k].brand, 16) : iconTile(MARKS[k].ico, 16));
 const cites = (html) => html.replace(/\[(\d+)\]/g, '<span class="cite">$1</span>');
-const logo = (x, cls = 'logo') => x.src
-  ? `<span class="${cls}" style="--src:url('${x.src}');--brand:${x.brand || 'var(--ink)'}" role="img" aria-label="${esc(x.name)} logo"></span>`
-  : `<span class="logo-txt" aria-hidden="true">${esc(x.text || x.name)}</span>`;
-
+const logo = (x, size = 40) => (x.brand ? brandTileHTML(x.brand, size) : iconTile(x.ico || 'dot', size));
 function nav() {
   const n = $('#nav');
   const on = () => n.classList.toggle('scrolled', scrollY > 8);
@@ -53,8 +52,7 @@ function floatCard() {
   const box = $('#v-float');
   if (!box) return;
   const spots = [[16, 22], [62, 14], [38, 40], [78, 46], [12, 62], [54, 66], [84, 20], [28, 12]];
-  const live = CONNECTORS.filter((c) => c.src).slice(0, spots.length);
-  box.innerHTML = live.map((c, i) => `<span class="float" style="left:${spots[i][0]}%;top:${spots[i][1]}%;animation-delay:-${i * 0.9}s"><span class="appico-sm" style="display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:#fff;box-shadow:0 0 0 0.5px var(--line),0 6px 16px rgba(0,0,0,.07)"><span class="logo" style="--src:url('${c.src}');background-color:${c.brand};width:18px;height:18px"></span></span></span>`).join('');
+  box.innerHTML = CONNECTORS.slice(0, spots.length).map((c, i) => `<span class="float" style="left:${spots[i][0]}%;top:${spots[i][1]}%;animation-delay:-${i * 0.9}s">${brandTileHTML(c.brand, 36)}</span>`).join('');
 }
 
 function caps() {
@@ -66,7 +64,7 @@ function caps() {
     list.querySelectorAll('li').forEach((li, j) => { li.classList.toggle('on', j === i); li.setAttribute('aria-selected', String(j === i)); });
     panel.innerHTML = `<div class="body">
       <div class="q msg"><span class="av you">R</span><div><div class="name">Reena</div><div class="txt">${esc(c.q)}</div></div></div>
-      <div class="msg"><span class="av bot ag-bot">RT</span><div>
+      <div class="msg"><span class="av bot ag-bot"><img src="/assets/brand/customers/rax-tech.png" alt="" /></span><div>
         <div class="name">Rax Tech’s agent</div><div class="done-row">Completed ${c.src.length + 2} actions ${icon('chev', 13).outerHTML}</div>
         <div class="txt">${cites(c.a)}</div>
         <div class="srcs">${c.src.length} source${c.src.length > 1 ? 's' : ''} used ${c.src.map(mark).join('')}</div>
@@ -86,9 +84,8 @@ function logoWall() {
   const wall = $('#logowall');
   if (!wall) return;
   wall.innerHTML = CONNECTORS.map((c) => `<div class="lw">
-    ${logo(c)}
+    ${logo(c, 32)}
     <div><div class="nm">${esc(c.name)}</div><div class="rl">${esc(c.role)}</div></div>
-    ${c.core ? '<span class="chip ok live"><span class="dot"></span>Powers the agent</span>' : ''}
   </div>`).join('');
 }
 
@@ -96,9 +93,15 @@ function tiles(id, items) {
   const box = document.getElementById(id);
   if (!box) return;
   box.innerHTML = items.map((x) => `<div class="tile reveal"><div class="in">
-    <span class="appico">${logo(x)}</span>
+    <span class="appico">${logo(x, 44)}</span>
     <div class="nm">${esc(x.name)}${x.sub ? ` <span class="muted" style="font-weight:510">${esc(x.sub)}</span>` : ''}</div>
     <div class="rl">${esc(x.role)}</div></div></div>`).join('');
+}
+
+/** Static marks in the HTML: data-brand → real brand tile, data-mark → icon tile. */
+function staticMarks() {
+  document.querySelectorAll('[data-brand]').forEach((el) => el.replaceWith(brandTile(el.dataset.brand, el.classList.contains('inline-brand') ? 18 : 16)));
+  document.querySelectorAll('[data-mark]').forEach((el) => { el.outerHTML = iconTile(el.dataset.mark, 16); });
 }
 
 function reveal() {
@@ -110,6 +113,7 @@ function reveal() {
   els.forEach((e) => io.observe(e));
 }
 
+staticMarks();
 fillIcons();
 nav();
 heroReveal();

@@ -7,7 +7,7 @@ import { renderOnboarding } from './onboarding.js';
 import { clearCompanyDraft } from './company-form.js';
 import { rememberSetupReturn, restoreSetupReturn, clearSetupReturn } from './onboarding-return.js';
 import { setupPending } from './screens/setup-results.js';
-import { agentAvatar, initials, loadBrain, sideAgentCard } from './agent-id.js';
+import { agentAvatar, companyMark, initials, loadBrain, probeLogo, sideAgentCard } from './agent-id.js';
 
 // The sidebar follows the story: the agent and its work first, then what it knows about the company.
 // Screens without a sidebar entry (quotes, evidence, settings, help…) stay routable from menus and links.
@@ -78,7 +78,7 @@ async function openIdentityMenu(anchor) {
     list.replaceChildren(...items.map((w) => h('button.pv-menu-item', {
       type: 'button', role: 'menuitemradio', 'aria-checked': String(w.id === ctx.session?.workspace_id),
       onclick: async () => { try { await api('/workspaces/switch', { method: 'POST', body: { workspace_id: w.id } }); location.reload(); } catch { closeMenus(); } },
-    }, h('span.avatar.pv-av-sm', initials(w.name)), h('span.pv-menu-txt', String(w.name || w.id).replace(/ \(Sample company\)$/, '')),
+    }, w.id === ctx.session?.workspace_id ? companyMark(w.name, 22, 'avatar') : h('span.avatar.pv-av-sm', initials(w.name)), h('span.pv-menu-txt', String(w.name || w.id).replace(/ \(Sample company\)$/, '')),
       w.id === ctx.session?.workspace_id ? icon('check', 14) : null)));
   } catch { list.replaceChildren(h('div.xs.muted', { style: { padding: '6px 10px' } }, 'Could not load workspaces')); }
 }
@@ -88,7 +88,7 @@ function renderSide(active) {
   const ws = ctx.session?.workspace;
   const plan = planName();
   const idBtn = h('button.foot.pv-identity', { type: 'button', 'aria-haspopup': 'menu', onclick: (e) => { e.stopPropagation(); openIdentityMenu(idBtn); } },
-    h('span.avatar', initials(ws?.name)),
+    companyMark(ws?.name, 30, 'avatar'),
     h('div', { style: { minWidth: 0, flex: 1, textAlign: 'left' } },
       h('div.small', { style: { fontWeight: 510, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, ws?.name || 'Workspace'),
       h('div.xs.muted', { style: { display: 'flex', gap: '6px', alignItems: 'center' } }, plan ? h('span.chip.outline.pv-plan', plan) : null, ws?.segment ? (ws.segment === 'it' ? 'IT' : `${ws.segment[0].toUpperCase()}${ws.segment.slice(1)}`) : '')),
@@ -194,7 +194,7 @@ async function boot() {
     }
     ctx.billing = await api('/billing').catch(() => null);
     if (current !== generation) return;
-    await Promise.all([refreshCounts(), refreshSetup(), loadBrain(ctx)]);
+    await Promise.all([refreshCounts(), refreshSetup(), loadBrain(ctx), probeLogo(ctx)]);
     if (current !== generation) return;
     // Provider sign-ins return to #/onboarding; a returning customer still finishing v2 setup goes back to #/setup.
     if (setupPending(ctx.setup) && /^#\/onboarding(\?|$)/.test(location.hash)) history.replaceState(null, '', `/app#/setup${location.hash.slice(12)}`);
