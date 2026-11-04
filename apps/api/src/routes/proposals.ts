@@ -7,6 +7,7 @@ import { customerAuth } from '../lib/customer-session';
 import { keywordsFromFile, tidyTranscript } from '../lib/voice-hints';
 import { takeLimit } from '../lib/customer-security';
 import type { AppEnv } from '../lib/types';
+import { mountProposalEvents } from './proposal-events';
 
 const MAX_FILE = 15 * 1024 * 1024;
 const MAX_FILES = 8;
@@ -85,6 +86,8 @@ proposalRoutes.get('/:id', async (c) => {
   const partial = proposal || !state ? null : { rfq: state.rfq ?? null, eligibility: state.eligibility ?? null, selection: state.selection ?? null, design: state.design ?? null, bom_totals: state.bom?.commercials ?? null };
   return c.json({ ...row, files: input.files.map((f) => ({ filename: f.filename, size: f.size })), steps: await listSteps(c.env, ws, id), proposal, partial, models: state?.models ?? {} });
 });
+
+mountProposalEvents(proposalRoutes);
 
 /** PATCH /api/proposals/:id: { edits: [{ path, text }] } to the narrative, or { action: 'approve' } -> { review }. */
 proposalRoutes.patch('/:id', async (c) => {

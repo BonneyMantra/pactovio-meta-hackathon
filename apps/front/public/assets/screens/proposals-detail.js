@@ -15,7 +15,7 @@ export async function render(root, { id }, ctx) {
   ctx.setCrumbs(h('a', { href: '#/proposals' }, 'Proposals'), 'Loading…');
   root.classList.add('pd-page');
   root.replaceChildren(skeleton(6));
-  let disposed = false, timer = null, ro = null, live = null;
+  let disposed = false, timer = null, ro = null, live = null, feed = null;
   const [brain, products] = await Promise.all([api('/brain').catch(() => null), productIndex()]);
 
   async function load(first) {
@@ -48,9 +48,24 @@ export async function render(root, { id }, ctx) {
     const done = live.list.update(p.steps);
     live.count.textContent = `${done} of ${STAGES.length} steps done`;
     live.bar.style.width = `${Math.max(4, (done / STAGES.length) * 100)}%`;
-    timer = setTimeout(() => load(false), first ? 1200 : 2000);
+    openFeed();
+    clearTimeout(timer);
+    timer = setTimeout(() => load(false), first ? 1200 : feed ? 6000 : 2000);
   }
-  function stopLive() { if (live) clearInterval(live.clock); live = null; }
+  function stopLive() { if (live) clearInterval(live.clock); live = null; closeFeed(); }
+
+  // Server-sent step events (GET /api/proposals/:id/events) refresh the page the moment a step finishes; the timer above stays
+  // as a slow safety poll. Any stream error, timeout or a browser without EventSource falls back to the 2 s poll.
+  function openFeed() {
+    if (feed !== null || disposed || typeof EventSource !== 'function') return;
+    try { feed = new EventSource(`/api/proposals/${encodeURIComponent(id)}/events`); } catch { feed = false; return; }
+    const soon = () => { if (disposed) return; clearTimeout(timer); timer = setTimeout(() => load(false), 150); };
+    const stop = () => { closeFeed(); feed = false; soon(); };
+    feed.addEventListener('step', soon);
+    feed.addEventListener('status', soon);
+    for (const ev of ['done', 'timeout', 'fault', 'error']) feed.addEventListener(ev, stop);
+  }
+  function closeFeed() { if (feed) feed.close(); }
 
   function show(p, reveal) {
     stopLive();
