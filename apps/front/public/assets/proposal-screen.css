@@ -78,7 +78,21 @@
 .pd-reasons li::before { content: ''; position: absolute; left: 0; top: 7px; width: 5px; height: 5px; border-radius: 50%; background: var(--ink-4); }
 .pd-steps { display: grid; gap: 2px; }
 .pd-step { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 13px; padding: 5px 0; }
-.pd-step .ico { color: var(--ok); }
+.pd-tick { width: 16px; height: 16px; border-radius: 50%; background: var(--ok); color: #fff; display: inline-grid; place-items: center; }
+.pd-tick .ico svg { stroke-width: 3; }
+.pd-tick.bad { background: var(--bad); }
+.pd-step.running > span:nth-child(2) { color: var(--ink); font-weight: 550; }
+.pd-steps.live .pd-step { margin: 0 -8px; padding: 6px 8px; border-radius: 8px; }
+.pd-step.ticked { animation: pd-row-done 1400ms var(--ease) both; }
+.pd-step.ticked .pd-tick { animation: pd-tick-pop 460ms cubic-bezier(.34, 1.56, .64, 1) both; }
+.pd-step.ticked .pd-step-sum { animation: pd-sum-in 380ms 140ms var(--ease) both; }
+@keyframes pd-tick-pop { from { transform: scale(0.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes pd-row-done { from { background: var(--ok-soft); } to { background: transparent; } }
+@keyframes pd-sum-in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
+.pd-run-meta { display: flex; justify-content: space-between; margin-top: 6px; }
+.pd-run-bar { height: 4px; border-radius: 2px; background: var(--line-soft); overflow: hidden; }
+.pd-run-bar i { display: block; height: 100%; width: 4%; background: var(--ok); border-radius: 2px; transition: width 700ms var(--ease); }
+@media (prefers-reduced-motion: reduce) { .pd-step.ticked, .pd-step.ticked .pd-tick, .pd-step.ticked .pd-step-sum { animation: none; } .pd-run-bar i { transition: none; } }
 .pd-step-sum { display: block; font-size: 11.5px; line-height: 15px; color: var(--ink-3); margin-top: 1px; }
 .pd-step.pending > span:nth-child(2) { color: var(--ink-3); }
 .pd-model { font-family: var(--mono); font-size: 10.5px; padding: 1px 6px; border-radius: 6px; background: var(--surface-2); color: var(--ink-2); white-space: nowrap; }

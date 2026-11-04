@@ -3,7 +3,7 @@
 import { h, icon, toast } from '../ui.js';
 import { startProposal, getProposal, transcribe, STAGES } from '../doc/api.js';
 import { canRecord, startRecording } from '../voice.js';
-import { steps } from '../doc/rail.js';
+import { steps, liveSteps } from '../doc/steps.js';
 import { inrShort, assetUrl } from '../doc/kit.js';
 
 const ACCEPT = '.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp,.txt';
@@ -73,7 +73,8 @@ export function rfqKit({ win, ta, feed, scroll, threadId, setBusy }) {
     try { id = (await startProposal({ file: rfq, extras, text })).id; }
     catch (e) { list.replaceChildren(h('div.error-box', e.message)); setBusy(false); return; }
     setBusy(false);
-    let sig = '', fails = 0;
+    let fails = 0;
+    const live = liveSteps();
     const poll = async () => {
       let p;
       try { p = await getProposal(id); fails = 0; } catch (e) {
@@ -81,9 +82,8 @@ export function rfqKit({ win, ta, feed, scroll, threadId, setBusy }) {
         setTimeout(poll, 2500); return;
       }
       const ps = p, st = ps.steps || [];
-      // Re-render only when a step changes: each render replays the steps' entrance animation.
-      const next = JSON.stringify(st.map((s) => [s.status, s.model, s.summary]));
-      if (st.length && next !== sig) { sig = next; list.replaceChildren(steps(st)); scroll(); }
+      // Rows update in place, so each finished step ticks visibly instead of the list re-rendering.
+      if (st.length) { live.update(st); if (!live.el.isConnected) { list.replaceChildren(live.el); scroll(); } }
       if (ps.orchestrator) orch.textContent = `· orchestrated by ${ps.orchestrator}`;
       const done = st.filter((s) => s.status === 'done').length;
       bar.style.width = `${ps.status === 'ready' ? 100 : (done / STAGES.length) * 92 + 4}%`;

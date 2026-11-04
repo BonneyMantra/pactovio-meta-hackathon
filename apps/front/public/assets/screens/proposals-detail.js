@@ -1,10 +1,11 @@
 // #/proposals/:id — the proposal as a print-ready A4 document (GET /api/proposals/:id), with the bid-desk rail.
 import { api, h, icon, toast, errorBox, skeleton } from '../ui.js';
 import { buildDocument, paginate } from '../doc/document.js';
-import { rail, steps } from '../doc/rail.js';
+import { rail } from '../doc/rail.js';
+import { liveSteps } from '../doc/steps.js';
 import { inrShort } from '../doc/kit.js';
 import { productIndex } from '../brain-api.js';
-import { getProposal } from '../doc/api.js';
+import { getProposal, STAGES } from '../doc/api.js';
 
 const SHEET_PX = 793.7;
 
@@ -12,7 +13,7 @@ export async function render(root, { id }, ctx) {
   ctx.setCrumbs(h('a', { href: '#/proposals' }, 'Proposals'), 'Loading…');
   root.classList.add('pd-page');
   root.replaceChildren(skeleton(6));
-  let disposed = false, timer = null, ro = null;
+  let disposed = false, timer = null, ro = null, live = null;
   const [brain, products] = await Promise.all([api('/brain').catch(() => null), productIndex()]);
 
   async function load(first) {
@@ -24,17 +25,31 @@ export async function render(root, { id }, ctx) {
     show(p, !first);
   }
 
+  // Built once, then patched each poll: finished steps tick in place and the clock keeps running between polls.
   function progress(p, first) {
     ctx.setCrumbs(h('a', { href: '#/proposals' }, 'Proposals'), 'Writing…');
-    if (p.status === 'failed') { root.replaceChildren(errorBox(new Error(p.error || 'This proposal run failed. Try the request again from the chat.'))); return; }
-    root.replaceChildren(h('div.card.pd-running',
-      h('span.access-step', 'PROPOSAL IN PROGRESS'), h('h2.h3', p.title || 'Writing your proposal'),
-      h('p.small.ink2', 'Pactovio is reading the request, pricing it from your catalogue and writing it in your house style. This page opens the document as soon as it is ready.'),
-      steps(p.steps)));
+    if (p.status === 'failed') { stopLive(); root.replaceChildren(errorBox(new Error(p.error || 'This proposal run failed. Try the request again from the chat.'))); return; }
+    if (!live) {
+      const list = liveSteps(), bar = h('i'), count = h('span'), clock = h('span.num'), title = h('h2.h3');
+      const t0 = Date.parse(p.created_at) || Date.now();
+      const tickClock = () => { const s = Math.max(0, Math.floor((Date.now() - t0) / 1000)); clock.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+      live = { list, bar, count, title, clock: setInterval(tickClock, 1000) };
+      tickClock();
+      root.replaceChildren(h('div.card.pd-running',
+        h('span.access-step', 'PROPOSAL IN PROGRESS'), title,
+        h('p.small.ink2', 'Pactovio is reading the request, pricing it from your catalogue and writing it in your house style. This page opens the document as soon as it is ready.'),
+        h('div.pd-run-meta.xs.muted', count, clock), h('div.pd-run-bar', bar), list.el));
+    }
+    live.title.textContent = p.title || 'Writing your proposal';
+    const done = live.list.update(p.steps);
+    live.count.textContent = `${done} of ${STAGES.length} steps done`;
+    live.bar.style.width = `${Math.max(4, (done / STAGES.length) * 100)}%`;
     timer = setTimeout(() => load(false), first ? 1200 : 2000);
   }
+  function stopLive() { if (live) clearInterval(live.clock); live = null; }
 
   function show(p, reveal) {
+    stopLive();
     const supplier = brain?.profile?.legal_name || brain?.profile?.name || ctx.session?.workspace?.name || 'Supplier';
     ctx.setCrumbs(h('a', { href: '#/proposals' }, 'Proposals'), p.ref || p.title || 'Proposal');
     const doc = buildDocument({
@@ -64,7 +79,7 @@ export async function render(root, { id }, ctx) {
   }
 
   await load(true);
-  return () => { disposed = true; clearTimeout(timer); ro?.disconnect(); };
+  return () => { disposed = true; clearTimeout(timer); stopLive(); ro?.disconnect(); };
 }
 
 async function layout(root, stage, doc) {

@@ -1,13 +1,11 @@
 // Bid-desk rail beside the proposal (screen only, never printed): go/no-go, run trace, learning provenance.
 import { h, icon } from '../ui.js';
 import { list } from './kit.js';
+import { steps, modelChip, modelClass } from './steps.js';
+
+export { steps, modelChip, modelClass };
 
 const VERDICT = { go: 'Go — bid', conditional: 'Bid with conditions', no_go: 'No bid' };
-
-export function modelClass(name = '') {
-  return /wonder/i.test(name) ? 'wonder' : /sam/i.test(name) ? 'sam' : /image/i.test(name) ? 'image' : /spark/i.test(name) ? 'spark' : '';
-}
-export const modelChip = (name) => (name ? h(`span.pd-model.${modelClass(name)}`, name) : null);
 
 function gauge(v) {
   const s = 64, r = 27, c = 2 * Math.PI * r, f = Math.max(0, Math.min(1, v));
@@ -19,13 +17,6 @@ function gauge(v) {
   return el.firstChild;
 }
 
-export function steps(items) {
-  return h('div.pd-steps', list(items).map((s) => h(`div.pd-step.${s.status || 'pending'}`,
-    s.status === 'done' ? icon('check', 14) : s.status === 'failed' ? icon('x', 14) : s.status === 'running' ? h('span.pd-spin') : h('span.pd-pend'),
-    h('span', s.label || s.key, s.summary && s.status === 'done' ? h('span.pd-step-sum', tidy(s.summary)) : null), modelChip(s.model))));
-}
-/** Step summaries are written for the log; tidy them for the bid desk. */
-const tidy = (t) => String(t).replace(/^skipped: /, 'Skipped: ').replace('file(s)', 'files');
 const mins = (ms) => (ms >= 60000 ? `${Math.floor(ms / 60000)} min ${Math.round((ms % 60000) / 1000)} s` : `${Math.round(ms / 1000)} s`);
 const LEARNED = { payment_terms: 'Payment terms', warranty_months_commissioning: 'Warranty', amc_pct: 'AMC rate', validity_days: 'Validity', section_order: 'Section order', phrases: 'House phrases' };
 
