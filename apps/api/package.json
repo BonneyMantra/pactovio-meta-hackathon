@@ -23,6 +23,7 @@
     "@pactovio/events": "*",
     "@pactovio/models": "*",
     "@pactovio/pack": "*",
+    "@pactovio/proposal": "*",
     "@pactovio/quote": "*",
     "@pactovio/sources": "*",
     "hono": "^4.9.0",

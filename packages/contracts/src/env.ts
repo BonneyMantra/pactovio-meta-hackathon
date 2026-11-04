@@ -6,6 +6,8 @@ export interface Env {
   PACK_RUN: Workflow;
   SCAN: Workflow;
   INTAKE: Workflow;
+  /** Proposal runs (ProposalRunWorkflow). Optional so local tests can run the pipeline inline. */
+  PROPOSAL?: Workflow;
   AGENT: DurableObjectNamespace;
   EVENTS: Queue<unknown>;
 
