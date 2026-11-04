@@ -1,22 +1,22 @@
-// Real brand marks for every connector, in one place. Simple Icons glyphs (white on the brand colour)
-// where the brand is in Simple Icons; the official full-colour files in /assets/brand/connectors otherwise.
+// Real brand marks for every connector, in one place: the official full-colour marks, served locally from
+// /assets/brand/connectors (HubSpot and QuickBooks are their Simple Icons marks in the brand colour).
 // Self-contained (no ui.js import) so ui.js, ops-kit and the landing page can all use it.
 export const SI = 'https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/';
 const FILES = '/assets/brand/connectors/';
 
 export const BRAND = {
-  gmail: { slug: 'gmail', color: '#EA4335', name: 'Gmail' },
-  slack: { slug: 'slack', color: '#4A154B', name: 'Slack' },
-  hubspot: { slug: 'hubspot', color: '#FF7A59', name: 'HubSpot' },
-  salesforce: { slug: 'salesforce', color: '#00A1E0', name: 'Salesforce' },
-  googledrive: { slug: 'googledrive', color: '#1FA463', name: 'Google Drive' },
-  dropbox: { slug: 'dropbox', color: '#0061FE', name: 'Dropbox' },
-  googlecalendar: { slug: 'googlecalendar', color: '#4285F4', name: 'Google Calendar' },
-  jira: { slug: 'jira', color: '#0052CC', name: 'Jira' },
-  asana: { slug: 'asana', color: '#F06A6A', name: 'Asana' },
-  quickbooks: { slug: 'quickbooks', color: '#2CA01C', name: 'QuickBooks' },
-  xero: { slug: 'xero', color: '#13B5EA', name: 'Xero' },
-  meta: { slug: 'meta', color: '#0081FB', name: 'Meta' },
+  gmail: { file: `${FILES}gmail.svg`, name: 'Gmail' },
+  slack: { file: `${FILES}slack.svg`, name: 'Slack' },
+  hubspot: { file: `${FILES}hubspot.svg`, name: 'HubSpot' },
+  salesforce: { file: `${FILES}salesforce.svg`, name: 'Salesforce', wide: true },
+  googledrive: { file: `${FILES}google-drive.svg`, name: 'Google Drive' },
+  dropbox: { file: `${FILES}dropbox.svg`, name: 'Dropbox' },
+  googlecalendar: { file: `${FILES}google-calendar.svg`, name: 'Google Calendar' },
+  jira: { file: `${FILES}jira.svg`, name: 'Jira' },
+  asana: { file: `${FILES}asana.svg`, name: 'Asana' },
+  quickbooks: { file: `${FILES}quickbooks.svg`, name: 'QuickBooks' },
+  xero: { file: `${FILES}xero.svg`, name: 'Xero' },
+  meta: { file: `${FILES}meta.svg`, name: 'Meta', wide: true },
   outlook: { file: `${FILES}outlook.svg`, name: 'Outlook' },
   outlook_calendar: { file: `${FILES}outlook.svg`, name: 'Outlook Calendar' },
   microsoft_teams: { file: `${FILES}microsoft-teams.svg`, name: 'Microsoft Teams' },
@@ -24,6 +24,7 @@ export const BRAND = {
   docusign: { file: `${FILES}docusign.svg`, name: 'DocuSign', wide: true },
   composio: { file: `${FILES}composio.png`, name: 'Composio' },
   mcp: { file: `${FILES}mcp.svg`, name: 'Model Context Protocol' },
+  google_drive: { file: `${FILES}google-drive.svg`, name: 'Google Drive' },
 };
 
 const el = (tag, cls, style = {}) => { const n = document.createElement(tag); if (cls) n.className = cls; Object.assign(n.style, style); return n; };

@@ -2,6 +2,7 @@
 // learning events (GET /api/brain/progress) → deal outcomes from HubSpot → style profile → ready.
 // Used in onboarding and at #/brain/learning.
 import { h, icon, errorBox, api } from '../ui.js';
+import { brandTile } from '../brand-logos.js';
 import { friendlyError, connectorDestination } from '../customer-api.js';
 import { getBrain } from '../brain-api.js';
 import { driveFolders, startLearn, learnProgress, connectProvider, LEARN_MODEL } from './learn-api.js';
@@ -57,7 +58,7 @@ export function learningView(root, opts = {}) {
     } }, 'Connect Google Drive', icon('out', 15));
     root.replaceChildren(h('div.lr-pick', h('div.access-step', 'STEP 3 · GOOGLE DRIVE'), h('h2.h3', 'Teach it from your past proposals'),
       h('p.small.ink2', 'Your past proposals live in Google Drive. Connect it, choose the folder, and the agent reads every one: what you offered, how you priced it, how you write and which bids you won.'),
-      h('div.ob-connect', h('span.lr-fico', icon('folder', 20)), h('div', h('strong', 'Google Drive'), h('div.small.ink2', 'Reads the PDFs in the folder you choose')), btn), status));
+      h('div.ob-connect', brandTile('googledrive', 36, 'Google Drive'), h('div', h('strong', 'Google Drive'), h('div.small.ink2', 'Reads the PDFs in the folder you choose')), btn), status));
     btn.focus();
   }
 
