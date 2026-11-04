@@ -22,6 +22,9 @@ export interface BomResult {
   per_site_items: { sku: string; qty: number }[]; per_branch_items: { sku: string; qty: number }[]; style_applied: string[];
 }
 
+/** The title names the solution; the supplier and the word "proposal" are on the cover already. */
+export const cleanTitle = (t: string): string => t.replace(/\s*[-–—|:]\s*[^-–—|:]*\bproposal\b[^-–—|:]*$/i, '').replace(/^(technical (and|&) commercial )?proposal (for|on)\s+/i, '').trim() || t;
+
 export const lineType = (sku: string, inCatalogue: boolean): Proposal['scope_of_supply'][number]['type'] =>
   /^SVC-/i.test(sku) ? 'service' : /^EXT-/i.test(sku) ? 'external' : inCatalogue ? 'rax_product' : 'external';
 
@@ -31,6 +34,7 @@ const SYSTEM = `You write the commercial and narrative parts of a supplier's pro
 - plan: 4-6 phases with weeks; the sum of weeks is the elapsed project length.
 - Never state any rupee total, subtotal, GST or grand total in prose; write {{TOTAL_INR}} where the project value belongs (prices are computed by the system).
 - Only mention products that appear in "Selected catalogue lines" or your external_items. Never invent certifications, client names or numbers that are not in the inputs.
+- title: the solution and scope only (e.g. \"Integrated e-surveillance for 120 ATM sites and 18 branches\"), without the supplier name or the word proposal.
 - Follow the supplier voice rules and fixed phrases when provided. Executive summary: 3 short paragraphs.
 - Prose is for a bank's procurement committee: name products by what they are ("an 8-zone ATM alarm panel", "edge video analytics"), never by sku codes; at most one sku in any sentence. solution_overview: 2-3 short paragraphs (per ATM site, per branch, central platform), separated by a blank line.`;
 
@@ -95,7 +99,7 @@ Past work you may reference by ref only: ${selection.learned_from.join(', ') || 
   if (supply.some((s) => s.type === 'external')) assumptions.push('External items are budgetary and subject to OEM quotation at order.');
 
   ctx.state.bom = {
-    title: n.title, solution_type, scope_of_supply: supply, custom_engineering: eng, implementation_plan: plan,
+    title: cleanTitle(n.title), solution_type, scope_of_supply: supply, custom_engineering: eng, implementation_plan: plan,
     commercials: { ...t, payment_terms: style.payment_terms, note: domestic ? 'All prices in INR, exclusive of GST; GST at 18% applied.' : 'Export: GST not applicable (zero-rated).' },
     warranty_amc: { warranty_months_from_commissioning: wc, warranty_months_from_dispatch: wd, amc_pct_of_hardware: amcPct, amc_hardware_base_inr: hardware, amc_annual_inr: amcAnnual(hardware, amcPct), text: style.warranty ?? `${wc} months from commissioning or ${wd} months from dispatch, whichever is earlier. Annual maintenance contract at ${amcPct}% of hardware value per year, optional, from warranty expiry.` },
     executive_summary: fill(n.executive_summary), requirement_understanding: n.requirement_understanding, solution_overview: fill(n.solution_overview), assumptions, exclusions: n.exclusions,
