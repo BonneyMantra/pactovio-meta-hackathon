@@ -104,7 +104,12 @@ export function learningView(root, opts = {}) {
         if (matched) api('/brain/proposals').then((r) => {
           if (disposed) return;
           const items = Array.isArray(r?.items) ? r.items : [];
-          grid.outcomes(new Map(items.map((x) => [x.ref, x.outcome])));
+          const byRef = new Map(items.map((x) => [x.ref, x.outcome]));
+          grid.outcomes(byRef);
+          learned.querySelectorAll('.lr-row[data-ref]').forEach((row) => {
+            const o = byRef.get(row.dataset.ref), pill = row.querySelector('.lr-out');
+            if (o && pill) { pill.className = `lr-out ${o}`; pill.textContent = o; }
+          });
           live.outcomes(items);
         }).catch(() => { /* the final brain still carries the win rate */ });
       } else if (ev.type === 'deriving') {

@@ -26,7 +26,7 @@ export function readingCard() {
 
 export function learnedRow(ev) {
   const sol = SOL[ev.solution_type];
-  return h('div.lr-row',
+  return h('div.lr-row', { 'data-ref': ev.ref || null },
     h('span.lr-ref.mono', ev.ref || ''),
     h('div.lr-row-main', h('div.lr-row-t', ev.title || ev.file), h('div.lr-row-m', [ev.client, ev.sector].filter(Boolean).join(' · ')),
       h('div.lr-row-m', sol ? h('span.lr-sol', h('i', { style: { background: sol.c } }), sol.l) : null, ev.total_inr ? h('b.num', inrShort(ev.total_inr)) : null)),
