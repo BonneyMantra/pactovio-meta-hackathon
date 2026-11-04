@@ -12,7 +12,22 @@ const ACCEPT = '.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp,.txt';
 const GO = { go: 'Go', conditional: 'Bid with conditions', no_go: 'No bid' };
 const kb = (n) => (n > 1e6 ? `${(n / 1e6).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1e3))} KB`);
 
-export function rfqKit({ win, ta, feed, scroll, threadId, setBusy }) {
+const shortClient = (n) => String(n || '').replace(/[,\s]*\b(limited|ltd|private|pvt|llc|llp|inc|plc|saoc|wll|co)\b\.?/gi, '').replace(/\s{2,}/g, ' ').trim();
+/** "Integrated E-Surveillance, Intrusion Alarm … for 120 ATMs" -> "e-surveillance" (acronyms such as SCADA or RTUs keep their case). */
+function subject(t) {
+  const s = String(t || '').replace(/^(integrated|supply(,| of)?|provision of|procurement of|design,?|request for (proposal|quotation) (for|on))\s+/i, '').split(/,|\s+for\s+|\s+and\s+|\s+at\s+/i)[0].trim();
+  const words = s.split(/\s+/).map((w) => (w.split('-').every((x) => /^[A-Z][a-z]*$/.test(x)) ? w.toLowerCase() : w)).join(' ');
+  return words.length > 36 ? `${words.slice(0, 35).trim()}…` : words;
+}
+/** Conversation title from what the RFQ says: "Kurinji Commercial Bank · e-surveillance RFP". */
+export function rfqTitle(rfq, filename = '') {
+  const kind = /\brfp\b|proposal/i.test(`${rfq?.rfq_ref || ''} ${filename} ${rfq?.title || ''}`) ? 'RFP' : /tender/i.test(`${rfq?.title || ''} ${filename}`) ? 'tender' : 'RFQ';
+  const parts = [shortClient(rfq?.client?.name), [subject(rfq?.title), kind].filter(Boolean).join(' ')].filter(Boolean);
+  return parts.join(' · ').slice(0, 80);
+}
+const fileTitle = (name) => String(name || 'RFQ').replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' ').trim().slice(0, 80);
+
+export function rfqKit({ win, ta, feed, scroll, threadId, setBusy, thread }) {
   let files = [], rec = null, timer = null, hints = [], base = '', heard = '';
   // The company's short name for the agent's first reply ("the way Rax writes them").
   let company = null;
@@ -98,7 +113,8 @@ export function rfqKit({ win, ta, feed, scroll, threadId, setBusy }) {
     try { id = (await startProposal({ file: rfq, extras, text })).id; }
     catch (e) { list.replaceChildren(h('div.error-box', e.message)); setBusy(false); return; }
     setBusy(false);
-    let fails = 0, fsig = '';
+    let fails = 0, fsig = '', named = false;
+    const conv = thread ? await thread.ensure(fileTitle(rfq.name)).catch(() => null) : null;
     const live = liveSteps();
     const poll = async () => {
       let p;
@@ -110,6 +126,9 @@ export function rfqKit({ win, ta, feed, scroll, threadId, setBusy }) {
       const ps = p, st = ps.steps || [];
       // Rows update in place, so each finished step ticks visibly instead of the list re-rendering.
       if (st.length) { live.update(st); if (!live.el.isConnected) { list.replaceChildren(live.el); scroll(); } }
+      // Name a conversation this run started once the RFQ says who is buying what.
+      const rfqRead = ps.partial?.rfq || (ps.client ? { client: ps.client, title: ps.title, rfq_ref: ps.rfq_ref } : null);
+      if (conv?.fresh && !named && rfqRead?.client?.name) { named = true; thread.rename(conv.id, rfqTitle(rfqRead, rfq.name)).catch(() => {}); }
       const elig = ps.partial?.eligibility;
       if (elig && flagsSig(elig) !== fsig) { fsig = flagsSig(elig); flags.replaceChildren(eligibilityFlags(elig) || ''); scroll(); }
       if (ps.orchestrator) orch.textContent = `· orchestrated by ${ps.orchestrator}`;

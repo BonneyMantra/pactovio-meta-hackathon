@@ -263,3 +263,19 @@ describe('enrichment', () => {
     expect(msg!.content).toMatch(/needs your approval: /);
   });
 });
+
+describe('conversation list', () => {
+  it('lists a titled thread at once, hides an untitled empty one, and renames only what the session can see', async () => {
+    const h = harness(async () => ({ text: 'Hello.' }));
+    h.store.ensureInbox();
+    const empty = h.store.createThread('ses_list', 'New chat');
+    const rfq = h.store.createThread('ses_list', 'RFP KCBL ESURV 047');
+    let ids = h.store.listThreads('ses_list').map((t) => t.id);
+    expect(ids).toContain(rfq.id); expect(ids).not.toContain(empty.id); expect(ids[0]).toBe(INBOX_THREAD);
+    await runTurn(h.deps, { sessionId: 'ses_list', threadId: empty.id, content: 'What is our win rate?' });
+    ids = h.store.listThreads('ses_list').map((t) => t.id);
+    expect(ids).toContain(empty.id);
+    expect(h.store.renameThread(rfq.id, 'Kurinji Commercial Bank · e-surveillance RFP')!.title).toBe('Kurinji Commercial Bank · e-surveillance RFP');
+    expect(h.store.canSee(rfq.id, 'ses_other')).toBe(false);
+  });
+});

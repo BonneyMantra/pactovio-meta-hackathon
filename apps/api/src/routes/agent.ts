@@ -7,7 +7,8 @@ import { mountActionLinks, mountDevEmit } from './agent-links';
 
 export const register: Register = (r) => {
   r.on(endpoints.listAgentThreads, ({ env, auth }) => hubJson<{ items: AgentThread[] }>(env, auth, '/threads'));
-  r.on(endpoints.createAgentThread, ({ env, auth }) => hubJson<AgentThread>(env, auth, '/threads', { method: 'POST', body: {} }));
+  r.on(endpoints.createAgentThread, ({ env, auth, body }) => hubJson<AgentThread>(env, auth, '/threads', { method: 'POST', body: body?.title ? { title: body.title } : {} }));
+  r.on(endpoints.renameAgentThread, ({ env, auth, params, body }) => hubJson<AgentThread>(env, auth, `/threads/${encodeURIComponent(params.id)}`, { method: 'PATCH', body: { title: body.title } }));
   r.on(endpoints.listAgentMessages, ({ env, auth, params }) => hubJson<{ items: AgentMessage[] }>(env, auth, `/threads/${encodeURIComponent(params.id)}/messages`));
   r.on(endpoints.sendAgentMessage, async ({ env, auth, params, body }) => {
     await reserveAgentTurn(env, auth.sessionId ?? null);

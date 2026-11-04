@@ -34,7 +34,7 @@ export async function render(root, _p, ctx) {
       feed,
       composerWrap));
   root.append(win);
-  const kit = rfqKit({ win, ta, feed, scroll: () => { feed.scrollTop = feed.scrollHeight; }, threadId: () => state.current, setBusy: (b) => setBusy(b) });
+  const kit = rfqKit({ win, ta, feed, scroll: () => { feed.scrollTop = feed.scrollHeight; }, threadId: () => state.current, setBusy: (b) => setBusy(b), thread: { ensure: ensureThread, rename: renameThread } });
   composer.prepend(kit.attach);
   composer.insertBefore(kit.mic, sendBtn);
   composerWrap.insertBefore(kit.tray, composer);
@@ -111,10 +111,10 @@ export async function render(root, _p, ctx) {
 
   async function send(content) {
     content = String(content || '').trim();
-    if (kit.hasFiles() && !state.busy) { ta.value = ''; ta.style.height = 'auto'; kit.run(content); return; }
+    if (kit.hasFiles() && !state.busy) { ta.value = ''; ta.style.height = 'auto'; if (state.current === 'thr_inbox') blank(false); kit.run(content); return; }
     if (!content || state.busy) return;
     ta.value = ''; ta.style.height = 'auto';
-    if (state.current === 'thr_inbox') { state.current = null; feed.replaceChildren(); title.textContent = 'New conversation'; sub.textContent = 'Private to this session'; headRight.replaceChildren(); chips.style.display = ''; }
+    if (state.current === 'thr_inbox') blank(false);
     append({ role: 'user', content, at: new Date().toISOString() });
     scroll(); setBusy(true);
     if (state.wsOpen) {
@@ -130,8 +130,29 @@ export async function render(root, _p, ctx) {
     setBusy(false); scroll();
   }
 
-  async function newThread() {
-    try { const t = await api('/agent/threads', { method: 'POST', body: {} }); state.threads.push(t); open(t.id); } catch (e) { toast(e.message); }
+  /** A new conversation lives only on screen until its first message: no empty rows in the list. */
+  function blank(greet = true) {
+    state.current = null; state.live = null;
+    feed.replaceChildren(...(greet ? [welcome()] : []));
+    title.textContent = 'New conversation'; sub.textContent = 'Private to this session'; headRight.replaceChildren(); chips.style.display = '';
+    renderList();
+    if (greet) ta.focus();
+  }
+  function newThread() { blank(); }
+
+  /** An RFQ dropped into a new conversation creates it, titled after the file until the RFQ has been read. */
+  async function ensureThread(initial) {
+    if (state.current && state.current !== 'thr_inbox') return { id: state.current, fresh: false };
+    const t = await api('/agent/threads', { method: 'POST', body: { title: initial } });
+    state.threads.splice(1, 0, t); state.current = t.id; title.textContent = t.title; renderList();
+    return { id: t.id, fresh: true };
+  }
+  async function renameThread(id, name) {
+    const t = await api(`/agent/threads/${encodeURIComponent(id)}`, { method: 'PATCH', body: { title: name } });
+    const row = state.threads.find((x) => x.id === id);
+    if (row) row.title = t.title;
+    if (state.current === id) title.textContent = t.title;
+    renderList();
   }
 
   async function runDigest() {

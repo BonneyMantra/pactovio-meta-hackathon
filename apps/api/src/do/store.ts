@@ -68,9 +68,13 @@ export class HubStore {
     const r = this.q('SELECT * FROM threads WHERE id = ?', id)[0];
     return r ? { id: r.id as string, title: r.title as string, created_at: r.created_at as string, updated_at: r.updated_at as string, session_id: r.session_id as string | null, kind: r.kind as string } : undefined;
   }
-  /** The workspace inbox first, then this session's chats, newest first. */
+  renameThread(id: string, title: string): ThreadRow | undefined {
+    this.run('UPDATE threads SET title = ?, updated_at = ? WHERE id = ?', title.slice(0, 80), this.iso(), id);
+    return this.getThread(id);
+  }
+  /** The workspace inbox first, then this session's chats, newest first. An untitled chat with no messages is not listed. */
   listThreads(sessionKey: string): AgentThread[] {
-    return this.q("SELECT * FROM threads WHERE kind = 'inbox' OR session_id = ? ORDER BY (kind = 'inbox') DESC, updated_at DESC LIMIT 50", sessionKey)
+    return this.q("SELECT * FROM threads WHERE kind = 'inbox' OR (session_id = ? AND (title != 'New chat' OR EXISTS (SELECT 1 FROM messages m WHERE m.thread_id = threads.id))) ORDER BY (kind = 'inbox') DESC, updated_at DESC LIMIT 50", sessionKey)
       .map((r) => ({ id: r.id as string, title: r.title as string, created_at: r.created_at as string, updated_at: r.updated_at as string }));
   }
   canSee(threadId: string, sessionKey: string): boolean {

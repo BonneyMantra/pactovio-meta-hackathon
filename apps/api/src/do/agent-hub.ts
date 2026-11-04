@@ -76,7 +76,16 @@ export class AgentHub extends DurableObject<Env> {
       }
       if (path === '/ensure') return json({ ok: true, alarm: await this.ctx.storage.getAlarm() });
       if (path === '/threads' && request.method === 'GET') return json({ items: this.store.listThreads(key) });
-      if (path === '/threads' && request.method === 'POST') return json(this.store.createThread(key, 'New chat'));
+      if (path === '/threads' && request.method === 'POST') {
+        const b = (await request.json().catch(() => ({}))) as { title?: unknown };
+        return json(this.store.createThread(key, typeof b.title === 'string' && b.title.trim() ? b.title.trim() : 'New chat'));
+      }
+      const rename = /^\/threads\/([^/]+)$/.exec(path);
+      if (rename && request.method === 'PATCH') {
+        const b = (await request.json()) as { title: string };
+        if (rename[1] === INBOX_THREAD || !this.store.canSee(rename[1]!, key)) throw new HttpError(404, 'Thread not found', 'not_found');
+        return json(this.store.renameThread(rename[1]!, b.title));
+      }
       const msgs = /^\/threads\/([^/]+)\/messages$/.exec(path);
       if (msgs && request.method === 'GET') {
         if (!this.store.canSee(msgs[1]!, key)) throw new HttpError(404, 'Thread not found', 'not_found');
