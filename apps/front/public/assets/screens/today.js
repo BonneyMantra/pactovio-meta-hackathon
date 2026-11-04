@@ -1,15 +1,58 @@
-// Today: the morning brief. Counts, best tender matches, approvals waiting, newest intakes, recent runs.
+// Home: the company's agent first (what it knows, drop an RFQ), then what it is working on —
+// proposals (GET /api/proposals), the Gmail autopilot (GET /api/autopilot/status), tenders and the inbox (GET /api/today).
 import { api, h, icon, fmt, chip, empty, errorBox, skeleton } from '../ui.js';
+import { listProposals } from '../brain-api.js';
+import { inrShort } from '../doc/kit.js';
 import { dash, doorChip, sourceMark, senderName, fitRing, sectionTitle } from './work-kit.js';
 import { setupPanel } from './setup-results.js';
+import { agentHero } from './today-agent.js';
+import { loadBrain } from '../agent-id.js';
 
-function greeting() {
-  const hr = new Date().getHours();
-  return hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
+const STATUS = { queued: ['queued', 'Queued'], running: ['running', 'Writing…'], completed: ['completed', 'Ready'], ready: ['completed', 'Ready'], failed: ['failed', 'Failed'] };
+const FROM = { gmail: 'from Gmail', email: 'from email', upload: 'from an upload', chat: 'from chat' };
+
+function proposalRow(p) {
+  const [tone, label] = STATUS[p.status] || [p.status, undefined];
+  return h('a.hm-prop', { href: `#/proposals/${encodeURIComponent(p.id)}` },
+    h('span.hm-prop-ico', icon('file', 16)),
+    h('div.hm-grow',
+      h('div.hm-t', p.title || p.client || 'New proposal'),
+      h('div.xs.muted.wk-ellipsis', [p.client && p.title ? p.client : null, p.total_inr ? inrShort(p.total_inr) : null, FROM[p.source] || null, fmt.ago(p.created_at)].filter(Boolean).join(' · '))),
+    chip(tone, label));
 }
 
-function stat(label, value, href, hint) {
-  return h('a.card.stat.wk-stat', { href }, h('div.k', label), h('div.v', value == null ? dash : String(value)), hint ? h('div.xs.muted', hint) : null);
+function proposalsCard(items) {
+  const live = items.filter((p) => ['queued', 'running'].includes(p.status));
+  return h('section.card.hm-card',
+    h('div.hm-card-head', h('div', h('div.bs-k', 'Proposals'), h('div.hm-big', live.length ? `${live.length} being written` : items.length ? `${items.length} written` : 'None yet')), h('a.small.muted', { href: '#/proposals' }, 'All', icon('chev', 12))),
+    items.length ? h('div.hm-list', items.slice(0, 4).map(proposalRow))
+      : h('p.small.ink2.hm-pad', 'Drop an RFQ above, or let the Gmail autopilot start one when a request arrives.'));
+}
+
+function autopilotCard(a) {
+  const on = a?.mailbox?.connected;
+  const c = a?.counts || {};
+  return h('section.card.hm-card',
+    h('div.hm-card-head', h('div', h('div.bs-k', 'Gmail autopilot'), h('div.hm-big', !on ? 'Not connected' : a.enabled ? 'Watching your inbox' : 'Paused')),
+      h('span', { class: `hm-pulse${on && a.enabled ? ' on' : ''}`, 'aria-hidden': 'true' })),
+    on ? h('div.hm-nums',
+      h('a', { href: '#/inbox' }, h('b.num', String(c.received ?? 0)), h('span', 'emails read')),
+      h('a', { href: '#/inbox' }, h('b.num', String(c.proposals_started ?? 0)), h('span', 'RFQs → proposals')),
+      h('a', { href: '#/inbox' }, h('b.num', String(c.ignored ?? 0)), h('span', 'ignored as noise')))
+      : h('p.small.ink2.hm-pad', 'Connect Gmail and I’ll read new mail, skip the marketing, and start a proposal the moment an RFQ lands.'),
+    h('div.hm-card-foot', on ? h('span.xs.muted', a.last_checked_at ? `Checked ${fmt.ago(a.last_checked_at)}` : 'Waiting for the first check') : null,
+      h('a.btn.btn-secondary.btn-sm', { href: on ? '#/inbox' : '#/connections' }, on ? 'Open inbox' : 'Connect Gmail')));
+}
+
+function reachCard(t, prospects) {
+  const c = t?.counts || {};
+  return h('section.card.hm-card',
+    h('div.hm-card-head', h('div', h('div.bs-k', 'New business'), h('div.hm-big', `${c.new_matches ?? 0} tender matches`)), h('a.small.muted', { href: '#/tenders' }, 'Tenders', icon('chev', 12))),
+    h('div.hm-nums',
+      h('a', { href: '#/tenders' }, h('b.num', String(c.new_matches ?? 0)), h('span', 'new tenders that fit')),
+      h('a', { href: '#/prospects' }, h('b.num', prospects == null ? dash : String(prospects)), h('span', 'buyers with signals')),
+      h('a', { href: '#/tenders' }, h('b.num', String((t?.closing_soon || []).length)), h('span', 'closing soon'))),
+    h('div.hm-card-foot', h('span.xs.muted', 'Ranked against what you sell and win'), h('a.btn.btn-secondary.btn-sm', { href: '#/prospects' }, 'Find buyers')));
 }
 
 function matchRow({ tender, match }) {
@@ -39,44 +82,36 @@ function approvalRow(a) {
     h('span.btn.btn-secondary.btn-xs', 'Review'));
 }
 
-function runRow(r) {
-  const label = { pack_run: 'Pack read', design_match: 'Design match', scan: 'Nightly scan' }[r.kind] || r.kind;
-  return h('tr', h('td', label, r.replay ? h('span.chip.outline', { style: { marginLeft: '6px' } }, 'replay') : null),
-    h('td', chip(r.status)), h('td.r.num', fmt.tokens(r.tokens_in)), h('td.r.num', r.cost_usd != null ? fmt.usd(r.cost_usd) : dash), h('td.r.muted', fmt.ago(r.started_at)));
-}
-
 export async function render(root, _params, ctx) {
-  ctx.setCrumbs('Today');
-  const ws = ctx.session?.workspace?.name;
-  root.append(h('div.page-head', h('div', h('h1.title', greeting()), h('div.sub', ws ? `Here's what changed for ${ws}.` : "Here's what changed today.")),
-    h('a.btn.btn-secondary.btn-sm', { href: '#/inbox/new' }, icon('inbox'), 'New intake')));
-  const body = h('div');
-  // Setup progress/results load from their own APIs, so they stay visible even if the brief fails.
-  const setup = setupPanel(ctx);
-  if (setup) root.append(setup);
-  root.append(body);
-  body.append(skeleton(6));
-  let t;
-  try { t = await api('/today'); } catch (e) { body.replaceChildren(errorBox(e)); return; }
-  const c = t.counts || {};
+  ctx.setCrumbs('Home');
+  root.classList.add('hm-page');
+  const panel = setupPanel(ctx);
+  const setup = panel?.childElementCount ? panel : null;
+  const hero = h('div', h('div.card.ag-hero-skel', skeleton(5)));
+  const work = h('div.grid.hm-work', [0, 1, 2].map(() => h('div.card.hm-card', skeleton(3))));
+  const lists = h('div');
+  root.append(...[setup, hero, sectionTitle('Working for you'), work, lists].filter(Boolean));
+
+  const [, t, props, auto, pros] = await Promise.all([
+    loadBrain(ctx, { fresh: true }),
+    api('/today').catch((e) => ({ error: e })),
+    listProposals().catch(() => []),
+    api('/autopilot/status').catch(() => null),
+    api('/prospects').then((r) => (Array.isArray(r.items) ? r.items.length : null)).catch(() => null),
+  ]);
+  hero.replaceChildren(agentHero(ctx));
+  work.replaceChildren(proposalsCard(props), autopilotCard(auto), reachCard(t.error ? null : t, pros));
+  if (t.error) { lists.replaceChildren(errorBox(t.error)); return; }
+
   const matches = (t.top_matches || []).filter((m) => m && m.tender);
   const intakes = t.intakes || [];
   const approvals = t.approvals || [];
-  const runs = t.recent_runs || [];
-  body.replaceChildren(
-    !intakes.length && !runs.length && !matches.length ? h('section.card.workspace-start', h('span.access-step', 'YOUR WORKSPACE IS READY'), h('h2.h3', 'Start with what you know'), h('p.small.ink2', 'Add your company evidence, then bring in a tender or request. Pactovio uses the information you provide; your new workspace starts without sample documents or invented claims.'), h('div.workspace-start-actions', h('a.btn.btn-primary', { href: '#/evidence' }, icon('evidence'), 'Add company evidence'), h('a.btn.btn-secondary', { href: '#/inbox/new' }, icon('inbox'), 'Add a request'), h('a.btn.btn-ghost', { href: '#/connections' }, icon('plug'), 'Connect a mailbox'))) : '',
-    h('div.grid.g4.wk-stats', stat('New matches', c.new_matches, '#/tenders'), stat('Open intakes', c.open_intakes, '#/inbox'), stat('Approvals waiting', c.approvals_pending, '#/agent', approvals.length ? 'Drafted answers' : null), stat('Runs today', c.runs_today, matches[0] ? `#/tenders/${encodeURIComponent(matches[0].tender.id)}` : '#/tenders')),
-    h('div.wk-two',
-      h('div',
-        sectionTitle('Top matches', h('a.small.muted', { href: '#/tenders' }, 'All tenders')),
-        h('div.card.wk-list', matches.length ? matches.map(matchRow) : empty('No matches yet', 'The nightly scan reads new tenders from TED, eTenders and Find a Tender and scores them against your profile.')),
-        sectionTitle('Latest in the inbox', h('a.small.muted', { href: '#/inbox' }, 'Open inbox')),
-        h('div.card.wk-list', intakes.length ? intakes.slice(0, 6).map(intakeRow) : empty('Inbox is quiet', 'Add a request manually or connect your mailbox to start receiving work.'))),
-      h('div',
-        sectionTitle('Needs your approval', approvals.length ? h('span.chip.warn', String(approvals.length)) : null),
-        h('div.wk-appr-list', approvals.length ? approvals.slice(0, 6).map(approvalRow) : h('div.card', empty('Nothing waiting', 'Drafted answers and agent actions appear here before anything is sent.'))),
-        (t.closing_soon || []).length ? [sectionTitle('Closing soon'), h('div.card.wk-list', t.closing_soon.map((x) => h('a.wk-close', { href: `#/tenders/${encodeURIComponent(x.tender_id)}` }, h('div.wk-ellipsis.small', x.title || dash), h('span.small.num', x.days_left != null ? `${x.days_left}d` : dash))))] : null,
-        sectionTitle('Recent runs'),
-        h('div.card', runs.length ? h('div.wk-scroll', h('table.table', h('thead', h('tr', h('th', 'Run'), h('th', 'Status'), h('th.r', 'Tokens'), h('th.r', 'Cost'), h('th.r', 'When'))), h('tbody', runs.slice(0, 6).map(runRow)))) : empty('No runs yet')))),
-  );
+  lists.replaceChildren(h('div.wk-two',
+    h('div',
+      sectionTitle('Best tender matches', h('a.small.muted', { href: '#/tenders' }, 'All tenders')),
+      h('div.card.wk-list', matches.length ? matches.slice(0, 5).map(matchRow) : empty('No matches yet', 'The nightly scan reads new public tenders worldwide and scores each one against what you sell and win.'))),
+    h('div',
+      approvals.length ? [sectionTitle('Needs your approval', h('span.chip.warn', String(approvals.length))), h('div.wk-appr-list', approvals.slice(0, 4).map(approvalRow))] : null,
+      sectionTitle('Latest in the inbox', h('a.small.muted', { href: '#/inbox' }, 'Open inbox')),
+      h('div.card.wk-list', intakes.length ? intakes.slice(0, 5).map(intakeRow) : empty('Inbox is quiet', 'Requests from your mailbox and uploads land here, sorted into RFQs and noise.')))));
 }

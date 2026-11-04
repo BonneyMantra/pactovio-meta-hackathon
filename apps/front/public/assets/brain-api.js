@@ -38,10 +38,10 @@ export async function ingestState(after = 0) {
 }
 
 /** Proposal runs. `file` is the RFQ; extras (floor plans, drawings) ride along. */
-export async function startProposal({ file, extras = [], text = '', threadId }) {
+export async function startProposal({ file, extras = [], files = [], text = '', threadId }) {
   const form = new FormData();
-  if (file) form.append('file', file, file.name);
-  for (const f of extras) form.append('attachments', f, f.name);
+  // POST /api/proposals reads every upload from the repeated `file` field (RFQ, floor plans, drawings alike).
+  for (const f of [file, ...extras, ...files].filter(Boolean)) form.append('file', f, f.name);
   if (text) form.append('text', text);
   if (threadId) form.append('thread_id', threadId);
   return api('/proposals', { method: 'POST', body: form, signal: AbortSignal.timeout(60000) });

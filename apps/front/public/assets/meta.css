@@ -41,6 +41,12 @@
 .bb-page .page-head .title { max-width: 760px; }
 .bb-top { grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); margin-bottom: 16px; }
 .bb-kpis { align-content: start; }
+.bb-title { display: flex; gap: 16px; align-items: center; min-width: 0; }
+.bb-title .ag-live { box-shadow: 0 0 0 2.5px var(--bg); }
+.bb-right { display: grid; gap: 16px; align-content: start; min-width: 0; }
+.bb-right > .bb-card { margin-bottom: 0; }
+.bb-right .bc-cols { height: 150px; }
+.bb-prods-2 { grid-template-columns: 1fr 1fr; column-gap: 28px; }
 .bb-kpi .v { font-size: 28px; }
 .bb-card { padding: 20px 22px; margin-bottom: 16px; min-width: 0; }
 .grid.g2 > .bb-card { margin-bottom: 0; }
@@ -83,6 +89,7 @@
 .bs-terms > div { display: grid; grid-template-columns: 120px 1fr; gap: 10px; padding: 7px 0; border-bottom: 0.5px solid var(--line-soft); font-size: 13px; }
 .bs-terms dt { color: var(--ink-3); } .bs-terms dd { margin: 0; }
 @media (max-width: 1100px) { .bb-top, .bb-mix, .bs-cols { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .bb-prods-2 { grid-template-columns: 1fr; } .bb-title > .ag-av { display: none; } }
 @media (max-width: 600px) { .bb-kpis { grid-template-columns: 1fr 1fr !important; } .bb-card { padding: 16px; } .bc-cols { gap: 4px; } .bp-thumbs { display: none; } }
 
 /* Learning: the agent reading past proposals */
@@ -254,3 +261,4 @@
 .ps-draft-foot { display: flex; justify-content: flex-end; }
 .ps-body { max-width: 680px; }
 @media (max-width: 760px) { .agent-win { grid-template-columns: minmax(0, 1fr); } .welcome { padding: 32px 4px; text-align: center; } .welcome .h3 { font-size: 21px; } }
+@media (max-width: 600px) { .bb-learned th:nth-child(3), .bb-learned td:nth-child(3) { display: none; } .bb-learned td:first-child { white-space: nowrap; } }

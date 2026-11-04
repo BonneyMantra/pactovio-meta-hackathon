@@ -27,12 +27,17 @@ export function profileCard(profile, catalogueCount, products) {
   const p = profile || {};
   const name = p.name || p.legal_name || 'Your company';
   const domains = arr(p.domains || p.capabilities || p.offerings).slice(0, 8);
-  const certs = arr(p.certifications);
+  const certs = arr(p.certifications).map((c) => (typeof c === 'string' ? c : c?.name || c?.title)).filter(Boolean);
+  const country = (c) => ({ IN: 'India', OM: 'Oman', AE: 'UAE', SA: 'Saudi Arabia', QA: 'Qatar' }[c] || c);
+  const city = p.city || p.hq?.city, ctry = p.country || p.hq?.country;
+  const people = p.employees || p.staff?.total;
+  const offices = arr(p.sites).map((x) => x?.city).filter((c) => c && c !== city);
   const thumbs = [...(products?.values?.() || [])].filter((x) => x.thumb).slice(0, 10);
   return h('section.card.bp',
     h('div.bp-head', h('span.avatar.bp-av', name.split(/\s+/).slice(0, 2).map((w) => w[0]).join('')),
-      h('div', h('div.h4', name), h('div.small.ink2', [p.city, p.country === 'IN' ? 'India' : p.country, p.founded ? `since ${p.founded}` : null, p.employees ? `${p.employees} people` : null].filter(Boolean).join(' · ')))),
+      h('div', h('div.h4', name), h('div.small.ink2', [city ? `${city}, ${country(ctry)}` : country(ctry), p.founded ? `since ${p.founded}` : null, people ? `${people} people` : null].filter(Boolean).join(' · ')))),
     p.tagline || p.description ? h('p.small.ink2.bp-tag', p.tagline || p.description) : null,
+    offices.length ? h('div.xs.muted', `Also in ${offices.join(', ')}`) : null,
     domains.length ? h('div.bp-chips', domains.map((d) => h('span.chip.outline', d))) : null,
     certs.length ? h('div.bp-certs', certs.map((c) => h('span', icon('shield', 13), c))) : null,
     h('a.bp-cat', { href: '#/catalogue' },

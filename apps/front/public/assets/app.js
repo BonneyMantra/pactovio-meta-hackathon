@@ -7,26 +7,31 @@ import { renderOnboarding } from './onboarding.js';
 import { clearCompanyDraft } from './company-form.js';
 import { rememberSetupReturn, restoreSetupReturn, clearSetupReturn } from './onboarding-return.js';
 import { setupPending } from './screens/setup-results.js';
+import { agentAvatar, initials, loadBrain, sideAgentCard } from './agent-id.js';
 
+// The sidebar follows the story: the agent and its work first, then what it knows about the company.
+// Screens without a sidebar entry (quotes, evidence, settings, help…) stay routable from menus and links.
 const NAV = [
-  { id: 'today', label: 'Today', icon: 'home', mod: 'today' },
-  { id: 'inbox', label: 'Inbox', icon: 'inbox', mod: 'inbox' },
-  { id: 'agent', label: 'Agent', icon: 'agent', mod: 'agent' },
+  { id: 'today', label: 'Home', icon: 'home', mod: 'today' },
+  { id: 'agent', label: 'Chat', icon: 'agent', mod: 'agent' },
   { id: 'proposals', label: 'Proposals', icon: 'file', mod: 'proposals' },
+  { id: 'inbox', label: 'Inbox', icon: 'inbox', mod: 'inbox' },
+  { group: 'New business' },
   { id: 'tenders', label: 'Tenders', icon: 'tender', mod: 'tenders' },
   { id: 'prospects', label: 'Prospects', icon: 'globe', mod: 'prospects' },
-  { id: 'quotes', label: 'Quotes', icon: 'quote', mod: 'quotes' },
-  { group: 'Workspace' },
+  { group: 'What it knows' },
   { id: 'brain', label: 'Company Brain', icon: 'brain', mod: 'brain' },
+  { id: 'catalogue', label: 'Catalogue', icon: 'box', mod: 'catalogue' },
   { id: 'connections', label: 'Connections', icon: 'plug', mod: 'connections' },
-  { id: 'evidence', label: 'Evidence', icon: 'evidence', mod: 'evidence' },
-  { id: 'catalogue', label: 'Catalogue', icon: 'quote', mod: 'catalogue' },
-  { id: 'company', label: 'Company settings', icon: 'settings', mod: 'company' },
-  { id: 'settings', label: 'Billing & usage', icon: 'card', mod: 'settings' },
-  { group: 'Help' },
-  { id: 'how', label: 'How it works', icon: 'spark', mod: 'how' },
-  { id: 'pricing', label: 'Pricing', icon: 'quote', mod: 'pricing' },
-  { id: 'help', label: 'Help', icon: 'search', mod: 'help' },
+];
+const HIDDEN = [
+  { id: 'quotes', label: 'Quotes', mod: 'quotes' },
+  { id: 'evidence', label: 'Evidence', mod: 'evidence' },
+  { id: 'company', label: 'Company settings', mod: 'company' },
+  { id: 'settings', label: 'Billing & usage', mod: 'settings' },
+  { id: 'how', label: 'How it works', mod: 'how' },
+  { id: 'pricing', label: 'Pricing', mod: 'pricing' },
+  { id: 'help', label: 'Help', mod: 'help' },
 ];
 
 // #/tenders/tnd_1 -> { section: 'tenders', id: 'tnd_1' }; detail modules are `<section>-detail`.
@@ -35,11 +40,10 @@ function parse() {
   return { section: parts[0] || 'today', id: parts[1] ? decodeURIComponent(parts[1]) : null, rest: parts.slice(2) };
 }
 
-const ctx = { session: null, billing: null, setup: null, counts: {}, setCrumbs, refreshCounts, refreshSetup };
+const ctx = { session: null, billing: null, setup: null, brain: null, counts: {}, setCrumbs, refreshCounts, refreshSetup };
 const SETUP_ROUTE = { id: 'setup', label: 'Setup', mod: 'setup' };
 let cleanup = null, gateCleanup = null, generation = 0, ready = false;
 
-function initials(name = '') { return name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || 'P'; }
 
 function planName() {
   const b = ctx.billing;
@@ -57,6 +61,8 @@ async function openIdentityMenu(anchor) {
     setupPending(ctx.setup) ? h('a.pv-menu-item', { href: '#/setup', role: 'menuitem' }, icon('spark'), 'Continue setup') : null,
     h('a.pv-menu-item', { href: '#/settings', role: 'menuitem' }, icon('card'), 'Billing & usage'),
     h('a.pv-menu-item', { href: '#/company', role: 'menuitem' }, icon('settings'), 'Company settings'),
+    h('a.pv-menu-item', { href: '#/evidence', role: 'menuitem' }, icon('evidence'), 'Evidence library'),
+    h('a.pv-menu-item', { href: '#/how', role: 'menuitem' }, icon('spark'), 'How it works'),
     h('a.pv-menu-item', { href: '#/help', role: 'menuitem' }, icon('search'), 'Help'),
     h('div.pv-menu-sep'), h('div.xs.ink2', { style: { padding: '8px 10px', overflowWrap: 'anywhere' } }, ctx.session?.user?.email || ''),
     h('button.pv-menu-item', { type: 'button', role: 'menuitem', onclick: signOut }, icon('out'), 'Sign out'));
@@ -88,7 +94,8 @@ function renderSide(active) {
       h('div.xs.muted', { style: { display: 'flex', gap: '6px', alignItems: 'center' } }, plan ? h('span.chip.outline.pv-plan', plan) : null, ws?.segment ? (ws.segment === 'it' ? 'IT' : `${ws.segment[0].toUpperCase()}${ws.segment.slice(1)}`) : '')),
     icon('down', 14));
   side.replaceChildren(
-    h('a.brand', { href: '/' }, h('img', { src: '/assets/brand/lockup.svg', alt: 'Pactovio', width: 134, height: 32 })),
+    h('a.brand', { href: '#/today' }, h('img', { src: '/assets/brand/lockup.svg', alt: 'Pactovio', width: 134, height: 32 })),
+    sideAgentCard(ctx, active === 'brain'),
     h('nav.pv-nav', ...NAV.map((n) => n.group
       ? h('div.group', n.group)
       : h(`a.nav-item${active === n.id ? '.on' : ''}`, { href: `#/${n.id}` }, icon(n.icon), n.label, ctx.counts[n.id] ? h('span.count', String(ctx.counts[n.id])) : null))),
@@ -107,10 +114,10 @@ function setCrumbs(...items) {
   const bar = document.getElementById('topbar');
   const ws = ctx.session?.workspace?.name;
   bar.replaceChildren(
-    h('button.btn.btn-ghost.btn-sm.pv-menu-btn', { type: 'button', 'aria-label': 'Open navigation', onclick: () => setDrawer(true) }, icon('quote')),
-    h('div.crumbs', ws ? h('span.pv-crumb-ws', ws) : null, ...items.flatMap((it, i) => [h(`span${i === 0 && !ws ? '' : ''}`, '/'), typeof it === 'string' ? h('b', it) : it])),
+    h('button.btn.btn-ghost.btn-sm.pv-menu-btn', { type: 'button', 'aria-label': 'Open navigation', onclick: () => setDrawer(true) }, icon('menu')),
+    h('div.crumbs', ws ? h('span.pv-crumb-ws', ws) : null, ...items.flatMap((it, i) => [i === 0 && !ws ? null : h(`span${i === 0 ? '.pv-crumb-ws' : ''}`, '/'), typeof it === 'string' ? h('b', it) : it])),
     h('div.spacer'),
-    h('a.btn.btn-ghost.btn-sm', { href: '#/agent', title: 'Ask the agent' }, icon('spark'), h('span.pv-hide-sm', 'Ask Pactovio')),
+    location.hash.startsWith('#/agent') ? null : h('a.btn.btn-secondary.btn-sm.ag-ask', { href: '#/agent', title: 'Chat with your agent' }, agentAvatar(ctx.session?.workspace?.name, 20), h('span.pv-hide-sm', 'Ask your agent')),
   );
 }
 
@@ -129,7 +136,7 @@ async function route() {
   if (!ready || !ctx.session) return;
   const current = ++generation;
   const { section, id, rest } = parse();
-  const nav = section === 'setup' ? SETUP_ROUTE : NAV.find((n) => n.id === section) || NAV[0];
+  const nav = section === 'setup' ? SETUP_ROUTE : [...NAV, ...HIDDEN].find((n) => n.id === section) || NAV[0];
   setDrawer(false);
   closeMenus();
   renderSide(nav.id);
@@ -187,7 +194,7 @@ async function boot() {
     }
     ctx.billing = await api('/billing').catch(() => null);
     if (current !== generation) return;
-    await Promise.all([refreshCounts(), refreshSetup()]);
+    await Promise.all([refreshCounts(), refreshSetup(), loadBrain(ctx)]);
     if (current !== generation) return;
     // Provider sign-ins return to #/onboarding; a returning customer still finishing v2 setup goes back to #/setup.
     if (setupPending(ctx.setup) && /^#\/onboarding(\?|$)/.test(location.hash)) history.replaceState(null, '', `/app#/setup${location.hash.slice(12)}`);
