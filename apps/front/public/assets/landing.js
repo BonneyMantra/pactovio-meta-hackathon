@@ -69,7 +69,10 @@ function caps() {
         <div class="txt">${cites(c.a)}</div>
         <div class="srcs">${c.src.length} source${c.src.length > 1 ? 's' : ''} used ${c.src.map(mark).join('')}</div>
         <div class="action-req"><span class="label">${icon('paper', 15).outerHTML}${esc(c.act)}</span><span class="small ink2" style="margin-right:6px">See details</span><button class="btn btn-secondary btn-xs" type="button">Reject</button><button class="btn btn-primary btn-xs" type="button">Confirm</button></div>
-      </div></div></div>`;
+      </div></div></div>
+      <div class="ans-foot"><span class="mono">${String(i + 1).padStart(2, '0')} / ${CAPS.length}</span><span class="ans-bar"><i style="width:${((i + 1) / CAPS.length) * 100}%"></i></span>
+        <button class="btn btn-ghost btn-xs" type="button" data-step="-1" aria-label="Previous step"${i === 0 ? ' disabled' : ''}>${icon('chev', 14).outerHTML}</button><button class="btn btn-secondary btn-xs" type="button" data-step="1"${i === CAPS.length - 1 ? ' disabled' : ''}>Next${icon('chev', 14).outerHTML}</button></div>`;
+    panel.querySelectorAll('[data-step]').forEach((b) => b.addEventListener('click', () => show(i + Number(b.dataset.step))));
   };
   list.setAttribute('role', 'tablist');
   list.innerHTML = CAPS.map((c, i) => `<li role="tab" tabindex="0">${esc(c.t)}<span class="mono">${String(i + 1).padStart(2, '0')}</span></li>`).join('');

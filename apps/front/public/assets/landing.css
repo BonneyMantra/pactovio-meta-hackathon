@@ -82,9 +82,16 @@
 .spin { animation: spin 2.4s linear infinite; display: inline-flex; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.reliable { display: grid; grid-template-columns: 370px 1fr; gap: 23px; margin-top: 0; align-items: start; }
+.reliable { display: grid; grid-template-columns: 370px 1fr; gap: 23px; margin-top: 0; align-items: stretch; }
 .reliable .numlist { margin-top: 28px; }
-.ans { min-height: 470px; padding: 28px 32px; }
+.ans { display: flex; flex-direction: column; min-height: 470px; padding: 28px 32px 20px; }
+.ans .body { flex: 1; }
+.ans-foot { display: flex; align-items: center; gap: 10px; margin-top: 24px; padding-top: 16px; border-top: 0.5px solid var(--line-soft); }
+.ans-foot .mono { color: var(--ink-3); }
+.ans-bar { flex: 1; height: 3px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+.ans-bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; transition: width 300ms var(--ease); }
+.ans-foot [data-step="-1"] .ico { transform: rotate(180deg); }
+.ans-foot .btn[disabled] { opacity: 0.35; }
 .ans .q { margin-bottom: 18px; }
 .ans .body { animation: rise 360ms var(--ease) both; }
 .ans .txt { font-size: 16px; line-height: 27px; }
@@ -95,8 +102,11 @@
 .bento .b { background: var(--surface); border-radius: var(--r-card); box-shadow: var(--hair); padding: 22px 22px 22px; display: flex; flex-direction: column; min-height: 300px; overflow: hidden; }
 .bento .b.half { grid-column: span 2; }
 .bento .row2 { display: contents; }
-.bento .b .viz { flex: 1; }
-.bento .b .t { font-size: 14px; font-weight: 510; margin-top: 16px; }
+.bento .b .viz { flex: 1; min-width: 0; }
+.bento .b .viz.mini { flex: 0 1 auto; }
+.mini-row > b { flex: none; }
+.mini-row > .muted:last-child { flex: none; white-space: nowrap; }
+.bento .b .t { font-size: 14px; font-weight: 510; margin-top: auto; padding-top: 16px; }
 .bento .b .d { font-size: 14px; line-height: 20px; color: var(--ink); margin-top: 4px; }
 .mini { background: #fff; border-radius: 10px; box-shadow: 0 0 0 0.5px var(--line); }
 .mini-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; font-size: 13.5px; border-bottom: 0.5px solid var(--line-soft); }
