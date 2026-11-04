@@ -1,5 +1,5 @@
 /* First-run onboarding: website profile, catalogue stream, learning, ready. */
-.ob-steps { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.ob-steps { display: flex; gap: 6px; flex-wrap: nowrap; justify-content: center; }
 .ob-steps span { display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 12px 0 6px; border-radius: 99px; font-size: 13px; color: var(--ink-3); }
 .ob-steps b { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font: 500 10px var(--mono); background: var(--surface-2); color: var(--ink-3); }
 .ob-steps em { font-style: normal; }
@@ -56,6 +56,7 @@
 .ob-go { height: 44px; padding: 0 18px; }
 @media (max-width: 900px) { .ob-steps em { display: none; } .ob-steps span { padding: 0 6px; } .ob-who span { display: none; } }
 @media (max-width: 680px) {
+  .ob-steps { gap: 0; } .ob-steps span { padding: 0 3px; }
   .ob-main { padding: 8px 12px 40px; } .ob-card { padding: 22px 18px; } .ob-h { font-size: 24px; }
   .ob-site { flex-direction: column; } .ob-two, .ob-tiles { grid-template-columns: 1fr 1fr; }
   .ob-connect { grid-template-columns: auto 1fr; } .ob-connect .btn { grid-column: 1 / -1; }

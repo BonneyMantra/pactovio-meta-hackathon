@@ -21,7 +21,7 @@ function gauge(v) {
 
 export function steps(items) {
   return h('div.pd-steps', list(items).map((s) => h('div.pd-step',
-    s.status === 'done' ? icon('check', 14) : s.status === 'failed' ? icon('x', 14) : h('span.pd-spin'),
+    s.status === 'done' ? icon('check', 14) : s.status === 'failed' ? icon('x', 14) : s.status === 'running' ? h('span.pd-spin') : h('span.pd-pend'),
     h('span', s.label || s.key), modelChip(s.model))));
 }
 
