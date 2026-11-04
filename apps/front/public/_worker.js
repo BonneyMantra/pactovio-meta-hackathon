@@ -1,4 +1,4 @@
-// Cloudflare Pages advanced-mode worker for https://pactovio.pages.dev
+// Cloudflare Pages advanced-mode worker for https://pactovio-meta.pages.dev
 // /api/*, /v1/*, /mcp*, /webhooks/*, /ics/*, /dev/* -> service binding API (pactovio-api)
 // everything else -> service binding WEB (pactovio-web, the UI) when bound, otherwise the static
 // placeholder pages in this folder (landing, privacy, terms) via ASSETS, otherwise API.
