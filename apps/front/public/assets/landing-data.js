@@ -1,50 +1,54 @@
-// Static content for the landing page. Live-tested flags come from scripts/connector-e2e.ts on 30 Oct 2026.
+// Static content for the landing page. The worked example is Rax Tech International (Chennai) and the
+// Kurinji Commercial Bank RFP; figures come from its Company Brain and a real proposal run on 4 Nov 2026.
 const SI = (slug) => `https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/${slug}.svg`;
 
+// `core` = the three connections the agent is built around.
 export const CONNECTORS = [
-  { name: 'Gmail', role: 'Email', slug: 'gmail', brand: '#EA4335', live: true },
+  { name: 'HubSpot', role: 'Products, prices and deal outcomes', slug: 'hubspot', brand: '#FF7A59', core: true },
+  { name: 'Google Drive', role: 'Every past proposal', slug: 'googledrive', brand: '#1FA463', core: true },
+  { name: 'Gmail', role: 'RFQs as they arrive', slug: 'gmail', brand: '#EA4335', core: true },
   { name: 'Outlook', role: 'Email', text: 'Outlook', brand: '#0A64AD' },
-  { name: 'Slack', role: 'Chat', slug: 'slack', brand: '#4A154B', live: true },
+  { name: 'Slack', role: 'Chat', slug: 'slack', brand: '#4A154B' },
   { name: 'Microsoft Teams', role: 'Chat', text: 'Teams', brand: '#5059C9' },
-  { name: 'HubSpot', role: 'CRM', slug: 'hubspot', brand: '#FF7A59' },
-  { name: 'Salesforce', role: 'CRM', slug: 'salesforce', brand: '#00A1E0', live: true },
-  { name: 'Google Drive', role: 'Files', slug: 'googledrive', brand: '#1FA463', live: true },
-  { name: 'Dropbox', role: 'Files', slug: 'dropbox', brand: '#0061FF', live: true },
-  { name: 'Google Calendar', role: 'Calendar', slug: 'googlecalendar', brand: '#4285F4', live: true },
+  { name: 'Salesforce', role: 'CRM', slug: 'salesforce', brand: '#00A1E0' },
+  { name: 'Dropbox', role: 'Files', slug: 'dropbox', brand: '#0061FF' },
+  { name: 'Google Calendar', role: 'Calendar', slug: 'googlecalendar', brand: '#4285F4' },
   { name: 'Outlook Calendar', role: 'Calendar', text: 'Outlook', brand: '#0A64AD' },
-  { name: 'Jira', role: 'Projects', slug: 'jira', brand: '#0052CC', live: true },
-  { name: 'Asana', role: 'Projects', slug: 'asana', brand: '#F06A6A', live: true },
+  { name: 'Jira', role: 'Projects', slug: 'jira', brand: '#0052CC' },
+  { name: 'Asana', role: 'Projects', slug: 'asana', brand: '#F06A6A' },
   { name: 'DocuSign', role: 'Signing', text: 'DocuSign', brand: '#4C00FF' },
   { name: 'QuickBooks', role: 'Accounting', slug: 'quickbooks', brand: '#2CA01C' },
   { name: 'Xero', role: 'Accounting', slug: 'xero', brand: '#13B5EA' },
 ].map((c) => ({ ...c, src: c.slug ? SI(c.slug) : null }));
 
 export const MODELS = [
-  { name: 'Muse Spark 1.3', sub: 'Reason', role: 'Reads the whole pack and writes the verdict', text: 'Muse' },
-  { name: 'Muse Spark 1.3', sub: 'Agent', role: 'Drives the agent and reads drawings', text: 'Muse' },
-  { name: 'Muse Spark 1.3', sub: 'Fast', role: 'Classifies email and drafts answers', text: 'Muse' },
-].map((m) => ({ ...m, src: m.slug ? SI(m.slug) : null }));
+  { name: 'Muse Spark 1.3', role: 'Reads every PDF and RFQ, learns the house style, writes the proposal', text: 'Spark' },
+  { name: 'Muse Wonder 1.0', role: 'Orchestrates the bid from RFQ to finished document', text: 'Wonder' },
+  { name: 'SAM 3.1', role: 'Segments the branch floor plan so every device lands in the right room', text: 'SAM' },
+  { name: 'Muse Image 1.0', role: 'Draws the concept visual, always labelled as generated', text: 'Image' },
+  { name: 'Muse Voice Transcribe', role: 'Takes an RFQ by voice in the chat', text: 'Voice' },
+].map((m) => ({ ...m, src: null }));
 
 export const AGENTS = [
-  { name: 'Claude', role: 'Desktop and Code', slug: 'claude', brand: '#D97757' },
-  { name: 'Cursor', role: 'Editor agents', text: 'Cursor' },
-  { name: 'OpenAI', role: 'Agents SDK', slug: 'openai', brand: '#000000' },
-  { name: 'Any MCP client', role: 'POST /mcp', text: 'MCP' },
-].map((a) => ({ ...a, src: a.slug ? SI(a.slug) : null }));
+  { name: 'MCP server', role: 'POST /mcp · tenders, verdicts, quotes as tools', text: 'MCP' },
+  { name: 'REST API', role: '/v1 with workspace API keys', text: 'API' },
+  { name: 'Webhooks', role: 'Signed events when a proposal is ready', text: 'Hooks' },
+  { name: 'Calendar feed', role: 'Bid deadlines as an ICS feed', text: 'ICS' },
+].map((a) => ({ ...a, src: null }));
 
-// "Reliable verdicts" list: each item swaps the answer panel. [n] marks become citation chips.
+// The story, one step per item: each swaps the answer panel. [n] marks become citation chips.
 export const CAPS = [
-  { t: 'Read the whole pack', q: 'What does the Teagasc pack actually ask for?', a: 'Three lots of web application support across <b>7 documents</b>: the request for tenders, a requirements PDF with an architecture diagram, clarifications and three response forms [1]. Clarifications override the original text where they conflict [2].', src: ['P', 'D'], act: 'Open the requirements matrix' },
-  { t: 'Check every mandatory gate', q: 'Do we pass the mandatory gates?', a: 'All but one. Certifications and declarations are met [1]. Public liability must be <b>€6.5M</b> and the profile holds <b>€6.0M</b>, but the pack allows cover to be arranged after award, so it is a condition, not a veto [2].', src: ['P', 'E'], act: 'Ask the broker for a €6.5M cover quote' },
-  { t: 'Score fit 0–100', q: 'Should we bid?', a: 'Bid with conditions on all three lots. The score is held back by the insurance condition [1] and a <b>20 working-day</b> take-on against a six-week precedent on Lots 2 and 3 [2].', src: ['P'], act: 'Approve the bid decision' },
-  { t: 'Map requirements to evidence', q: 'Where is our evidence for the SLA requirement?', a: 'Matched to the managed-service case study and the current support contract [1][2]. Each requirement row links to the exact page of the evidence it used.', src: ['D', 'E'], act: 'Review the matrix' },
-  { t: 'Strike unsupported claims', q: 'Is the drafted answer safe to send?', a: 'One sentence claimed a headcount that is not in your evidence, so it was struck and flagged <b>needs evidence</b> [1]. Every remaining sentence traces to a document [2].', src: ['E'], act: 'Attach the missing evidence' },
-  { t: "Fill the buyer's own form", q: 'Can you fill the Lot 1 response form?', a: 'Done. Rows are matched by reference number and Yes / No / Partial is set from the matrix; every other part of the buyer\'s file is left untouched [1].', src: ['P'], act: 'Download the filled form' },
-  { t: 'Classify every inbound email', q: 'What came in overnight?', a: 'One design request from a port authority, one RFQ for spares, and two vendor newsletters marked <b>ignored</b> [1]. The design request is already matched to your catalogue [2].', src: ['G'], act: 'Open the design request' },
-  { t: 'Match design requests to your catalogue', q: 'Can we meet the berth monitoring spec?', a: 'Four of five needs are covered by catalogue products with datasheet citations [1][2]. Modbus RTU on the gateway is a gap, so it is flagged rather than promised [3].', src: ['D', 'P'], act: 'Draft the quote' },
-  { t: 'Draft the quote', q: 'Draft a quote for the port authority.', a: 'Drafted: six lines with tax handled for the buyer\'s country [1]. Prices come from your catalogue and are marked where they are indicative [2].', src: ['D'], act: 'Post the quote for approval in #sales' },
-  { t: 'Ask before acting', q: 'Send the quote to the buyer.', a: 'I never send on my own. Here is the draft reply in Gmail with the quote attached, waiting for your confirm [1].', src: ['G', 'S'], act: 'Save the reply as a Gmail draft' },
-  { t: 'Find new tenders nightly', q: 'Anything new that fits us?', a: 'The nightly scan read the European and UK feeds and found one notice above your fit threshold [1]. Its pack is downloaded and queued for a read [2].', src: ['P'], act: 'Read the pack now' },
+  { t: 'Build the company profile', q: 'Who are we, as a bidder?', a: 'Rax Tech International, Chennai, since 2000: electronic security and e-surveillance systems for banks and ATM networks, designed and built in-house. I read <b>rax-tech.com</b> [1] and you confirmed the profile.', src: ['W'], act: 'Confirm the company profile' },
+  { t: 'Import the catalogue from HubSpot', q: 'What do we sell, and at what price?', a: '<b>67 products</b> with SKUs, INR prices and images, imported from HubSpot [1]. 49 are made by Rax; the rest are bought-out items and services.', src: ['H'], act: 'Open the catalogue' },
+  { t: 'Learn from every past proposal', q: 'How often do we win?', a: 'I read all <b>45 proposals</b> in the Drive folder “Rax Proposals” [1] and matched each one to its HubSpot deal [2]: 20 won, 16 lost, 9 open, a <b>56%</b> win rate. Median deal ₹32.7 lakh.', src: ['D', 'H'], act: 'Open the Company Brain' },
+  { t: 'Learn the house style', q: 'How do we write a proposal?', a: 'Nine sections, always in the same order, opening with a thank-you for the RFQ [1]. Payment 40% advance, 50% on delivery, 10% on commissioning; validity 60 days; AMC 10% of hardware a year [2]. Every rule cites at least two proposals.', src: ['D'], act: 'Review the house style' },
+  { t: 'Read the RFQ with page citations', q: 'What does Kurinji Commercial Bank want?', a: 'E-surveillance, intrusion alarms and safe-room access for <b>120 ATMs and 18 branches</b> across Tamil Nadu and Karnataka [1]. Bid due 24 Nov, EMD ₹12 lakh [2]. Section 4.3 asks for SecureLink v2, Tamil and Kannada voice prompts and 72-hour battery backup [3].', src: ['G', 'P'], act: 'Open the requirement list' },
+  { t: 'Decide go or no-go', q: 'Should we bid?', a: '<b>Bid, with conditions.</b> The catalogue and one engineering package cover 21 of 25 requirements in full [1]. We won 5 of our 7 closest past bids [2]. Gap: eligibility asks for three bank projects of 50+ sites, and only two clearly qualify [3].', src: ['P', 'D'], act: 'Approve the bid decision' },
+  { t: 'Price it from your catalogue', q: 'What does it cost?', a: '<b>25 bill-of-materials lines</b> priced from your HubSpot catalogue [1], plus a 30 person-day custom-engineering package for the Section 4.3 gaps [2]. Rax’s usual 4% discount and payment terms applied [3]: <b>₹2.47 crore</b> with GST.', src: ['H', 'D'], act: 'Review the bill of materials' },
+  { t: 'Place devices on the floor plan', q: 'Where does each device go in a branch?', a: 'SAM 3.1 segmented the bank’s branch drawing and I placed <b>15 devices</b> on it [1]: alarm panels, PIRs, the strong-room OTP keypad, ATM vibration sensor, cameras, edge analytics and 2-way audio.', src: ['P'], act: 'Open the floor plan' },
+  { t: 'Write it in your voice', q: 'Is the proposal ready?', a: 'Ready in <b>7.7 minutes</b>: architecture, zone wiring, Gantt, a 40-row compliance matrix and a labelled concept visual [1]. <b>82 claims</b> link to the RFP page, catalogue SKU or past proposal they came from [2]. Model cost $0.41.', src: ['P', 'D'], act: 'Download the PDF' },
+  { t: 'Watch the inbox', q: 'What came in overnight?', a: 'The Kurinji Bank invitation to bid, classified <b>RFQ</b>; I started the proposal automatically [1]. A CCTV discount mailer and an internal lunch email were marked <b>ignored</b> [2].', src: ['G'], act: 'Open the proposal' },
+  { t: 'Find tenders and buyers', q: 'Who else should we be bidding for?', a: 'Public tenders worldwide ranked against what Rax sells and wins [1], and banks with public buying signals found by web search, each with its source link and a drafted outreach email [2]. Nothing is sent without you.', src: ['T', 'W'], act: 'Review the drafted outreach' },
 ];
 
-export const MARKS = { G: ['#EA4335', 'G'], D: ['#1FA463', 'D'], P: ['#21201c', 'P'], S: ['#4A154B', 'S'], E: ['#00759b', 'E'] };
+export const MARKS = { G: ['#EA4335', 'G'], D: ['#1FA463', 'D'], P: ['#21201c', 'P'], H: ['#FF7A59', 'H'], W: ['#00759b', 'W'], T: ['#5f5e59', 'T'] };

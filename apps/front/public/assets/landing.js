@@ -31,7 +31,7 @@ function heroReveal() {
   const step = $('.tw[data-step="1"]');
   if (!step) return;
   setTimeout(() => step.classList.add('on'), reduce ? 0 : 1100);
-  typeLoop($('#hero-ph'), ['Ask about a tender, an RFQ or a quote…', 'Which tenders close this week?', 'Draft a reply to the port authority'], 2600);
+  typeLoop($('#hero-ph'), ['Ask Rax Tech’s agent, or drop an RFQ…', 'What is our win rate on banking bids?', 'Which tenders close this week?'], 2600);
 }
 
 function typeLoop(el, phrases, hold) {
@@ -65,9 +65,9 @@ function caps() {
     const c = CAPS[i];
     list.querySelectorAll('li').forEach((li, j) => { li.classList.toggle('on', j === i); li.setAttribute('aria-selected', String(j === i)); });
     panel.innerHTML = `<div class="body">
-      <div class="q msg"><span class="av you">BM</span><div><div class="name">You</div><div class="txt">${esc(c.q)}</div></div></div>
-      <div class="msg"><span class="av bot">${icon('spark', 13).outerHTML}</span><div>
-        <div class="name">Pactovio</div><div class="done-row">Completed ${c.src.length + 2} actions ${icon('chev', 13).outerHTML}</div>
+      <div class="q msg"><span class="av you">R</span><div><div class="name">Reena</div><div class="txt">${esc(c.q)}</div></div></div>
+      <div class="msg"><span class="av bot ag-bot">RT</span><div>
+        <div class="name">Rax Tech’s agent</div><div class="done-row">Completed ${c.src.length + 2} actions ${icon('chev', 13).outerHTML}</div>
         <div class="txt">${cites(c.a)}</div>
         <div class="srcs">${c.src.length} source${c.src.length > 1 ? 's' : ''} used ${c.src.map(mark).join('')}</div>
         <div class="action-req"><span class="label">${icon('paper', 15).outerHTML}${esc(c.act)}</span><span class="small ink2" style="margin-right:6px">See details</span><button class="btn btn-secondary btn-xs" type="button">Reject</button><button class="btn btn-primary btn-xs" type="button">Confirm</button></div>
@@ -88,7 +88,7 @@ function logoWall() {
   wall.innerHTML = CONNECTORS.map((c) => `<div class="lw">
     ${logo(c)}
     <div><div class="nm">${esc(c.name)}</div><div class="rl">${esc(c.role)}</div></div>
-    ${c.live ? '<span class="chip ok live"><span class="dot"></span>Tested live</span>' : ''}
+    ${c.core ? '<span class="chip ok live"><span class="dot"></span>Powers the agent</span>' : ''}
   </div>`).join('');
 }
 
@@ -113,11 +113,11 @@ function reveal() {
 fillIcons();
 nav();
 heroReveal();
-typeLoop($('#v-type'), ['Do we pass the insurance gate?', 'Draft the Lot 1 answers', 'Who is the buyer and what did they buy before?'], 2200);
+typeLoop($('#v-type'), ['Write the Kurinji Bank proposal', 'Can we meet the 72-hour battery backup?', 'Place the devices on the branch plan'], 2200);
 floatCard();
 caps();
 logoWall();
-tiles('models', MODELS);
+tiles('models-tiles', MODELS);
 tiles('agents', AGENTS);
 fillIcons();
 reveal();
