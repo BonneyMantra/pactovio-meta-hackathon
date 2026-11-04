@@ -35,7 +35,7 @@ export const Proposal = z.object({
     nodes: z.array(z.object({ id: z.string(), label: z.string(), kind: z.enum(['rax_product', 'external', 'custom', 'client_system']) })),
     links: z.array(z.object({ from: z.string(), to: z.string(), label: z.string() })),
   }),
-  scope_of_supply: z.array(z.object({ sku: z.string(), description: z.string(), type: LineType, qty: z.number().positive(), unit: z.string(), unit_price_inr: Inr, amount_inr: Inr })),
+  scope_of_supply: z.array(z.object({ sku: z.string(), description: z.string(), type: LineType, qty: z.number().positive(), unit: z.string(), unit_price_inr: Inr, amount_inr: Inr, budgetary: z.boolean().optional() })),
   custom_engineering: z.array(z.object({ work_package: z.string(), description: z.string(), person_days: z.number().positive(), rate_inr: z.number().int().min(1) })),
   implementation_plan: z.array(z.object({ name: z.string(), start_week: z.number().int().min(1).optional(), weeks: z.number().int().min(1), deliverables: z.string() })),
   commercials: z.object({

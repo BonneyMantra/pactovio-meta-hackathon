@@ -16,6 +16,7 @@
 .pd-mark.est { border-style: dotted; }
 .pd-plan-key { display: flex; flex-wrap: wrap; gap: 2mm 5mm; margin-top: 2mm; font-size: 7.4pt; color: var(--pd-ink2); }
 .pd-plan-key span { display: inline-flex; align-items: center; gap: 1.4mm; }
+.pd-budget { display: inline-block; margin-left: 1.6mm; padding: 0 1.2mm; border: 0.25mm solid var(--pd-warn); border-radius: 0.8mm; color: var(--pd-warn); font-family: var(--sans, inherit); font-size: 6pt; letter-spacing: 0.02em; text-transform: uppercase; vertical-align: 0.2mm; }
 .pd-plan-key i { display: inline-block; width: 3.4mm; height: 2.4mm; border-radius: 1px; }
 .pd-key-obj { border: 1px dashed rgba(11, 95, 120, 0.7); }
 .pd-key-dev { border: 1.4px solid var(--pd-teal); background: rgba(11, 95, 120, 0.1); }

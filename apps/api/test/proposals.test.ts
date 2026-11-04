@@ -64,6 +64,10 @@ describe('full pipeline with scripted models', () => {
     expect(p.scope_of_supply.find((l) => l.sku === 'EXT-PIR-SENS')!.qty).toBe(240);
     expect(p.scope_of_supply.some((l) => l.sku === 'RT-DOES-NOT-EXIST')).toBe(false);
     expect(p.scope_of_supply.find((l) => l.sku === 'EXT-DOORCONTACT')!.type).toBe('external');
+    // Only items outside the price list carry a budgetary price, and the document says so.
+    expect(p.scope_of_supply.find((l) => l.sku === 'EXT-DOORCONTACT')!.budgetary).toBe(true);
+    expect(p.scope_of_supply.filter((l) => cat.has(l.sku)).every((l) => !l.budgetary)).toBe(true);
+    expect(p.assumptions.some((a) => /marked budgetary/.test(a))).toBe(true);
   });
   it('totals re-derive from lines and follow the brain style', () => {
     expect(totalsConsistent(p)).toBe(true);

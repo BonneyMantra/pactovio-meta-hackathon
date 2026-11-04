@@ -17,7 +17,12 @@ export function sectionOrder(titles) {
     const hit = KEYS.find(([k, re]) => re.test(String(t)) && !out.includes(k));
     if (hit) out.push(hit[0]);
   }
-  for (const k of DEFAULT_ORDER) if (!out.includes(k)) out.push(k);
+  // A section the supplier never writes goes right after its nearest default-order predecessor, not at the end.
+  DEFAULT_ORDER.forEach((k, i) => {
+    if (out.includes(k)) return;
+    const prev = DEFAULT_ORDER.slice(0, i).reverse().find((p) => out.includes(p));
+    out.splice(prev ? out.indexOf(prev) + 1 : 0, 0, k);
+  });
   return out;
 }
 

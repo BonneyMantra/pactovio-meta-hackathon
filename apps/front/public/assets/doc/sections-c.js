@@ -24,7 +24,7 @@ export function bom(c, num) {
       n += 1;
       const ev = list(c.p.evidence).find((e) => e.source?.product_sku === l.sku);
       body.push(h('tr', h('td.pd-mono.pd-muted', String(n)), h('td.pd-tcell', thumbCell(c, l)),
-        h('td', h('div.pd-mono.pd-sku', l.sku, ev ? c.nt.sup(ev.source) : null), h('div', l.description)),
+        h('td', h('div.pd-mono.pd-sku', l.sku, ev ? c.nt.sup(ev.source) : null, l.budgetary ? h('span.pd-budget', { title: 'Not in the price list: indicative price, subject to OEM quotation' }, 'budgetary') : null), h('div', l.description)),
         h('td.r.pd-num', qty(l.qty), h('div.pd-muted.pd-xs', l.unit)), h('td.r.pd-num', inr(l.unit_price_inr)), h('td.r.pd-num', inr(l.amount_inr))));
     }
   }

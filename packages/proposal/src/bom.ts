@@ -76,7 +76,7 @@ Past work you may reference by ref only: ${selection.learned_from.join(', ') || 
     const qty = Math.ceil(e.qty) * mults[e.qty_basis];
     // A catalogue sku always takes the catalogue price; only genuinely external items carry a budgetary price.
     const price = cat.get(sku)?.price_inr ?? e.unit_price_inr;
-    supply.push({ sku, description: e.description, type: lineType(sku, cat.has(sku)), qty, unit: e.unit, unit_price_inr: price, amount_inr: lineAmount(qty, price) });
+    supply.push({ sku, description: e.description, type: lineType(sku, cat.has(sku)), qty, unit: e.unit, unit_price_inr: price, amount_inr: lineAmount(qty, price), ...(cat.has(sku) ? {} : { budgetary: true }) });
   }
   const rates = style.engineering_rates_inr ?? {};
   const eng: BomResult['custom_engineering'] = n.work_packages.map((w) => ({ work_package: w.work_package, description: w.description, person_days: w.person_days, rate_inr: (w.kind === 'firmware' ? rates.firmware : w.kind === 'software' ? rates.software : rates.default) ?? 12000 }));
@@ -96,7 +96,7 @@ Past work you may reference by ref only: ${selection.learned_from.join(', ') || 
   const learned = ctx.brain.brain?.style as Record<string, unknown> | undefined;
   const applied = [...['payment_terms', 'warranty_months_commissioning', 'amc_pct', 'validity_days', 'section_order', 'phrases'].map((k) => (learned?.[k] ? `brain:${k}` : `default:${k}`)), ...(style.voice_rule_ids ?? [])];
   const assumptions = [...n.assumptions];
-  if (supply.some((s) => s.type === 'external')) assumptions.push('External items are budgetary and subject to OEM quotation at order.');
+  if (supply.some((s) => s.budgetary)) assumptions.push('Items marked budgetary are outside our price list; their prices are indicative and subject to OEM quotation at order.');
 
   ctx.state.bom = {
     title: cleanTitle(n.title), solution_type, scope_of_supply: supply, custom_engineering: eng, implementation_plan: plan,
