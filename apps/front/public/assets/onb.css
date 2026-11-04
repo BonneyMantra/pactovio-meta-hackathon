@@ -62,3 +62,11 @@
   .ob-connect { grid-template-columns: auto 1fr; } .ob-connect .btn { grid-column: 1 / -1; }
   .ob-products { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* Learning view: live phase line and the learned phrase (the rest of .lr-* lives in meta.css) */
+.lr-phase { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-height: 34px; padding: 7px 14px; border-radius: 10px; background: #eef6f9; color: #00506e; font-size: 13.5px; animation: lr-in 360ms var(--ease) backwards; }
+.lr-phase .pd-spin { width: 14px; height: 14px; }
+.lr-phase .btn { margin-left: auto; }
+.lr-phase-ok { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #006d96; color: #fff; }
+.lr-phrase { margin: 0; padding: 10px 12px; border-left: 2px solid #006d96; background: var(--surface-2); border-radius: 0 8px 8px 0; font-size: 13px; line-height: 1.45; color: var(--ink); animation: lr-in 420ms var(--ease) backwards; }
+.lr-pick .ob-connect { margin: 8px 0 4px; }

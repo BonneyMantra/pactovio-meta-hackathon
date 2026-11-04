@@ -37,11 +37,13 @@ export function corpusGrid(total) {
   const tiles = Array.from({ length: Math.max(1, total) }, () => h('i'));
   const el = h('div.lr-grid', tiles);
   let at = 0;
+  const tile = (ev) => (Number.isFinite(ev.index) ? tiles[ev.index - 1] : tiles[at++]);
   return {
     el,
-    resize(n) { while (tiles.length < n) { const t = h('i'); tiles.push(t); el.append(t); } },
-    reading(i) { tiles.forEach((t) => t.classList.remove('cur')); tiles[i]?.classList.add('cur'); },
-    mark(ev) { const t = tiles[at++]; if (t) { t.classList.remove('cur'); t.className = ev.type === 'file_failed' ? 'fail' : (ev.outcome || 'done'); t.title = [ev.ref, ev.client].filter(Boolean).join(' · '); } },
+    resize(n) { while (tiles.length < n) { const t = h('i'); tiles.push(t); el.append(t); } while (tiles.length > n && tiles.length > 1) tiles.pop().remove(); },
+    // Several documents are read at once: each in-flight tile pulses until its own result lands.
+    reading(i) { tiles[i]?.classList.add('cur'); },
+    mark(ev) { const t = tile(ev); if (t) { t.className = ev.type === 'file_failed' ? 'fail' : (ev.outcome || 'done'); t.title = [ev.ref, ev.client].filter(Boolean).join(' · '); } },
   };
 }
 
@@ -67,5 +69,15 @@ export function livePanel() {
     const top = [...tally.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5), max = top[0]?.[1] || 1;
     sectors.replaceChildren(...top.map(([s, n]) => h('div.lr-sec', h('span', s), h('i', h('b', { style: { width: `${(n / max) * 100}%` } })), h('span.num', String(n)))));
   }
-  return { el, update, style };
+  /** The finished brain: outcomes joined from HubSpot deals, style learned from the corpus. */
+  function final(b) {
+    const st = b?.stats;
+    if (st && st.won + st.lost) countUp(win, (st.won / (st.won + st.lost)) * 100, (v) => `${Math.round(v)}%`, 500);
+    const order = b?.style?.section_order || [], phrase = b?.style?.phrases?.[0]?.text;
+    style.replaceChildren(
+      order.length ? h('div.lr-sub', 'Your section order') : null,
+      order.length ? h('ol.lr-order', order.map((s, i) => h('li', { style: { animationDelay: `${i * 80}ms` } }, s))) : null,
+      phrase ? h('div.lr-sub', 'A phrase you use') : null, phrase ? h('blockquote.lr-phrase', `“${phrase}”`) : null);
+  }
+  return { el, update, style, final };
 }

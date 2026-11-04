@@ -4,7 +4,7 @@ import { api, h, icon } from './ui.js';
 import { getCompany } from './customer-api.js';
 import { gateError } from './access.js';
 import { companyReady } from './company-form.js';
-import { ingestState, catalogueImport } from './brain-api.js';
+import { connectionState, hubspotProducts, learnProgress } from './brain/learn-api.js';
 import { websiteStep } from './onb/website.js';
 import { catalogueStep } from './onb/catalogue.js';
 import { readyStep } from './onb/ready.js';
@@ -39,24 +39,22 @@ export async function renderOnboarding(root, session, onComplete, onLogout) {
     const wait = layout(0);
     wait.append(h('div.lr-wait', h('span.pd-spin'), 'Loading your setup…'));
     try {
-      const [c, conns, ingest, imp] = await Promise.all([getCompany(), api('/connectors').catch(() => ({ items: [] })), ingestState().catch(() => null), catalogueImport().catch(() => null)]);
+      const [c, conns, products, learn] = await Promise.all([getCompany(), connectionState(), hubspotProducts().catch(() => []), learnProgress().catch(() => null)]);
       if (disposed) return;
       const company = c.company || {};
-      const has = (p) => (conns.items || []).some((x) => x.provider === p && x.status === 'connected');
       if (!companyReady(company)) return show(0, (b) => websiteStep(b, { company, workspace: ws, onNext: resolve }));
-      const products = imp ? imp.imported || imp.items.length : 0;
-      if (!skipped(ws, 'crm') && (!has('hubspot') || (imp?.status !== 'done' && products === 0) || imp?.status === 'running')) {
-        return show(1, (b) => catalogueStep(b, { connected: has('hubspot'), onNext: () => { skip(ws, 'crm'); resolve(); }, onSkip: () => { skip(ws, 'crm'); resolve(); } }), has('hubspot'));
+      if (!skipped(ws, 'crm') && (conns.hubspot !== 'connected' || !products.length)) {
+        const next = () => { skip(ws, 'crm'); resolve(); };
+        return show(1, (b) => catalogueStep(b, { connection: conns.hubspot, onNext: next, onSkip: next }), conns.hubspot === 'connected');
       }
-      if (!skipped(ws, 'files') && ingest?.status !== 'done') {
+      if (!skipped(ws, 'files') && learn?.status !== 'done') {
         return show(2, (b) => {
           const wrap = h('div'), foot = h('div.ob-actions.ob-skip', h('button.btn.btn-ghost.btn-sm', { type: 'button', onclick: () => { skip(ws, 'files'); resolve(); } }, 'Skip for now'));
-          b.append(wrap, ingest?.status === 'running' ? null : foot);
-          const stop = learningView(wrap, { returnTo: '/app#/onboarding', onDone: () => { foot.remove(); skip(ws, 'files'); resolve(); } });
-          return stop;
-        }, true);
+          b.append(wrap, learn?.status === 'running' ? null : foot);
+          return learningView(wrap, { returnTo: '/app#/onboarding', onStart: () => foot.remove(), onDone: () => { foot.remove(); skip(ws, 'files'); resolve(); } });
+        }, conns.googledrive === 'connected');
       }
-      show(3, (b) => { let d = null; readyStep(b, { onComplete }).then((x) => { d = x; }); return () => d?.(); });
+      show(3, (b) => { let d = null; readyStep(b, { onComplete, companyName: company.name }).then((x) => { d = x; }); return () => d?.(); });
     } catch (e) { if (!disposed) gateError(root, e, resolve); }
   }
 
