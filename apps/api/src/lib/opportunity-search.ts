@@ -7,6 +7,7 @@ import {
 } from '@pactovio/sources';
 import type { OnboardingState } from './onboarding-state';
 import { withBrain } from './opportunity-brain';
+import { proposalIndex } from './brain-store';
 import { assessNotices, profileHash, readScores } from './opportunity-assess';
 import { countryName, noticeValue, toNotice } from './opportunity-notice';
 import { loadPool, noticeDomains, viewKey, type ViewTender } from './opportunity-pool';
@@ -61,16 +62,27 @@ function counts<K extends string>(rows: Row[], keysOf: (r: Row) => K[]): Map<K, 
   return m;
 }
 
-/** Catalogue SKUs the assessment cites as [SKU], kept only when the workspace really sells them (the model may not invent a match). */
-export async function citedProducts(env: Env, ws: string): Promise<(texts: string[]) => { sku: string; name: string }[]> {
-  const rows = (await env.DB.prepare('SELECT sku, name FROM products WHERE workspace_id = ?').bind(ws).all<{ sku: string; name: string }>()).results;
+type Cited = { matched_products: { sku: string; name: string }[]; matched_proposals: { ref: string; client: string; outcome: string; total_inr: number }[] };
+
+/** Catalogue SKUs and past-proposal refs the assessment cites as [CODE], kept only when they really are this workspace's (the model may
+ * not invent a match): products from the catalogue, proposals from the Company Brain's learned index with their real outcome. */
+export async function citedProducts(env: Env, ws: string): Promise<(texts: string[]) => Cited> {
+  const [rows, index] = await Promise.all([
+    env.DB.prepare('SELECT sku, name FROM products WHERE workspace_id = ?').bind(ws).all<{ sku: string; name: string }>().then((r) => r.results),
+    proposalIndex(env.DB, ws).catch(() => []),
+  ]);
   const bySku = new Map(rows.map((p) => [p.sku.toUpperCase(), p]));
+  const byRef = new Map(index.map((p) => [p.ref.toUpperCase(), p]));
   return (texts) => {
-    const out = new Map<string, { sku: string; name: string }>();
-    for (const t of texts) for (const m of t.matchAll(/\[([^\]]{2,60})\]/g)) {
-      for (const code of m[1]!.split(/[,;]\s*/)) { const p = bySku.get(code.trim().toUpperCase()); if (p) out.set(p.sku, { sku: p.sku, name: p.name }); }
+    const prods = new Map<string, { sku: string; name: string }>(), refs = new Map<string, Cited['matched_proposals'][number]>();
+    for (const t of texts) for (const m of t.matchAll(/\[([^\]]{2,80})\]/g)) {
+      for (const raw of m[1]!.split(/[,;]\s*/)) {
+        const code = raw.trim().toUpperCase(), p = bySku.get(code), r = byRef.get(code);
+        if (p) prods.set(p.sku, { sku: p.sku, name: p.name });
+        if (r) refs.set(r.ref, { ref: r.ref, client: r.client, outcome: r.outcome, total_inr: r.total_inr });
+      }
     }
-    return [...out.values()].slice(0, 6);
+    return { matched_products: [...prods.values()].slice(0, 6), matched_proposals: [...refs.values()].slice(0, 4) };
   };
 }
 
@@ -129,7 +141,7 @@ export async function searchOpportunities(env: Env, _workspace: string, state: O
   const cited = await citedProducts(env, _workspace);
   const notices = page.map((r) => {
     const n = toNotice(r.t, assessed.get(r.key) ?? null, lang, now, segment);
-    return { ...n, region_label: n.region ? REGION_LABELS[n.region] : null, matched_products: cited([...n.fit.reasons, ...n.fit.strengths]) };
+    return { ...n, region_label: n.region ? REGION_LABELS[n.region] : null, ...cited([...n.fit.reasons, ...n.fit.strengths]) };
   });
   return {
     notices, total: matched.length, offset: input.offset, limit: input.limit, sort: input.sort, domains, facets, lang, ai,

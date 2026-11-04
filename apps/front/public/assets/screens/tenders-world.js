@@ -17,8 +17,9 @@ const plain = (t, skus) => String(t).replace(/\s*\[([^\]]+)\]/g, (m, c) => (c.sp
 
 function card(n, i, onSave) {
   const f = n.fit || {}, scored = f.method === 'ai';
-  const prods = scored && f.score >= 25 ? n.matched_products || [] : []; // below 25 a cited SKU is a weak link, not a match
-  const skus = new Set(prods.map((p) => p.sku.toUpperCase()));
+  const strong = scored && f.score >= 25; // below 25 a cited SKU or past proposal is a weak link, not a match
+  const prods = strong ? n.matched_products || [] : [], past = strong ? n.matched_proposals || [] : [];
+  const skus = new Set([...prods.map((p) => p.sku), ...past.map((p) => p.ref)].map((x) => x.toUpperCase()));
   const save = h('button.btn.btn-secondary.btn-sm', { type: 'button', onclick: () => onSave(n, save) }, icon('check', 14), 'Save to my tenders');
   const reasons = [...(f.reasons || []), ...(f.strengths || [])].slice(0, 2).map((r) => plain(r, skus));
   const fact = (k, v) => h(`div.tw-fact${v ? '' : '.na'}`, h('span.ps-k', { style: { marginBottom: 0 } }, k), h('span', v || 'Not stated'));
@@ -34,6 +35,8 @@ function card(n, i, onSave) {
     h('div', h('div.ps-k', 'Matching products'),
       prods.length ? h('div.tw-prods', prods.map((p) => h('span.chip.outline', { title: p.sku }, p.name, h('b', p.sku))))
         : h('div.xs.muted', scored ? 'No strong match in your catalogue.' : 'Not scored yet.')),
+    past.length ? h('div', h('div.ps-k', 'Matching past proposals'), h('div.tw-prods', past.map((p) => h('span.chip.outline', { title: p.ref },
+      p.client || p.ref, h('b', p.ref), p.outcome === 'won' ? h('span.tw-won', 'Won') : p.outcome === 'lost' ? h('span.tw-lost', 'Lost') : null)))) : null,
     n.summary ? h('div.small', { style: { lineHeight: '20px' } }, n.summary) : null,
     reasons.length ? h('div.ps-why', icon('brain', 14), h('span', reasons.join(' '))) : null,
     f.risks?.length ? h('div.xs.muted', `Risk: ${plain(f.risks[0], skus)}`) : null,

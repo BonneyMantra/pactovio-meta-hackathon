@@ -270,4 +270,7 @@
 .tw-prods { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .tw-prods .chip { max-width: 100%; white-space: normal; height: auto; min-height: 26px; padding-top: 3px; padding-bottom: 3px; line-height: 18px; }
 .tw-prods .chip b { font-family: var(--mono); font-weight: 500; font-size: 11px; color: var(--ink-3); margin-left: 6px; }
+.tw-won, .tw-lost { margin-left: 6px; font-size: 11px; font-weight: 600; }
+.tw-won { color: var(--ok); }
+.tw-lost { color: var(--ink-3); }
 @media (max-width: 640px) { .tw-facts { grid-template-columns: 1fr 1fr; } .tw-facts .tw-fact:first-child { grid-column: 1 / -1; } }
