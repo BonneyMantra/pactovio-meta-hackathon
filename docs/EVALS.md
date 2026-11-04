@@ -98,7 +98,7 @@ There are over 30 named tests that show one workspace cannot read, write, export
 
 ## Measured in production
 
-These figures come from read-only `SELECT`s on the production D1 database (`pactovio-meta`) on 5 Nov 2026 at about 07:20 MYT. Each row in `proposal_steps` is written by the pipeline itself (`packages/proposal/src/ctx.ts`), so the costs are the metered list-price costs of real calls.
+These figures come from read-only `SELECT`s on the production D1 database (`pactovio-meta`) on 5 Nov 2026 at about 07:00 MYT. Each row in `proposal_steps` is written by the pipeline itself (`packages/proposal/src/ctx.ts`), so the costs are the metered list-price costs of real calls.
 
 ### Proposal runs
 
