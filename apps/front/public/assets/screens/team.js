@@ -45,9 +45,11 @@ export async function render(root, _p, ctx) {
   }
 
   function memberRow(m) {
+    const role = m.role === 'owner' ? 'Owner' : 'Member';
+    // The signed-in person is "You"; their own address is not repeated back to them.
+    if (m.you) return h('li.tm-row', h('span.tm-av', initials(m.email)), h('div.tm-who', h('strong', 'You'), h('span.xs.muted', role)), h('span.tm-role'));
     return h('li.tm-row', h('span.tm-av', initials(m.email)),
-      h('div.tm-who', h('strong', label(m.email)), h('span.xs.muted', m.email)),
-      h('span.tm-role', m.role === 'owner' ? 'Owner' : 'Member', m.you ? h('span.muted', ' · you') : null));
+      h('div.tm-who', h('strong', label(m.email)), h('span.xs.muted', m.email)), h('span.tm-role', role));
   }
 
   function inviteRow(inv) {

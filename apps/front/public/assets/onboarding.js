@@ -6,7 +6,7 @@ import { getCompany } from './customer-api.js';
 import { gateError } from './access.js';
 import { companyReady } from './company-form.js';
 import { connectionState, hubspotProducts, learnProgress } from './brain/learn-api.js';
-import { stage, stepNav } from './onb/stage.js';
+import { stage, stepNav, personName } from './onb/stage.js';
 import { websiteStep } from './onb/website.js';
 import { catalogueStep } from './onb/catalogue.js';
 import { readyStep } from './onb/ready.js';
@@ -23,7 +23,7 @@ const skip = (ws, k) => { try { sessionStorage.setItem(SKIP + ws + k, '1'); } ca
 export async function renderOnboarding(root, session, onComplete, onLogout) {
   let disposed = false, inner = null;
   const ws = session.workspace_id;
-  const s = stage(root).mode('onb').who(session.user.email, onLogout);
+  const s = stage(root).mode('onb').who(personName(session.user.email), onLogout);
   // A provider that redirects back into this same document only changes the hash; re-derive the step.
   const onHash = () => { if (!disposed && /^#\/onboarding/.test(location.hash)) resolve(); };
   window.addEventListener('hashchange', onHash);
@@ -36,6 +36,7 @@ export async function renderOnboarding(root, session, onComplete, onLogout) {
       const [c, conns, products, learn] = await Promise.all([getCompany(), connectionState(), hubspotProducts().catch(() => []), learnProgress().catch(() => null)]);
       if (disposed) return;
       const company = c.company || {};
+      s.who(company.name?.trim() && company.name !== 'Your company' ? company.name.trim() : personName(session.user.email), onLogout);
       const incomplete = Array.isArray(c.required_missing) ? c.required_missing.length > 0 : !profileReady(c.profile || {});
       if (!companyReady(company) || incomplete) return show(0, (nav) => websiteStep(s, { nav, company, workspace: ws, onNext: resolve }));
       if (!skipped(ws, 'crm') && (conns.hubspot !== 'connected' || !products.length)) {

@@ -66,14 +66,20 @@ export function stage(root) {
       sync();
       return api;
     },
-    /** Who is signed in, under the left column; null on the sign-in screens. */
-    who(email, onLogout) {
-      id.replaceChildren(...(email ? [h('span', email), h('button.pv-link.pv-link-mute', { type: 'button', onclick: onLogout }, 'Sign out')] : []));
+    /** Whose workspace this is (company or person name, never the raw address), under the left column; null on sign-in. */
+    who(name, onLogout) {
+      id.replaceChildren(...(name ? [h('span', name), h('button.pv-link.pv-link-mute', { type: 'button', onclick: onLogout }, 'Sign out')] : []));
       return api;
     },
   };
   root.__stage = api;
   return api;
+}
+
+/** reena+film2@larinova.com → "Reena": a readable name from an address, for labels only. */
+export function personName(email = '') {
+  const words = String(email).split('@')[0].split('+')[0].split(/[._-]+/).filter(Boolean);
+  return words.map((w) => w[0].toUpperCase() + w.slice(1)).join(' ') || 'You';
 }
 
 /** The four onboarding steps as a compact progress row, shown at the top of the left column. */

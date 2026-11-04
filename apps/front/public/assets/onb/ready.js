@@ -13,7 +13,7 @@ export async function readyStep(s, { nav, onComplete, companyName }) {
   const st = b?.stats;
   const name = companyName || b?.profile?.name || 'your company';
   const tiles = [
-    ['Products', b?.catalogue_count, (v) => String(Math.round(v)), 'priced from HubSpot'],
+    ['Catalogue items', b?.catalogue_count, (v) => String(Math.round(v)), 'priced from HubSpot'],
     ['Proposals learned', b?.proposals_learned, (v) => String(Math.round(v)), 'from Google Drive'],
     ['Win rate', st?.win_rate != null ? frac(st.win_rate) * 100 : null, (v) => `${Math.round(v)}%`, st ? `${st.won} won · ${st.lost} lost` : 'on decided bids'],
     ['Median deal', st?.median_value_inr, inrShort, 'including GST'],

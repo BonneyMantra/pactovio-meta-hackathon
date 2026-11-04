@@ -35,13 +35,13 @@ export function catalogueStep(s, { nav, connection, onNext, onSkip }) {
   if (connection !== 'connected') { connectCard(s, { nav, onSkip, pending: connection === 'pending' }); return () => { disposed = true; }; }
 
   const grid = h('div.ob-products'), count = h('span.num', '0');
-  const title = h('h1', { tabindex: '-1' }, 'Importing your products');
+  const title = h('h1', { tabindex: '-1' }, 'Importing your catalogue');
   const sub = h('p.pv-lede', 'Reading the HubSpot products library: SKU, price and image for each product.');
   const status = h('p.pv-status', { role: 'status', 'aria-live': 'polite' }, 'Connected to HubSpot');
   const next = h('button.pv-btn', { type: 'button', disabled: true, onclick: onNext }, spin(), 'Importing…');
   const live = h('span.pv-live', h('i'), 'Live');
   const after = h('div.pv-form.pv-after', status, next);
-  s.ask(nav, h('div.pv-heading', title, sub), h('div.pv-bigcount', count, h('span', 'products')), after);
+  s.ask(nav, h('div.pv-heading', title, sub), h('div.pv-bigcount', count, h('span', 'catalogue items')), after);
   s.work(h('div.pv-panel', h('div.pv-panel-head', h('div', h('div.pv-kicker', 'HubSpot · Products library'), h('h2', 'Your catalogue')), live), grid));
 
   const tiles = new Map(), queue = [];
@@ -80,7 +80,7 @@ export function catalogueStep(s, { nav, connection, onNext, onSkip }) {
     title.textContent = n ? 'Catalogue imported' : 'No products found in HubSpot';
     sub.textContent = n ? 'Imported from HubSpot with prices and images. Every proposal is priced from these.' : 'Add products to the HubSpot products library, or skip and add them in Catalogue.';
     const imgs = r?.images_fetched ? ` · ${r.images_fetched} product images` : '';
-    status.textContent = n ? `From HubSpot${imgs}. You can edit prices and costs later in Catalogue.` : '';
+    status.textContent = n ? `Priced from HubSpot${imgs}. Products, parts and services; edit prices and costs later in Catalogue.` : '';
     live.replaceChildren(icon('check', 13), 'Imported'); live.className = 'pv-tag-ok';
     next.replaceChildren('Continue', icon('arrow', 16)); next.disabled = false; next.focus({ preventScroll: true });
   };

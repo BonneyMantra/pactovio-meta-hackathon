@@ -106,8 +106,8 @@ export function sideAgentCard(ctx, active) {
   const name = shortName(ctx.session?.workspace?.name);
   const k = knowledge(ctx.brain);
   const line = k.learned
-    ? `${k.learned} proposals · ${k.products} products`
-    : k.products ? `${k.products} products · no proposals yet` : 'Teach it your company';
+    ? `${k.learned} proposals · ${k.products} catalogue items`
+    : k.products ? `${k.products} catalogue items · no proposals yet` : 'Teach it your company';
   return h(`a.ag-side${active ? '.on' : ''}`, { href: '#/brain', title: 'Open the Company Brain' },
     agentAvatar(name, 30),
     h('span.ag-side-txt', h('b', `${possessive(name)} agent`), h('span', line)),
