@@ -1,0 +1,374 @@
+{
+ "date": "2026-11-05",
+ "n_per_arm": 1,
+ "setup": "Same RFQ pack (RFP-KCBL-ESURV-047.pdf, branch-floorplan.png, rfq-email.txt), 67-product Rax catalogue, local SQLite D1/R2, no brain or past proposals. Both arms run in parallel with scripts/evals/orchestrator-ab.ts. Spark arm: harness returns 404 for any muse-wonder-1.0 request so wonderLoop falls back to Spark on the same tools.",
+ "arms": {
+  "wonder": {
+   "arm": "wonder",
+   "proposal_id": "prp_01m6mf0n3b6yb2cnhgkkvpqb3w",
+   "run_status": "completed",
+   "run_error": null,
+   "catalogue_products": 67,
+   "brain_loaded": false,
+   "orchestrator": "meta:muse-wonder-1.0",
+   "wonder_failed": false,
+   "wonder_requests_rejected_by_harness": 0,
+   "total_cost_usd": 0.383,
+   "wall_minutes": 8.98,
+   "steps": [
+    {
+     "name": "read_rfq",
+     "models": [
+      "meta:muse-spark-1.3"
+     ],
+     "cost_usd": 0.0439,
+     "ms": 37854,
+     "status": "ok"
+    },
+    {
+     "name": "check_eligibility",
+     "models": [
+      "meta:muse-spark-1.3"
+     ],
+     "cost_usd": 0.0168,
+     "ms": 27750,
+     "status": "ok"
+    },
+    {
+     "name": "select_solution",
+     "models": [
+      "meta:muse-spark-1.3"
+     ],
+     "cost_usd": 0.0609,
+     "ms": 104277,
+     "status": "ok"
+    },
+    {
+     "name": "compose_bom",
+     "models": [
+      "meta:muse-spark-1.3"
+     ],
+     "cost_usd": 0.0399,
+     "ms": 84737,
+     "status": "ok"
+    },
+    {
+     "name": "design_architecture",
+     "models": [
+      "meta:muse-spark-1.3"
+     ],
+     "cost_usd": 0.0398,
+     "ms": 69118,
+     "status": "ok"
+    },
+    {
+     "name": "floor_plan",
+     "models": [
+      "meta:sam-3.1",
+      "meta:muse-spark-1.3"
+     ],
+     "cost_usd": 0.0607,
+     "ms": 64397,
+     "status": "ok"
+    },
+    {
+     "name": "compliance_matrix",
+     "models": [
+      "meta:muse-spark-1.3"
+     ],
+     "cost_usd": 0.0374,
+     "ms": 75974,
+     "status": "ok"
+    },
+    {
+     "name": "concept_visual",
+     "models": [
+      "meta:muse-image-1.0",
+      "meta:sam-3.1",
+      "meta:muse-spark-1.3"
+     ],
+     "cost_usd": 0.0474,
+     "ms": 50354,
+     "status": "ok"
+    },
+    {
+     "name": "claim_check",
+     "models": [],
+     "cost_usd": 0,
+     "ms": 69,
+     "status": "ok"
+    },
+    {
+     "name": "orchestrate",
+     "models": [
+      "meta:muse-wonder-1.0"
+     ],
+     "cost_usd": 0.0362,
+     "ms": 538682,
+     "status": "ok"
+    }
+   ],
+   "orchestrator_tool_call_order": [
+    "read_rfq",
+    "check_eligibility",
+    "select_solution",
+    "compose_bom",
+    "design_architecture",
+    "place_on_floor_plan",
+    "compliance_matrix",
+    "concept_visual",
+    "claim_check"
+   ],
+   "metrics": {
+    "requirements": 35,
+    "requirements_with_page": 35,
+    "share_with_page": 1,
+    "bom_lines": 20,
+    "grand_total_inr": 29015964,
+    "compliance_rows": 35,
+    "compliance_by_status": {
+     "complies": 19,
+     "partial": 14,
+     "deviation": 2
+    },
+    "floorplan_placements": 14,
+    "floorplan_sam_share": 0.7143,
+    "evidence_items": 85,
+    "struck_claims": 0,
+    "go_no_go": {
+     "decision": "conditional",
+     "confidence": 0.5
+    }
+   }
+  },
+  "spark": {
+   "arm": "spark",
+   "proposal_id": "prp_01m6mf0n3bg3j8sdrzkp6pc92q",
+   "run_status": "completed",
+   "run_error": null,
+   "catalogue_products": 67,
+   "brain_loaded": false,
+   "orchestrator": "meta:muse-spark-1.3",
+   "wonder_failed": true,
+   "wonder_requests_rejected_by_harness": 2,
+   "total_cost_usd": 0.3813,
+   "wall_minutes": 8.94,
+   "steps": [
+    {
+     "name": "read_rfq",
+     "models": [
+      "meta:muse-spark-1.3"
+     ],
+     "cost_usd": 0.0632,
+     "ms": 39557,
+     "status": "ok"
+    },
+    {
+     "name": "check_eligibility",
+     "models": [
+      "meta:muse-spark-1.3"
+     ],
+     "cost_usd": 0.0207,
+     "ms": 35660,
+     "status": "ok"
+    },
+    {
+     "name": "select_solution",
+     "models": [
+      "meta:muse-spark-1.3"
+     ],
+     "cost_usd": 0.0648,
+     "ms": 117794,
+     "status": "ok"
+    },
+    {
+     "name": "compose_bom",
+     "models": [
+      "meta:muse-spark-1.3"
+     ],
+     "cost_usd": 0.0294,
+     "ms": 62172,
+     "status": "ok"
+    },
+    {
+     "name": "design_architecture",
+     "models": [
+      "meta:muse-spark-1.3"
+     ],
+     "cost_usd": 0.0364,
+     "ms": 66904,
+     "status": "ok"
+    },
+    {
+     "name": "floor_plan",
+     "models": [
+      "meta:sam-3.1",
+      "meta:muse-spark-1.3"
+     ],
+     "cost_usd": 0.0539,
+     "ms": 53173,
+     "status": "ok"
+    },
+    {
+     "name": "compliance_matrix",
+     "models": [
+      "meta:muse-spark-1.3"
+     ],
+     "cost_usd": 0.0307,
+     "ms": 58986,
+     "status": "ok"
+    },
+    {
+     "name": "concept_visual",
+     "models": [
+      "meta:muse-image-1.0",
+      "meta:sam-3.1",
+      "meta:muse-spark-1.3"
+     ],
+     "cost_usd": 0.0537,
+     "ms": 60495,
+     "status": "ok"
+    },
+    {
+     "name": "claim_check",
+     "models": [],
+     "cost_usd": 0,
+     "ms": 66,
+     "status": "ok"
+    },
+    {
+     "name": "orchestrate",
+     "models": [
+      "meta:muse-wonder-1.0",
+      "meta:muse-spark-1.3"
+     ],
+     "cost_usd": 0.0286,
+     "ms": 536169,
+     "status": "ok"
+    }
+   ],
+   "orchestrator_tool_call_order": [
+    "read_rfq",
+    "check_eligibility",
+    "select_solution",
+    "compose_bom",
+    "design_architecture",
+    "place_on_floor_plan",
+    "compliance_matrix",
+    "concept_visual",
+    "claim_check",
+    "read_rfq",
+    "check_eligibility",
+    "select_solution",
+    "compose_bom",
+    "design_architecture",
+    "place_on_floor_plan",
+    "compliance_matrix",
+    "concept_visual",
+    "claim_check"
+   ],
+   "metrics": {
+    "requirements": 39,
+    "requirements_with_page": 39,
+    "share_with_page": 1,
+    "bom_lines": 16,
+    "grand_total_inr": 18860058,
+    "compliance_rows": 39,
+    "compliance_by_status": {
+     "complies": 14,
+     "partial": 24,
+     "deviation": 1
+    },
+    "floorplan_placements": 3,
+    "floorplan_sam_share": 1,
+    "evidence_items": 91,
+    "struck_claims": 2,
+    "go_no_go": {
+     "decision": "conditional",
+     "confidence": 0.51
+    }
+   }
+  }
+ },
+ "diff": {
+  "cost_usd": {
+   "wonder": 0.383,
+   "spark": 0.3813,
+   "delta": -0.0017
+  },
+  "wall_minutes": {
+   "wonder": 8.98,
+   "spark": 8.94
+  },
+  "orchestrate_step_cost_usd": {
+   "wonder": 0.0362,
+   "spark": 0.0286
+  },
+  "tool_order_identical_in_first_pass": true,
+  "metrics": {
+   "requirements": {
+    "wonder": 35,
+    "spark": 39
+   },
+   "requirements_with_page": {
+    "wonder": 35,
+    "spark": 39
+   },
+   "share_with_page": {
+    "wonder": 1,
+    "spark": 1
+   },
+   "bom_lines": {
+    "wonder": 20,
+    "spark": 16
+   },
+   "grand_total_inr": {
+    "wonder": 29015964,
+    "spark": 18860058
+   },
+   "compliance_rows": {
+    "wonder": 35,
+    "spark": 39
+   },
+   "compliance_by_status": {
+    "wonder": {
+     "complies": 19,
+     "partial": 14,
+     "deviation": 2
+    },
+    "spark": {
+     "complies": 14,
+     "partial": 24,
+     "deviation": 1
+    }
+   },
+   "floorplan_placements": {
+    "wonder": 14,
+    "spark": 3
+   },
+   "floorplan_sam_share": {
+    "wonder": 0.7143,
+    "spark": 1
+   },
+   "evidence_items": {
+    "wonder": 85,
+    "spark": 91
+   },
+   "struck_claims": {
+    "wonder": 0,
+    "spark": 2
+   },
+   "go_no_go": {
+    "wonder": {
+     "decision": "conditional",
+     "confidence": 0.5
+    },
+    "spark": {
+     "decision": "conditional",
+     "confidence": 0.51
+    }
+   }
+  },
+  "note": "Stage work (read, BoM, compliance, floor plan) runs on Spark in both arms; only the orchestrating agent differs. Metric differences are therefore mostly run-to-run variance of those stages, not orchestration. Spark arm made two passes through the tool chain (reason-lane swap after two Wonder 404s, then the Spark agent lane); stages are idempotent so the second pass was cheap."
+ }
+}

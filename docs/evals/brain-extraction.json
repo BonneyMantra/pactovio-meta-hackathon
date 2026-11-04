@@ -1,0 +1,536 @@
+{
+  "generated_at": "2026-11-04T23:42:05.240Z",
+  "source": {
+    "workspace_id": "ws_01m6m9crbd7zdqd299m3ama72g",
+    "run_id": "brn_6c31979717ecc592a8d4",
+    "snapshot_queried_at": "2026-11-04T23:40:40.188Z",
+    "database": "pactovio-meta (read-only SELECT)"
+  },
+  "coverage": {
+    "matched": 45,
+    "truth_documents": 45,
+    "rate": 1,
+    "missing_refs": []
+  },
+  "overall": {
+    "score": 0.9368,
+    "fields": [
+      "ref",
+      "revision",
+      "date",
+      "validity_days",
+      "client_name",
+      "client_sector",
+      "client_city",
+      "rfq_ref",
+      "title",
+      "solution_type",
+      "prepared_by",
+      "turnaround_days",
+      "total_inr",
+      "warranty_months_commissioning",
+      "warranty_months_dispatch",
+      "amc_pct",
+      "engineering_count",
+      "engineering_person_days",
+      "compliance_count"
+    ],
+    "note": "Macro mean of per-field accuracy over matched documents. outcome_status is reported but excluded: the app overrides outcome from HubSpot."
+  },
+  "field_accuracy": {
+    "ref": {
+      "accuracy": 1,
+      "n": 45
+    },
+    "revision": {
+      "accuracy": 1,
+      "n": 45
+    },
+    "date": {
+      "accuracy": 1,
+      "n": 45
+    },
+    "validity_days": {
+      "accuracy": 1,
+      "n": 45
+    },
+    "client_name": {
+      "accuracy": 1,
+      "n": 45
+    },
+    "client_sector": {
+      "accuracy": 0.4222,
+      "n": 45
+    },
+    "client_city": {
+      "accuracy": 0.9778,
+      "n": 45
+    },
+    "rfq_ref": {
+      "accuracy": 1,
+      "n": 45
+    },
+    "title": {
+      "accuracy": 1,
+      "n": 45
+    },
+    "solution_type": {
+      "accuracy": 0.8444,
+      "n": 45
+    },
+    "outcome_status": {
+      "accuracy": 0.2,
+      "n": 45
+    },
+    "prepared_by": {
+      "accuracy": 1,
+      "n": 45
+    },
+    "turnaround_days": {
+      "accuracy": 0.5556,
+      "n": 45
+    },
+    "total_inr": {
+      "accuracy": 1,
+      "n": 45
+    },
+    "warranty_months_commissioning": {
+      "accuracy": 1,
+      "n": 45
+    },
+    "warranty_months_dispatch": {
+      "accuracy": 1,
+      "n": 45
+    },
+    "amc_pct": {
+      "accuracy": 1,
+      "n": 45
+    },
+    "engineering_count": {
+      "accuracy": 1,
+      "n": 45
+    },
+    "engineering_person_days": {
+      "accuracy": 1,
+      "n": 45
+    },
+    "compliance_count": {
+      "accuracy": 1,
+      "n": 45
+    }
+  },
+  "scope_of_supply": {
+    "precision": 0.9921,
+    "recall": 0.9921,
+    "f1": 0.9921,
+    "qtyExactRate": 1,
+    "macroF1": 0.9903,
+    "truthItems": 381,
+    "extractedItems": 381
+  },
+  "per_ref": [
+    {
+      "ref": "RAX/PR/2024/007",
+      "score": 0.9474,
+      "sku_f1": 1,
+      "failed_fields": [
+        "outcome_status",
+        "turnaround_days"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2024/014",
+      "score": 0.9474,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "outcome_status"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2024/021",
+      "score": 0.8947,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "outcome_status",
+        "turnaround_days"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2024/026",
+      "score": 0.8947,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "outcome_status",
+        "turnaround_days"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2024/034",
+      "score": 0.9474,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "outcome_status"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2024/040",
+      "score": 0.8947,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "outcome_status",
+        "turnaround_days"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2024/048",
+      "score": 1,
+      "sku_f1": 1,
+      "failed_fields": [
+        "outcome_status"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2024/058",
+      "score": 0.8947,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "outcome_status",
+        "turnaround_days"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2024/065",
+      "score": 0.8947,
+      "sku_f1": 0.8333,
+      "failed_fields": [
+        "client_sector",
+        "outcome_status",
+        "turnaround_days"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2024/073",
+      "score": 0.9474,
+      "sku_f1": 1,
+      "failed_fields": [
+        "outcome_status",
+        "turnaround_days"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2024/080",
+      "score": 1,
+      "sku_f1": 1,
+      "failed_fields": [
+        "outcome_status"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2024/088",
+      "score": 0.9474,
+      "sku_f1": 1,
+      "failed_fields": [
+        "outcome_status",
+        "turnaround_days"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2024/095",
+      "score": 1,
+      "sku_f1": 1,
+      "failed_fields": [
+        "outcome_status"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2024/102",
+      "score": 0.8947,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "outcome_status",
+        "turnaround_days"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2024/111",
+      "score": 0.9474,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "outcome_status"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2025/013",
+      "score": 0.8947,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "outcome_status",
+        "turnaround_days"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2025/024",
+      "score": 0.9474,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "outcome_status"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2025/041",
+      "score": 0.9474,
+      "sku_f1": 1,
+      "failed_fields": [
+        "outcome_status",
+        "turnaround_days"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2025/047",
+      "score": 0.8947,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "outcome_status",
+        "turnaround_days"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2025/052",
+      "score": 0.9474,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "outcome_status"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2025/058",
+      "score": 0.9474,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "outcome_status"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2025/064",
+      "score": 0.9474,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "outcome_status"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2025/069",
+      "score": 1,
+      "sku_f1": 1,
+      "failed_fields": [
+        "outcome_status"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2025/075",
+      "score": 0.8947,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "solution_type",
+        "outcome_status"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2025/080",
+      "score": 0.8947,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "solution_type",
+        "outcome_status"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2025/088",
+      "score": 0.8947,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "outcome_status",
+        "turnaround_days"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2025/097",
+      "score": 0.9474,
+      "sku_f1": 0.8571,
+      "failed_fields": [
+        "outcome_status",
+        "turnaround_days"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2025/104",
+      "score": 0.8947,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "solution_type",
+        "outcome_status"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2025/111",
+      "score": 1,
+      "sku_f1": 1,
+      "failed_fields": [
+        "outcome_status"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2025/118",
+      "score": 0.8947,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "outcome_status",
+        "turnaround_days"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2026/006",
+      "score": 1,
+      "sku_f1": 1,
+      "failed_fields": [
+        "outcome_status"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2026/012",
+      "score": 0.9474,
+      "sku_f1": 1,
+      "failed_fields": [
+        "solution_type"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2026/020",
+      "score": 0.8947,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "outcome_status",
+        "turnaround_days"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2026/027",
+      "score": 0.8947,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "outcome_status",
+        "turnaround_days"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2026/034",
+      "score": 1,
+      "sku_f1": 1,
+      "failed_fields": [
+        "outcome_status"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2026/042",
+      "score": 1,
+      "sku_f1": 1,
+      "failed_fields": [
+        "outcome_status"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2026/049",
+      "score": 0.8947,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "solution_type",
+        "outcome_status"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2026/055",
+      "score": 0.9474,
+      "sku_f1": 1,
+      "failed_fields": [
+        "solution_type"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2026/060",
+      "score": 0.8947,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "turnaround_days"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2026/065",
+      "score": 0.9474,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2026/071",
+      "score": 1,
+      "sku_f1": 0.875,
+      "failed_fields": []
+    },
+    {
+      "ref": "RAX/PR/2026/077",
+      "score": 0.8947,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_sector",
+        "solution_type"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2026/083",
+      "score": 1,
+      "sku_f1": 1,
+      "failed_fields": []
+    },
+    {
+      "ref": "RAX/PR/2026/089",
+      "score": 0.8947,
+      "sku_f1": 1,
+      "failed_fields": [
+        "client_city",
+        "turnaround_days"
+      ]
+    },
+    {
+      "ref": "RAX/PR/2026/095",
+      "score": 0.9474,
+      "sku_f1": 1,
+      "failed_fields": [
+        "turnaround_days"
+      ]
+    }
+  ]
+}

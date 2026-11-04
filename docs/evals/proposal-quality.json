@@ -1,0 +1,1533 @@
+{
+  "generated_at": "2026-11-04T23:49:41.600Z",
+  "snapshot_exported_at": "2026-11-04T23:43:07.197Z",
+  "proposals": 13,
+  "hero_rfp": "Kurinji Commercial Bank",
+  "hero_proposals": 10,
+  "aggregate_all": {
+    "overall": {
+      "n": 13,
+      "mean": 0.9628,
+      "min": 0.8739,
+      "max": 1
+    },
+    "checks": {
+      "citation_rate": {
+        "n": 10,
+        "mean": 1,
+        "min": 1,
+        "max": 1
+      },
+      "catalogue_price_fidelity": {
+        "n": 10,
+        "mean": 1,
+        "min": 1,
+        "max": 1
+      },
+      "arithmetic_consistency": {
+        "n": 13,
+        "mean": 1,
+        "min": 1,
+        "max": 1
+      },
+      "evidence_density": {
+        "n": 13,
+        "mean": 0.92,
+        "min": 0.7059,
+        "max": 1
+      },
+      "claim_hygiene": {
+        "n": 13,
+        "mean": 0.0819,
+        "min": 0,
+        "max": 0.2667
+      },
+      "grounding_of_learning": {
+        "n": 10,
+        "mean": 1,
+        "min": 1,
+        "max": 1
+      },
+      "value_plausibility": {
+        "n": 11,
+        "mean": 0.1818,
+        "min": 0,
+        "max": 1
+      },
+      "floorplan_grounding": {
+        "n": 8,
+        "mean": 0.8149,
+        "min": 0.6875,
+        "max": 0.8667
+      },
+      "compliance_coverage": {
+        "n": 13,
+        "mean": 1,
+        "min": 1,
+        "max": 1
+      }
+    }
+  },
+  "aggregate_hero": {
+    "overall": {
+      "n": 10,
+      "mean": 0.9642,
+      "min": 0.9383,
+      "max": 0.981
+    },
+    "checks": {
+      "citation_rate": {
+        "n": 10,
+        "mean": 1,
+        "min": 1,
+        "max": 1
+      },
+      "catalogue_price_fidelity": {
+        "n": 8,
+        "mean": 1,
+        "min": 1,
+        "max": 1
+      },
+      "arithmetic_consistency": {
+        "n": 10,
+        "mean": 1,
+        "min": 1,
+        "max": 1
+      },
+      "evidence_density": {
+        "n": 10,
+        "mean": 0.9254,
+        "min": 0.8667,
+        "max": 1
+      },
+      "claim_hygiene": {
+        "n": 10,
+        "mean": 0.1064,
+        "min": 0,
+        "max": 0.2667
+      },
+      "grounding_of_learning": {
+        "n": 8,
+        "mean": 1,
+        "min": 1,
+        "max": 1
+      },
+      "value_plausibility": {
+        "n": 8,
+        "mean": 0,
+        "min": 0,
+        "max": 0
+      },
+      "floorplan_grounding": {
+        "n": 8,
+        "mean": 0.8149,
+        "min": 0.6875,
+        "max": 0.8667
+      },
+      "compliance_coverage": {
+        "n": 10,
+        "mean": 1,
+        "min": 1,
+        "max": 1
+      }
+    }
+  },
+  "results": [
+    {
+      "id": "zz1wpktq",
+      "created_at": "2026-11-04T05:09:41.728Z",
+      "source": "chat",
+      "client": "Kurinji Commercial Bank Limited",
+      "cost_usd": 0.3549,
+      "numbers": {
+        "total_inr": 1712938740,
+        "bom_lines": 7,
+        "requirements": 40,
+        "evidence": 63,
+        "compliance_rows": 40,
+        "catalogue_size": 0,
+        "learned_pool": 0,
+        "outcomes_known": 0,
+        "catalogue_non_inr": 0
+      },
+      "overall": 0.981,
+      "checks": {
+        "citation_rate": {
+          "score": 1,
+          "detail": {
+            "requirements": 40,
+            "cited": 40
+          }
+        },
+        "catalogue_price_fidelity": {
+          "score": null,
+          "detail": {
+            "lines": 7,
+            "in_catalogue": 0,
+            "exact_price": 0,
+            "labelled_external": 7,
+            "unlabelled_off_catalogue": 0,
+            "price_scale": 1,
+            "mismatched_skus": []
+          }
+        },
+        "arithmetic_consistency": {
+          "score": 1,
+          "detail": {
+            "components": 8,
+            "failed": [],
+            "lines": 7,
+            "lines_ok": 7
+          }
+        },
+        "evidence_density": {
+          "score": 0.9365,
+          "detail": {
+            "evidence_items": 63,
+            "resolved": 59,
+            "narrative_words": 535,
+            "per_1000_words": 117.757
+          }
+        },
+        "claim_hygiene": {
+          "score": 0.1481,
+          "detail": {
+            "struck": 4,
+            "supported": 23,
+            "checked": 27,
+            "lower_is_better": true
+          }
+        },
+        "grounding_of_learning": {
+          "score": null,
+          "detail": {
+            "learned_from": 0,
+            "grounded": 0,
+            "learned_pool": 0,
+            "style_applied": 6,
+            "style_from_brain": 0,
+            "brain_voice_rules": 0,
+            "brain_phrases": 0
+          }
+        },
+        "value_plausibility": {
+          "score": null,
+          "detail": {
+            "total_inr": 1712938740,
+            "won_pool": 0,
+            "reason": "fewer than 3 won proposals"
+          }
+        },
+        "floorplan_grounding": {
+          "score": null,
+          "detail": {
+            "placements": 0,
+            "sam_3_1": 0,
+            "spark_vision": 0
+          }
+        },
+        "compliance_coverage": {
+          "score": 1,
+          "detail": {
+            "rows": 40,
+            "requirements": 40,
+            "coverage_ratio": 1,
+            "with_status": 40
+          }
+        }
+      }
+    },
+    {
+      "id": "k8wsh69y",
+      "created_at": "2026-11-04T05:12:02.979Z",
+      "source": "autopilot",
+      "client": "Kurinji Commercial Bank Limited",
+      "cost_usd": 0.3523,
+      "numbers": {
+        "total_inr": 34850592,
+        "bom_lines": 6,
+        "requirements": 39,
+        "evidence": 74,
+        "compliance_rows": 39,
+        "catalogue_size": 0,
+        "learned_pool": 0,
+        "outcomes_known": 0,
+        "catalogue_non_inr": 0
+      },
+      "overall": 0.9716,
+      "checks": {
+        "citation_rate": {
+          "score": 1,
+          "detail": {
+            "requirements": 39,
+            "cited": 39
+          }
+        },
+        "catalogue_price_fidelity": {
+          "score": null,
+          "detail": {
+            "lines": 6,
+            "in_catalogue": 0,
+            "exact_price": 0,
+            "labelled_external": 6,
+            "unlabelled_off_catalogue": 0,
+            "price_scale": 1,
+            "mismatched_skus": []
+          }
+        },
+        "arithmetic_consistency": {
+          "score": 1,
+          "detail": {
+            "components": 8,
+            "failed": [],
+            "lines": 6,
+            "lines_ok": 6
+          }
+        },
+        "evidence_density": {
+          "score": 0.9054,
+          "detail": {
+            "evidence_items": 74,
+            "resolved": 67,
+            "narrative_words": 601,
+            "per_1000_words": 123.1281
+          }
+        },
+        "claim_hygiene": {
+          "score": 0.0741,
+          "detail": {
+            "struck": 2,
+            "supported": 25,
+            "checked": 27,
+            "lower_is_better": true
+          }
+        },
+        "grounding_of_learning": {
+          "score": null,
+          "detail": {
+            "learned_from": 0,
+            "grounded": 0,
+            "learned_pool": 0,
+            "style_applied": 6,
+            "style_from_brain": 0,
+            "brain_voice_rules": 0,
+            "brain_phrases": 0
+          }
+        },
+        "value_plausibility": {
+          "score": null,
+          "detail": {
+            "total_inr": 34850592,
+            "won_pool": 0,
+            "reason": "fewer than 3 won proposals"
+          }
+        },
+        "floorplan_grounding": {
+          "score": null,
+          "detail": {
+            "placements": 0,
+            "sam_3_1": 0,
+            "spark_vision": 0
+          }
+        },
+        "compliance_coverage": {
+          "score": 1,
+          "detail": {
+            "rows": 39,
+            "requirements": 39,
+            "coverage_ratio": 1,
+            "with_status": 39
+          }
+        }
+      }
+    },
+    {
+      "id": "z293fysj",
+      "created_at": "2026-11-04T05:24:22.547Z",
+      "source": "chat",
+      "client": "Kurinji Commercial Bank Limited",
+      "cost_usd": 0.4107,
+      "numbers": {
+        "total_inr": 24745789,
+        "bom_lines": 25,
+        "requirements": 40,
+        "evidence": 82,
+        "compliance_rows": 40,
+        "catalogue_size": 67,
+        "learned_pool": 45,
+        "outcomes_known": 45,
+        "catalogue_non_inr": 0
+      },
+      "overall": 0.98,
+      "checks": {
+        "citation_rate": {
+          "score": 1,
+          "detail": {
+            "requirements": 40,
+            "cited": 40
+          }
+        },
+        "catalogue_price_fidelity": {
+          "score": 1,
+          "detail": {
+            "lines": 25,
+            "in_catalogue": 23,
+            "exact_price": 23,
+            "labelled_external": 2,
+            "unlabelled_off_catalogue": 0,
+            "price_scale": 100,
+            "mismatched_skus": []
+          }
+        },
+        "arithmetic_consistency": {
+          "score": 1,
+          "detail": {
+            "components": 8,
+            "failed": [],
+            "lines": 25,
+            "lines_ok": 25
+          }
+        },
+        "evidence_density": {
+          "score": 1,
+          "detail": {
+            "evidence_items": 82,
+            "resolved": 82,
+            "narrative_words": 895,
+            "per_1000_words": 91.6201
+          }
+        },
+        "claim_hygiene": {
+          "score": 0.2667,
+          "detail": {
+            "struck": 8,
+            "supported": 22,
+            "checked": 30,
+            "lower_is_better": true
+          }
+        },
+        "grounding_of_learning": {
+          "score": 1,
+          "detail": {
+            "learned_from": 3,
+            "grounded": 3,
+            "learned_pool": 45,
+            "style_applied": 10,
+            "style_from_brain": 10,
+            "brain_voice_rules": 4,
+            "brain_phrases": 4
+          }
+        },
+        "value_plausibility": {
+          "score": 0,
+          "detail": {
+            "total_inr": 24745789,
+            "won_pool": 8,
+            "same_type_pool": true,
+            "p10": 2356777,
+            "p90": 9837688,
+            "percentile": 1,
+            "inside_p10_p90": false
+          }
+        },
+        "floorplan_grounding": {
+          "score": 0.8667,
+          "detail": {
+            "placements": 15,
+            "sam_3_1": 13,
+            "spark_vision": 2
+          }
+        },
+        "compliance_coverage": {
+          "score": 1,
+          "detail": {
+            "rows": 40,
+            "requirements": 40,
+            "coverage_ratio": 1,
+            "with_status": 40
+          }
+        }
+      }
+    },
+    {
+      "id": "qzw0qwam",
+      "created_at": "2026-11-04T07:55:58.728Z",
+      "source": "upload",
+      "client": "Kurinji Commercial Bank Limited",
+      "cost_usd": 0.4322,
+      "numbers": {
+        "total_inr": 30188825,
+        "bom_lines": 35,
+        "requirements": 40,
+        "evidence": 89,
+        "compliance_rows": 40,
+        "catalogue_size": 67,
+        "learned_pool": 45,
+        "outcomes_known": 45,
+        "catalogue_non_inr": 0
+      },
+      "overall": 0.9577,
+      "checks": {
+        "citation_rate": {
+          "score": 1,
+          "detail": {
+            "requirements": 40,
+            "cited": 40
+          }
+        },
+        "catalogue_price_fidelity": {
+          "score": 1,
+          "detail": {
+            "lines": 35,
+            "in_catalogue": 27,
+            "exact_price": 27,
+            "labelled_external": 8,
+            "unlabelled_off_catalogue": 0,
+            "price_scale": 100,
+            "mismatched_skus": []
+          }
+        },
+        "arithmetic_consistency": {
+          "score": 1,
+          "detail": {
+            "components": 8,
+            "failed": [],
+            "lines": 35,
+            "lines_ok": 35
+          }
+        },
+        "evidence_density": {
+          "score": 0.9326,
+          "detail": {
+            "evidence_items": 89,
+            "resolved": 83,
+            "narrative_words": 959,
+            "per_1000_words": 92.805
+          }
+        },
+        "claim_hygiene": {
+          "score": 0.0952,
+          "detail": {
+            "struck": 2,
+            "supported": 19,
+            "checked": 21,
+            "lower_is_better": true
+          }
+        },
+        "grounding_of_learning": {
+          "score": 1,
+          "detail": {
+            "learned_from": 3,
+            "grounded": 3,
+            "learned_pool": 45,
+            "style_applied": 10,
+            "style_from_brain": 10,
+            "brain_voice_rules": 4,
+            "brain_phrases": 4
+          }
+        },
+        "value_plausibility": {
+          "score": 0,
+          "detail": {
+            "total_inr": 30188825,
+            "won_pool": 8,
+            "same_type_pool": true,
+            "p10": 2356777,
+            "p90": 9837688,
+            "percentile": 1,
+            "inside_p10_p90": false
+          }
+        },
+        "floorplan_grounding": {
+          "score": 0.7857,
+          "detail": {
+            "placements": 14,
+            "sam_3_1": 11,
+            "spark_vision": 3
+          }
+        },
+        "compliance_coverage": {
+          "score": 1,
+          "detail": {
+            "rows": 40,
+            "requirements": 40,
+            "coverage_ratio": 1,
+            "with_status": 40
+          }
+        }
+      }
+    },
+    {
+      "id": "7y329ev9",
+      "created_at": "2026-11-04T08:04:12.172Z",
+      "source": "autopilot",
+      "client": "Kurinji Commercial Bank Limited",
+      "cost_usd": 0.4101,
+      "numbers": {
+        "total_inr": 22354902,
+        "bom_lines": 22,
+        "requirements": 37,
+        "evidence": 73,
+        "compliance_rows": 37,
+        "catalogue_size": 67,
+        "learned_pool": 45,
+        "outcomes_known": 45,
+        "catalogue_non_inr": 0
+      },
+      "overall": 0.9657,
+      "checks": {
+        "citation_rate": {
+          "score": 1,
+          "detail": {
+            "requirements": 37,
+            "cited": 37
+          }
+        },
+        "catalogue_price_fidelity": {
+          "score": 1,
+          "detail": {
+            "lines": 22,
+            "in_catalogue": 17,
+            "exact_price": 17,
+            "labelled_external": 5,
+            "unlabelled_off_catalogue": 0,
+            "price_scale": 100,
+            "mismatched_skus": []
+          }
+        },
+        "arithmetic_consistency": {
+          "score": 1,
+          "detail": {
+            "components": 8,
+            "failed": [],
+            "lines": 22,
+            "lines_ok": 22
+          }
+        },
+        "evidence_density": {
+          "score": 0.9589,
+          "detail": {
+            "evidence_items": 73,
+            "resolved": 70,
+            "narrative_words": 780,
+            "per_1000_words": 93.5897
+          }
+        },
+        "claim_hygiene": {
+          "score": 0,
+          "detail": {
+            "struck": 0,
+            "supported": 15,
+            "checked": 15,
+            "lower_is_better": true
+          }
+        },
+        "grounding_of_learning": {
+          "score": 1,
+          "detail": {
+            "learned_from": 3,
+            "grounded": 3,
+            "learned_pool": 45,
+            "style_applied": 10,
+            "style_from_brain": 10,
+            "brain_voice_rules": 4,
+            "brain_phrases": 4
+          }
+        },
+        "value_plausibility": {
+          "score": 0,
+          "detail": {
+            "total_inr": 22354902,
+            "won_pool": 8,
+            "same_type_pool": true,
+            "p10": 2356777,
+            "p90": 9837688,
+            "percentile": 1,
+            "inside_p10_p90": false
+          }
+        },
+        "floorplan_grounding": {
+          "score": 0.8125,
+          "detail": {
+            "placements": 16,
+            "sam_3_1": 13,
+            "spark_vision": 3
+          }
+        },
+        "compliance_coverage": {
+          "score": 1,
+          "detail": {
+            "rows": 37,
+            "requirements": 37,
+            "coverage_ratio": 1,
+            "with_status": 37
+          }
+        }
+      }
+    },
+    {
+      "id": "5j4ndmxn",
+      "created_at": "2026-11-04T09:22:24.255Z",
+      "source": "chat",
+      "client": "Kurinji Commercial Bank Limited",
+      "cost_usd": 0.4949,
+      "numbers": {
+        "total_inr": 27643605,
+        "bom_lines": 26,
+        "requirements": 34,
+        "evidence": 86,
+        "compliance_rows": 34,
+        "catalogue_size": 67,
+        "learned_pool": 45,
+        "outcomes_known": 45,
+        "catalogue_non_inr": 0
+      },
+      "overall": 0.9626,
+      "checks": {
+        "citation_rate": {
+          "score": 1,
+          "detail": {
+            "requirements": 34,
+            "cited": 34
+          }
+        },
+        "catalogue_price_fidelity": {
+          "score": 1,
+          "detail": {
+            "lines": 26,
+            "in_catalogue": 22,
+            "exact_price": 22,
+            "labelled_external": 4,
+            "unlabelled_off_catalogue": 0,
+            "price_scale": 100,
+            "mismatched_skus": []
+          }
+        },
+        "arithmetic_consistency": {
+          "score": 1,
+          "detail": {
+            "components": 8,
+            "failed": [],
+            "lines": 26,
+            "lines_ok": 26
+          }
+        },
+        "evidence_density": {
+          "score": 0.8837,
+          "detail": {
+            "evidence_items": 86,
+            "resolved": 76,
+            "narrative_words": 818,
+            "per_1000_words": 105.1345
+          }
+        },
+        "claim_hygiene": {
+          "score": 0.04,
+          "detail": {
+            "struck": 1,
+            "supported": 24,
+            "checked": 25,
+            "lower_is_better": true
+          }
+        },
+        "grounding_of_learning": {
+          "score": 1,
+          "detail": {
+            "learned_from": 3,
+            "grounded": 3,
+            "learned_pool": 45,
+            "style_applied": 10,
+            "style_from_brain": 10,
+            "brain_voice_rules": 4,
+            "brain_phrases": 4
+          }
+        },
+        "value_plausibility": {
+          "score": 0,
+          "detail": {
+            "total_inr": 27643605,
+            "won_pool": 8,
+            "same_type_pool": true,
+            "p10": 2356777,
+            "p90": 9837688,
+            "percentile": 1,
+            "inside_p10_p90": false
+          }
+        },
+        "floorplan_grounding": {
+          "score": 0.8667,
+          "detail": {
+            "placements": 15,
+            "sam_3_1": 13,
+            "spark_vision": 2
+          }
+        },
+        "compliance_coverage": {
+          "score": 1,
+          "detail": {
+            "rows": 34,
+            "requirements": 34,
+            "coverage_ratio": 1,
+            "with_status": 34
+          }
+        }
+      }
+    },
+    {
+      "id": "64yxpbr2",
+      "created_at": "2026-11-04T09:37:42.632Z",
+      "source": "chat",
+      "client": "Kurinji Commercial Bank Limited",
+      "cost_usd": 0.4264,
+      "numbers": {
+        "total_inr": 33920110,
+        "bom_lines": 24,
+        "requirements": 34,
+        "evidence": 90,
+        "compliance_rows": 34,
+        "catalogue_size": 67,
+        "learned_pool": 45,
+        "outcomes_known": 45,
+        "catalogue_non_inr": 0
+      },
+      "overall": 0.9636,
+      "checks": {
+        "citation_rate": {
+          "score": 1,
+          "detail": {
+            "requirements": 34,
+            "cited": 34
+          }
+        },
+        "catalogue_price_fidelity": {
+          "score": 1,
+          "detail": {
+            "lines": 24,
+            "in_catalogue": 22,
+            "exact_price": 22,
+            "labelled_external": 2,
+            "unlabelled_off_catalogue": 0,
+            "price_scale": 100,
+            "mismatched_skus": []
+          }
+        },
+        "arithmetic_consistency": {
+          "score": 1,
+          "detail": {
+            "components": 8,
+            "failed": [],
+            "lines": 24,
+            "lines_ok": 24
+          }
+        },
+        "evidence_density": {
+          "score": 0.9,
+          "detail": {
+            "evidence_items": 90,
+            "resolved": 81,
+            "narrative_words": 783,
+            "per_1000_words": 114.9425
+          }
+        },
+        "claim_hygiene": {
+          "score": 0.037,
+          "detail": {
+            "struck": 1,
+            "supported": 26,
+            "checked": 27,
+            "lower_is_better": true
+          }
+        },
+        "grounding_of_learning": {
+          "score": 1,
+          "detail": {
+            "learned_from": 3,
+            "grounded": 3,
+            "learned_pool": 45,
+            "style_applied": 10,
+            "style_from_brain": 10,
+            "brain_voice_rules": 4,
+            "brain_phrases": 4
+          }
+        },
+        "value_plausibility": {
+          "score": 0,
+          "detail": {
+            "total_inr": 33920110,
+            "won_pool": 8,
+            "same_type_pool": true,
+            "p10": 2356777,
+            "p90": 9837688,
+            "percentile": 1,
+            "inside_p10_p90": false
+          }
+        },
+        "floorplan_grounding": {
+          "score": 0.8571,
+          "detail": {
+            "placements": 14,
+            "sam_3_1": 12,
+            "spark_vision": 2
+          }
+        },
+        "compliance_coverage": {
+          "score": 1,
+          "detail": {
+            "rows": 34,
+            "requirements": 34,
+            "coverage_ratio": 1,
+            "with_status": 34
+          }
+        }
+      }
+    },
+    {
+      "id": "pse2edvm",
+      "created_at": "2026-11-04T09:54:49.097Z",
+      "source": "chat",
+      "client": "Kurinji Commercial Bank Limited",
+      "cost_usd": 0.4532,
+      "numbers": {
+        "total_inr": 28324644,
+        "bom_lines": 25,
+        "requirements": 35,
+        "evidence": 75,
+        "compliance_rows": 35,
+        "catalogue_size": 67,
+        "learned_pool": 45,
+        "outcomes_known": 45,
+        "catalogue_non_inr": 0
+      },
+      "overall": 0.9586,
+      "checks": {
+        "citation_rate": {
+          "score": 1,
+          "detail": {
+            "requirements": 35,
+            "cited": 35
+          }
+        },
+        "catalogue_price_fidelity": {
+          "score": 1,
+          "detail": {
+            "lines": 25,
+            "in_catalogue": 24,
+            "exact_price": 24,
+            "labelled_external": 1,
+            "unlabelled_off_catalogue": 0,
+            "price_scale": 100,
+            "mismatched_skus": []
+          }
+        },
+        "arithmetic_consistency": {
+          "score": 1,
+          "detail": {
+            "components": 8,
+            "failed": [],
+            "lines": 25,
+            "lines_ok": 25
+          }
+        },
+        "evidence_density": {
+          "score": 0.8667,
+          "detail": {
+            "evidence_items": 75,
+            "resolved": 65,
+            "narrative_words": 587,
+            "per_1000_words": 127.7683
+          }
+        },
+        "claim_hygiene": {
+          "score": 0.15,
+          "detail": {
+            "struck": 3,
+            "supported": 17,
+            "checked": 20,
+            "lower_is_better": true
+          }
+        },
+        "grounding_of_learning": {
+          "score": 1,
+          "detail": {
+            "learned_from": 3,
+            "grounded": 3,
+            "learned_pool": 45,
+            "style_applied": 10,
+            "style_from_brain": 10,
+            "brain_voice_rules": 4,
+            "brain_phrases": 6
+          }
+        },
+        "value_plausibility": {
+          "score": 0,
+          "detail": {
+            "total_inr": 28324644,
+            "won_pool": 6,
+            "same_type_pool": true,
+            "p10": 3337025,
+            "p90": 10446682,
+            "percentile": 1,
+            "inside_p10_p90": false
+          }
+        },
+        "floorplan_grounding": {
+          "score": 0.8571,
+          "detail": {
+            "placements": 14,
+            "sam_3_1": 12,
+            "spark_vision": 2
+          }
+        },
+        "compliance_coverage": {
+          "score": 1,
+          "detail": {
+            "rows": 35,
+            "requirements": 35,
+            "coverage_ratio": 1,
+            "with_status": 35
+          }
+        }
+      }
+    },
+    {
+      "id": "zbym400q",
+      "created_at": "2026-11-04T10:14:59.457Z",
+      "source": "chat",
+      "client": "Kurinji Commercial Bank Limited",
+      "cost_usd": 0.4908,
+      "numbers": {
+        "total_inr": 30971318,
+        "bom_lines": 22,
+        "requirements": 40,
+        "evidence": 91,
+        "compliance_rows": 40,
+        "catalogue_size": 67,
+        "learned_pool": 45,
+        "outcomes_known": 45,
+        "catalogue_non_inr": 0
+      },
+      "overall": 0.9383,
+      "checks": {
+        "citation_rate": {
+          "score": 1,
+          "detail": {
+            "requirements": 40,
+            "cited": 40
+          }
+        },
+        "catalogue_price_fidelity": {
+          "score": 1,
+          "detail": {
+            "lines": 22,
+            "in_catalogue": 20,
+            "exact_price": 20,
+            "labelled_external": 2,
+            "unlabelled_off_catalogue": 0,
+            "price_scale": 100,
+            "mismatched_skus": []
+          }
+        },
+        "arithmetic_consistency": {
+          "score": 1,
+          "detail": {
+            "components": 8,
+            "failed": [],
+            "lines": 22,
+            "lines_ok": 22
+          }
+        },
+        "evidence_density": {
+          "score": 0.9011,
+          "detail": {
+            "evidence_items": 91,
+            "resolved": 82,
+            "narrative_words": 634,
+            "per_1000_words": 143.5331
+          }
+        },
+        "claim_hygiene": {
+          "score": 0.12,
+          "detail": {
+            "struck": 3,
+            "supported": 22,
+            "checked": 25,
+            "lower_is_better": true
+          }
+        },
+        "grounding_of_learning": {
+          "score": 1,
+          "detail": {
+            "learned_from": 3,
+            "grounded": 3,
+            "learned_pool": 45,
+            "style_applied": 10,
+            "style_from_brain": 10,
+            "brain_voice_rules": 4,
+            "brain_phrases": 4
+          }
+        },
+        "value_plausibility": {
+          "score": 0,
+          "detail": {
+            "total_inr": 30971318,
+            "won_pool": 8,
+            "same_type_pool": true,
+            "p10": 2356777,
+            "p90": 9837688,
+            "percentile": 1,
+            "inside_p10_p90": false
+          }
+        },
+        "floorplan_grounding": {
+          "score": 0.6875,
+          "detail": {
+            "placements": 16,
+            "sam_3_1": 11,
+            "spark_vision": 5
+          }
+        },
+        "compliance_coverage": {
+          "score": 1,
+          "detail": {
+            "rows": 40,
+            "requirements": 40,
+            "coverage_ratio": 1,
+            "with_status": 40
+          }
+        }
+      }
+    },
+    {
+      "id": "tr43z86b",
+      "created_at": "2026-11-04T10:50:00.486Z",
+      "source": "autopilot",
+      "client": "Qurum Gulf Bank SAOG",
+      "cost_usd": 0.2723,
+      "numbers": {
+        "total_inr": 7659840,
+        "bom_lines": 19,
+        "requirements": 24,
+        "evidence": 60,
+        "compliance_rows": 24,
+        "catalogue_size": 67,
+        "learned_pool": 45,
+        "outcomes_known": 45,
+        "catalogue_non_inr": 0
+      },
+      "overall": 1,
+      "checks": {
+        "citation_rate": {
+          "score": null,
+          "detail": {
+            "requirements": 24,
+            "reason": "unpaginated source text"
+          }
+        },
+        "catalogue_price_fidelity": {
+          "score": 1,
+          "detail": {
+            "lines": 19,
+            "in_catalogue": 17,
+            "exact_price": 17,
+            "labelled_external": 2,
+            "unlabelled_off_catalogue": 0,
+            "price_scale": 100,
+            "mismatched_skus": []
+          }
+        },
+        "arithmetic_consistency": {
+          "score": 1,
+          "detail": {
+            "components": 8,
+            "failed": [],
+            "lines": 19,
+            "lines_ok": 19
+          }
+        },
+        "evidence_density": {
+          "score": 1,
+          "detail": {
+            "evidence_items": 60,
+            "resolved": 60,
+            "narrative_words": 658,
+            "per_1000_words": 91.1854
+          }
+        },
+        "claim_hygiene": {
+          "score": 0,
+          "detail": {
+            "struck": 0,
+            "supported": 18,
+            "checked": 18,
+            "lower_is_better": true
+          }
+        },
+        "grounding_of_learning": {
+          "score": 1,
+          "detail": {
+            "learned_from": 2,
+            "grounded": 2,
+            "learned_pool": 45,
+            "style_applied": 10,
+            "style_from_brain": 10,
+            "brain_voice_rules": 4,
+            "brain_phrases": 6
+          }
+        },
+        "value_plausibility": {
+          "score": 1,
+          "detail": {
+            "total_inr": 7659840,
+            "won_pool": 6,
+            "same_type_pool": true,
+            "p10": 3337025,
+            "p90": 10446682,
+            "percentile": 0.5,
+            "inside_p10_p90": true
+          }
+        },
+        "floorplan_grounding": {
+          "score": null,
+          "detail": {
+            "placements": 0,
+            "sam_3_1": 0,
+            "spark_vision": 0
+          }
+        },
+        "compliance_coverage": {
+          "score": 1,
+          "detail": {
+            "rows": 24,
+            "requirements": 24,
+            "coverage_ratio": 1,
+            "with_status": 24
+          }
+        }
+      }
+    },
+    {
+      "id": "chehr0rp",
+      "created_at": "2026-11-04T22:13:00.918Z",
+      "source": "autopilot",
+      "client": "Qurum Gulf Bank SAOG",
+      "cost_usd": 0.2528,
+      "numbers": {
+        "total_inr": 7705344,
+        "bom_lines": 18,
+        "requirements": 26,
+        "evidence": 70,
+        "compliance_rows": 26,
+        "catalogue_size": 67,
+        "learned_pool": 45,
+        "outcomes_known": 45,
+        "catalogue_non_inr": 0
+      },
+      "overall": 1,
+      "checks": {
+        "citation_rate": {
+          "score": null,
+          "detail": {
+            "requirements": 26,
+            "reason": "unpaginated source text"
+          }
+        },
+        "catalogue_price_fidelity": {
+          "score": 1,
+          "detail": {
+            "lines": 18,
+            "in_catalogue": 16,
+            "exact_price": 16,
+            "labelled_external": 2,
+            "unlabelled_off_catalogue": 0,
+            "price_scale": 100,
+            "mismatched_skus": []
+          }
+        },
+        "arithmetic_consistency": {
+          "score": 1,
+          "detail": {
+            "components": 8,
+            "failed": [],
+            "lines": 18,
+            "lines_ok": 18
+          }
+        },
+        "evidence_density": {
+          "score": 1,
+          "detail": {
+            "evidence_items": 70,
+            "resolved": 70,
+            "narrative_words": 855,
+            "per_1000_words": 81.8713
+          }
+        },
+        "claim_hygiene": {
+          "score": 0,
+          "detail": {
+            "struck": 0,
+            "supported": 20,
+            "checked": 20,
+            "lower_is_better": true
+          }
+        },
+        "grounding_of_learning": {
+          "score": 1,
+          "detail": {
+            "learned_from": 2,
+            "grounded": 2,
+            "learned_pool": 45,
+            "style_applied": 12,
+            "style_from_brain": 12,
+            "brain_voice_rules": 6,
+            "brain_phrases": 7
+          }
+        },
+        "value_plausibility": {
+          "score": 1,
+          "detail": {
+            "total_inr": 7705344,
+            "won_pool": 7,
+            "same_type_pool": true,
+            "p10": 2266560,
+            "p90": 10142185,
+            "percentile": 0.5714,
+            "inside_p10_p90": true
+          }
+        },
+        "floorplan_grounding": {
+          "score": null,
+          "detail": {
+            "placements": 0,
+            "sam_3_1": 0,
+            "spark_vision": 0
+          }
+        },
+        "compliance_coverage": {
+          "score": 1,
+          "detail": {
+            "rows": 26,
+            "requirements": 26,
+            "coverage_ratio": 1,
+            "with_status": 26
+          }
+        }
+      }
+    },
+    {
+      "id": "krwa2m01",
+      "created_at": "2026-11-04T22:25:42.314Z",
+      "source": "chat",
+      "client": "Kurinji Commercial Bank Limited",
+      "cost_usd": 0.5374,
+      "numbers": {
+        "total_inr": 37586417,
+        "bom_lines": 34,
+        "requirements": 39,
+        "evidence": 96,
+        "compliance_rows": 39,
+        "catalogue_size": 67,
+        "learned_pool": 45,
+        "outcomes_known": 45,
+        "catalogue_non_inr": 0
+      },
+      "overall": 0.9632,
+      "checks": {
+        "citation_rate": {
+          "score": 1,
+          "detail": {
+            "requirements": 39,
+            "cited": 39
+          }
+        },
+        "catalogue_price_fidelity": {
+          "score": 1,
+          "detail": {
+            "lines": 34,
+            "in_catalogue": 26,
+            "exact_price": 26,
+            "labelled_external": 8,
+            "unlabelled_off_catalogue": 0,
+            "price_scale": 100,
+            "mismatched_skus": []
+          }
+        },
+        "arithmetic_consistency": {
+          "score": 1,
+          "detail": {
+            "components": 8,
+            "failed": [],
+            "lines": 34,
+            "lines_ok": 34
+          }
+        },
+        "evidence_density": {
+          "score": 0.9688,
+          "detail": {
+            "evidence_items": 96,
+            "resolved": 93,
+            "narrative_words": 754,
+            "per_1000_words": 127.321
+          }
+        },
+        "claim_hygiene": {
+          "score": 0.1333,
+          "detail": {
+            "struck": 4,
+            "supported": 26,
+            "checked": 30,
+            "lower_is_better": true
+          }
+        },
+        "grounding_of_learning": {
+          "score": 1,
+          "detail": {
+            "learned_from": 3,
+            "grounded": 3,
+            "learned_pool": 45,
+            "style_applied": 12,
+            "style_from_brain": 12,
+            "brain_voice_rules": 6,
+            "brain_phrases": 7
+          }
+        },
+        "value_plausibility": {
+          "score": 0,
+          "detail": {
+            "total_inr": 37586417,
+            "won_pool": 7,
+            "same_type_pool": true,
+            "p10": 2266560,
+            "p90": 10142185,
+            "percentile": 1,
+            "inside_p10_p90": false
+          }
+        },
+        "floorplan_grounding": {
+          "score": 0.7857,
+          "detail": {
+            "placements": 14,
+            "sam_3_1": 11,
+            "spark_vision": 3
+          }
+        },
+        "compliance_coverage": {
+          "score": 1,
+          "detail": {
+            "rows": 39,
+            "requirements": 39,
+            "coverage_ratio": 1,
+            "with_status": 39
+          }
+        }
+      }
+    },
+    {
+      "id": "1dm3spzc",
+      "created_at": "2026-11-04T22:42:20.035Z",
+      "source": "api",
+      "client": "Powiat Sochaczewski",
+      "cost_usd": 0.1609,
+      "numbers": {
+        "total_inr": 24508800,
+        "bom_lines": 1,
+        "requirements": 7,
+        "evidence": 17,
+        "compliance_rows": 7,
+        "catalogue_size": 67,
+        "learned_pool": 45,
+        "outcomes_known": 45,
+        "catalogue_non_inr": 0
+      },
+      "overall": 0.8739,
+      "checks": {
+        "citation_rate": {
+          "score": null,
+          "detail": {
+            "requirements": 7,
+            "reason": "unpaginated source text"
+          }
+        },
+        "catalogue_price_fidelity": {
+          "score": null,
+          "detail": {
+            "lines": 1,
+            "in_catalogue": 0,
+            "exact_price": 0,
+            "labelled_external": 1,
+            "unlabelled_off_catalogue": 0,
+            "price_scale": 1,
+            "mismatched_skus": []
+          }
+        },
+        "arithmetic_consistency": {
+          "score": 1,
+          "detail": {
+            "components": 8,
+            "failed": [],
+            "lines": 1,
+            "lines_ok": 1
+          }
+        },
+        "evidence_density": {
+          "score": 0.7059,
+          "detail": {
+            "evidence_items": 17,
+            "resolved": 12,
+            "narrative_words": 609,
+            "per_1000_words": 27.9146
+          }
+        },
+        "claim_hygiene": {
+          "score": 0,
+          "detail": {
+            "struck": 0,
+            "supported": 6,
+            "checked": 6,
+            "lower_is_better": true
+          }
+        },
+        "grounding_of_learning": {
+          "score": null,
+          "detail": {
+            "learned_from": 0,
+            "grounded": 0,
+            "learned_pool": 45,
+            "style_applied": 12,
+            "style_from_brain": 12,
+            "brain_voice_rules": 6,
+            "brain_phrases": 7
+          }
+        },
+        "value_plausibility": {
+          "score": 0,
+          "detail": {
+            "total_inr": 24508800,
+            "won_pool": 20,
+            "same_type_pool": false,
+            "p10": 719340,
+            "p90": 8280619,
+            "percentile": 1,
+            "inside_p10_p90": false
+          }
+        },
+        "floorplan_grounding": {
+          "score": null,
+          "detail": {
+            "placements": 0,
+            "sam_3_1": 0,
+            "spark_vision": 0
+          }
+        },
+        "compliance_coverage": {
+          "score": 1,
+          "detail": {
+            "rows": 7,
+            "requirements": 7,
+            "coverage_ratio": 1,
+            "with_status": 7
+          }
+        }
+      }
+    }
+  ]
+}
