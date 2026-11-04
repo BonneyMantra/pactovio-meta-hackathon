@@ -52,11 +52,22 @@ export function knowledge(brain) {
 let ws = null, state = 'unknown'; // 'unknown' | 'yes' | 'no'
 const KEY = (id) => `pv:logo:${id}`;
 const src = () => `/api/workspaces/logo?w=${encodeURIComponent(ws || '')}`;
-function remember(v) { state = v; try { localStorage.setItem(KEY(ws), v); } catch { /* optional */ } }
+function remember(v) { state = v; try { localStorage.setItem(KEY(ws), v); } catch { /* optional */ } paintShell(); }
+// Screens that draw their own agent tile (chat) pick the company logo up from CSS (home.css .agent-av).
+function paintShell() {
+  const on = state !== 'no' && !!ws;
+  document.body.classList.toggle('has-company-logo', on);
+  if (on) document.body.style.setProperty('--company-logo', `url("${src()}")`);
+}
+let label = 'Pactovio';
+/** The agent's display name everywhere: "Rax Tech's agent". */
+export const agentLabel = () => label;
 
 export function probeLogo(ctx) {
   ws = ctx?.session?.workspace_id || null;
+  if (ctx?.session?.workspace?.name) label = `${possessive(shortName(ctx.session.workspace.name))} agent`;
   try { const v = localStorage.getItem(KEY(ws)); if (v === 'yes' || v === 'no') state = v; } catch { /* optional */ }
+  paintShell();
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => { remember(img.naturalWidth > 0 ? 'yes' : 'no'); resolve(); };

@@ -1,6 +1,7 @@
 // Rendering for agent messages: markdown-light text with citation chips, collapsible tool runs,
 // and action cards that ask before the agent changes anything.
 import { h, icon, fmt, cite } from '../ui.js';
+import { agentLabel } from '../agent-id.js';
 import { logoTile } from './ops-kit.js';
 
 const TOOL_LABEL = {
@@ -68,7 +69,7 @@ export function messageEl(msg) {
   if (msg.content) body.append(richText(msg.content));
   const provs = (msg.tool_calls || []).map((t) => t.input?.provider).filter(Boolean);
   if (provs.length) body.append(h('div.src-line', `${provs.length} source${provs.length === 1 ? '' : 's'} used`, h('span.src-marks', provs.map((p) => logoTile(p, 16)))));
-  return h('div.msg.assistant', h('span.agent-av', icon('logo', 14)), h('div.msg-col', h('div.msg-who', 'Pactovio', h('span.xs.muted', fmt.ago(msg.at))), body));
+  return h('div.msg.assistant', h('span.agent-av', icon('logo', 14)), h('div.msg-col', h('div.msg-who', agentLabel(), h('span.xs.muted', fmt.ago(msg.at))), body));
 }
 
 /** Action card. `decide(id, decision)` must resolve to the updated PendingAction. */

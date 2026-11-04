@@ -125,3 +125,7 @@
 .nf p { margin: 0; }
 .nf-path { font-family: var(--mono); font-size: 12px; padding: 4px 8px; border-radius: 6px; background: var(--surface-2); color: var(--ink-2); max-width: 100%; overflow-wrap: anywhere; }
 .nf-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+
+/* Chat and other screens that draw their own .agent-av tile show the company logo once it is known. */
+.has-company-logo .agent-av { background: #fff var(--company-logo) center / 74% no-repeat; box-shadow: inset 0 0 0 0.5px var(--line-2), 0 1px 2px rgba(0, 0, 0, 0.05); }
+.has-company-logo .agent-av > .ico { visibility: hidden; }

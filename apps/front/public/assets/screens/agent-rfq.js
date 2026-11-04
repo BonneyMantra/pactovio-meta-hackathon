@@ -1,6 +1,7 @@
 // Chat additions: drop an RFQ (and drawings) to start a proposal run, live run card with the model behind each step,
 // and a microphone that sends 16 kHz WAV to /api/voice/transcribe.
 import { h, icon, toast } from '../ui.js';
+import { agentLabel } from '../agent-id.js';
 import { startProposal, getProposal, transcribe, STAGES } from '../doc/api.js';
 import { canRecord, startRecording } from '../voice.js';
 import { steps, liveSteps } from '../doc/steps.js';
@@ -67,7 +68,7 @@ export function rfqKit({ win, ta, feed, scroll, threadId, setBusy }) {
     const list = h('div', steps([{ label: `Uploading ${[rfq, ...extras].length > 1 ? `${[rfq, ...extras].length} files` : 'the request'}`, status: 'running' }])), bar = h('i'), result = h('div');
     const orch = h('span.xs.muted');
     const card = h('div.rq-run', h('div.rq-head', h('span.rq-ico', icon('file', 16)), h('div', h('strong', 'Writing the proposal'), h('div.xs.muted', rfq.name, ' ', orch))), list, h('div.rq-bar', bar), result);
-    feed.append(h('div.msg.assistant', h('span.agent-av', icon('logo', 14)), h('div.msg-col', h('div.msg-who', 'Pactovio', h('span.xs.muted', 'now')), card)));
+    feed.append(h('div.msg.assistant', h('span.agent-av', icon('logo', 14)), h('div.msg-col', h('div.msg-who', agentLabel(), h('span.xs.muted', 'now')), card)));
     scroll(); setBusy(true);
     let id;
     try { id = (await startProposal({ file: rfq, extras, text })).id; }

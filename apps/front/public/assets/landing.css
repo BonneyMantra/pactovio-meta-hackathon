@@ -5,6 +5,8 @@
 .l-nav .in { display: flex; align-items: center; height: 62px; gap: 28px; }
 .l-logo { display: inline-flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 610; letter-spacing: -0.03em; }
 .l-logo .mark { width: 24px; height: 24px; display: block; flex: none; }
+.l-logo .lockup { display: block; height: 28px; width: auto; }
+.pw-side .pw-brand { height: auto; padding: 2px 9px 8px; } .pw-side .pw-brand img { display: block; height: 22px; width: auto; }
 .l-links { display: flex; gap: 26px; margin-left: auto; font-size: 14px; font-weight: 510; }
 .l-links a { color: var(--ink); opacity: 0.92; transition: opacity 150ms; }
 .l-links a:hover { opacity: 0.6; }
@@ -74,7 +76,6 @@
 .cap p { margin: 0; color: var(--ink-2); font-size: 16px; line-height: 24px; }
 .cap.first p { color: var(--ink); }
 .float { position: absolute; animation: drift 7s ease-in-out infinite; }
-.float .mk { width: 28px; height: 28px; border-radius: 8px; font-size: 13px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08); }
 @keyframes drift { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(6px, -10px); } }
 .vcomp { position: absolute; left: 24px; right: 24px; top: 98px; }
 .vsync { position: absolute; inset: 0; display: grid; place-items: center; }
@@ -210,14 +211,9 @@
 .stats .src { margin-top: 12px; color: var(--ink-3); font-size: 11px; line-height: 16px; overflow-wrap: anywhere; }
 
 /* Logo wall: monochrome marks, brand colour on hover, role label per cell */
-.logo { display: inline-block; width: 22px; height: 22px; background-color: var(--ink-2); -webkit-mask: var(--src) center / contain no-repeat; mask: var(--src) center / contain no-repeat; transition: background-color 200ms var(--ease); flex: none; }
-.logo-txt { display: inline-grid; place-items: center; height: 22px; padding: 0 6px; border-radius: 6px; box-shadow: 0 0 0 0.5px var(--line-2); font-size: 11px; font-weight: 610; color: var(--ink-2); letter-spacing: -0.01em; transition: color 200ms, box-shadow 200ms; }
 .logowall { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin-top: 36px; border-top: 0.5px solid var(--line); border-left: 0.5px solid var(--line); }
 .lw { position: relative; display: flex; flex-direction: column; gap: 14px; padding: 22px 20px 20px; border-right: 0.5px solid var(--line); border-bottom: 0.5px solid var(--line); background: var(--bg); transition: background 200ms var(--ease); min-height: 132px; }
 .lw:hover { background: #fff; }
-.lw:hover .logo { background-color: var(--brand); }
-.lw:hover .logo-txt { color: var(--ink); box-shadow: 0 0 0 0.5px var(--ink-3); }
-.lw > .logo, .lw > .logo-txt { align-self: flex-start; }
 .lw .nm { font-size: 15px; font-weight: 510; letter-spacing: -0.01em; }
 .lw .rl { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
 .lw .live { position: absolute; top: 18px; right: 16px; }
@@ -225,8 +221,6 @@
 
 /* App-icon brand tiles (model and agent rosters) */
 .tile .appico { width: 52px; height: 52px; border-radius: 13px; background: #fff; box-shadow: 0 0 0 0.5px var(--line), 0 6px 16px rgba(0, 0, 0, 0.06), inset 0 -1px 0 rgba(0, 0, 0, 0.04); display: grid; place-items: center; margin-bottom: 8px; }
-.tile .appico .logo { width: 26px; height: 26px; background-color: var(--brand, var(--ink)); }
-.tile .appico .logo-txt { box-shadow: none; color: var(--ink); font-size: 12px; }
 
 @media (max-width: 1000px) {
   .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -295,4 +289,6 @@
 .tile .appico .logo-tile { box-shadow: none; }
 .digits.terms span { width: auto; padding: 0 10px; font-size: 18px; font-weight: 550; }
 .tiles.tiles4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+/* Laptop-height desktops (e.g. 1280x800): keep the hero and the agent's reply in the first screen. */
+@media (min-width: 1001px) and (max-height: 900px) { .l-hero { padding-top: 52px; } .l-hero .lead { margin-top: 14px; } .l-hero .teal { margin-top: 26px; padding-top: 34px; } .pw-body { padding-top: 16px; } .pw-msgs { gap: 16px; } }
 @media (max-width: 760px) { .tiles.tiles4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

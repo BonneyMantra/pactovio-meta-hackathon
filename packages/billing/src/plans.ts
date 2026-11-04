@@ -8,7 +8,7 @@ export type CheckoutPlan = 'pro' | 'max' | 'credits';
 
 /** Pricing in USD minor units. Plan ids stay `free|pro|max` (stable for the UI); display names are Scout, Team, Business. */
 export const PLAN_CATALOG = [
-  { id: 'free' as const, name: 'Scout', price_minor: 0, currency: 'USD', monthly_credits: 3, features: ['3 small pack reads a month', 'Sample workspaces', 'Calendar feed'] },
+  { id: 'free' as const, name: 'Scout', price_minor: 0, currency: 'USD', monthly_credits: 3, features: ['3 small pack reads a month', 'Private company workspace', 'Calendar feed'] },
   { id: 'pro' as const, name: 'Team', price_minor: 14900, currency: 'USD', monthly_credits: 150, features: ['150 credits a month', 'Nightly scan', 'Connectors and agent chat', 'Webhooks'] },
   { id: 'max' as const, name: 'Business', price_minor: 44900, currency: 'USD', monthly_credits: 600, features: ['600 credits a month', 'Claim-checked answers', 'MCP and API keys', 'Priority runs'] },
 ];

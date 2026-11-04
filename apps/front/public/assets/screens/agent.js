@@ -1,6 +1,7 @@
 // Agent: the 24x7 desk agent. Threads on the left, a streaming conversation on the right over the
 // workspace WebSocket (HTTP fallback). State-changing tools arrive as action cards to confirm.
 import { api, h, icon, toast, skeleton, errorBox } from '../ui.js';
+import { agentLabel } from '../agent-id.js';
 import { messageEl, richText, toolGroup, actionCard } from './agent-thread.js';
 import { rfqKit } from './agent-rfq.js';
 
@@ -13,7 +14,7 @@ export async function render(root, _p, ctx) {
 
   const list = h('div.thread-list');
   const feed = h('div.feed');
-  const title = h('div.conv-title', 'Pactovio');
+  const title = h('div.conv-title', agentLabel());
   const sub = h('div.xs.muted');
   const headRight = h('div', { style: { display: 'flex', gap: '6px' } });
   const ta = h('textarea', { rows: '1', placeholder: 'Ask about a tender, an RFQ or a quote…', 'aria-label': 'Message the agent' });
@@ -102,7 +103,7 @@ export async function render(root, _p, ctx) {
     const tools = toolGroup([]);
     tools.el.style.display = 'none';
     const text = h('div.msg-text.streaming');
-    const col = h('div.msg-col', h('div.msg-who', 'Pactovio', h('span.xs.muted', 'now')), h('div.msg-body', tools.el, text));
+    const col = h('div.msg-col', h('div.msg-who', agentLabel(), h('span.xs.muted', 'now')), h('div.msg-body', tools.el, text));
     feed.append(h('div.msg.assistant', h('span.agent-av', icon('logo', 14)), col));
     state.live = { raw: '', text, tools, col };
     return state.live;
@@ -149,7 +150,7 @@ export async function render(root, _p, ctx) {
         if (f.action && !state.cards.has(f.action.id)) {
           const mine = state.live && (!f.thread_id || f.thread_id === state.current);
           if (mine) state.live.col.append(card(f.action));
-          else if (state.current === 'thr_inbox' || f.thread_id === state.current) feed.append(h('div.msg.assistant', h('span.agent-av', icon('logo', 14)), h('div.msg-col', h('div.msg-who', 'Pactovio'), card(f.action))));
+          else if (state.current === 'thr_inbox' || f.thread_id === state.current) feed.append(h('div.msg.assistant', h('span.agent-av', icon('logo', 14)), h('div.msg-col', h('div.msg-who', agentLabel()), card(f.action))));
           scroll();
         }
         break;

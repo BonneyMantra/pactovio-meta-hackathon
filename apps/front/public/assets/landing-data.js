@@ -20,10 +20,10 @@ export const CONNECTORS = [
 ];
 
 export const MODELS = [
-  { name: 'Muse Spark 1.3', role: 'Reads every PDF and RFQ, learns the house style, writes the proposal' },
-  { name: 'Muse Wonder 1.0', role: 'Orchestrates the bid from RFQ to finished document' },
+  { name: 'Muse Spark', role: 'Reads every PDF and RFQ, learns the house style, writes the proposal' },
+  { name: 'Muse Wonder', role: 'Orchestrates the bid from RFQ to finished document' },
   { name: 'SAM 3.1', role: 'Segments the branch floor plan so every device lands in the right room' },
-  { name: 'Muse Image 1.0', role: 'Draws the concept visual, always labelled as generated' },
+  { name: 'Muse Image', role: 'Draws the concept visual, always labelled as generated' },
   { name: 'Muse Voice Transcribe', role: 'Takes an RFQ by voice in the chat' },
 ].map((m) => ({ ...m, brand: 'meta' }));
 
