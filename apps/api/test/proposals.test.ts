@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { Env } from '@pactovio/contracts/env';
+import { SAM_CONCEPTS } from '../../../packages/proposal/src/floorplan';
 import { assetKey, computeTotals, createProposal, getProposalRow, groupInr, inputKey, loadCatalogue, loadProposalJson, listSteps, Proposal, runProposal, setBrainFixture, totalsConsistent } from '@pactovio/proposal';
 import { buildApp } from '../src/app';
 import { makeEnv } from './helpers';
@@ -100,7 +101,7 @@ describe('full pipeline with scripted models', () => {
     expect(steps.find((s) => s.name === 'orchestrate')!.models.join()).toContain('muse-wonder-1.0');
   });
   it('SAM is called once per concept (billed per call), not re-run by the fallback sweep', () => {
-    expect(m.calls.filter((c) => c.url.endsWith('/responses'))).toHaveLength(3);
+    expect(m.calls.filter((c) => c.url.endsWith('/responses'))).toHaveLength(SAM_CONCEPTS.length);
   });
 });
 

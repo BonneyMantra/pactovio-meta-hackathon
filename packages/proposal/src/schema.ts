@@ -20,6 +20,12 @@ export const Placement = z.object({
   anchor: z.string().optional(),
 });
 
+export const GoNoGo = z.object({
+  decision: z.enum(['go', 'conditional', 'no_go']), confidence: z.number().min(0).max(1), reasons: z.array(z.string()),
+  basis: z.object({ coverage: z.number(), similar_won: z.number(), similar_decided: z.number(), eligibility_gaps: z.number(), eligibility_to_confirm: z.number(), days_left: z.number().nullable() }),
+});
+export type GoNoGo = z.infer<typeof GoNoGo>;
+
 export const Proposal = z.object({
   ref: z.string().min(1), revision: z.string(), date: z.string(), validity_days: z.number().int().min(1).max(365),
   client: z.object({ name: z.string(), sector: z.string(), city: z.string(), country: z.string(), contact_name: z.string(), contact_title: z.string() }),
@@ -54,7 +60,13 @@ export const Proposal = z.object({
     sites: z.object({ atm: z.number().int().min(0), branch: z.number().int().min(0) }),
     zone_map: z.array(z.object({ zone: z.string(), device_sku: z.string(), input: z.string(), wiring: z.string() })),
   }).optional(),
-  floorplan: z.object({ image_ref: z.string(), placements: z.array(Placement) }).optional(),
+  floorplan: z.object({
+    image_ref: z.string(), placements: z.array(Placement),
+    /** Objects SAM 3.1 segmented on the drawing, as the vision model named them. */
+    objects: z.array(z.object({ id: z.string(), what: z.string(), box: z.array(z.number()) })).optional(),
+    sam_calls: z.number().int().optional(),
+  }).optional(),
+  go_no_go: GoNoGo.optional(),
   concept_visual: z.object({ image_ref: z.string(), prompt: z.string(), label: z.literal('Concept visual — generated, not a product photo') }).optional(),
   learned_from: z.array(z.string()).default([]),
   style_applied: z.array(z.string()).default([]),

@@ -2,6 +2,7 @@ import type { RunCtx } from './ctx';
 import { CONCEPT_LABEL } from './visual';
 import { Proposal } from './schema';
 import { assetName } from './assets';
+import { goNoGo } from './gonogo';
 
 /** Build the final Proposal from run state. Pure: every figure was computed upstream in code; this only arranges and validates. */
 export function assemble(ctx: RunCtx, opts: { today?: Date; preparedBy?: { name: string; title: string } } = {}): Proposal {
@@ -23,7 +24,8 @@ export function assemble(ctx: RunCtx, opts: { today?: Date; preparedBy?: { name:
     turnaround_days: 0,
     evidence: claims.evidence,
     site_kit: { per_site_items: bom.per_site_items, per_branch_items: bom.per_branch_items, sites: rfq.sites, zone_map: design.zone_map },
-    ...(fp ? { floorplan: { image_ref: assetName(fp.image_ref), placements: fp.placements } } : {}),
+    ...(fp ? { floorplan: { image_ref: assetName(fp.image_ref), placements: fp.placements, objects: fp.objects, sam_calls: fp.sam_calls } } : {}),
+    go_no_go: goNoGo(ctx, opts.today),
     ...(visual && 'image_key' in visual ? { concept_visual: { image_ref: assetName(visual.image_key), prompt: visual.prompt, label: CONCEPT_LABEL } } : {}),
     learned_from: selection.learned_from,
     style_applied: bom.style_applied,

@@ -33,7 +33,7 @@ export const readRfq = (ctx: RunCtx): Promise<string> => runStep(ctx, 'read_rfq'
   const messages = [{ role: 'system', content: SYSTEM }, { role: 'user', content: [...rfqParts(ctx.files), { type: 'text', text: 'Extract the RFQ now as JSON.' }] }] as unknown as ChatMessage[];
   const rfq = await ask(ctx, RfqRead, { purpose: 'Read RFQ (native PDF)', role: 'reason', messages, maxTokens: 9000, name: 'rfq_read', timeoutMs: 170_000 });
   const names = new Set(ctx.files.map((f) => f.filename));
-  if (rfq.floorplan_file && !names.has(rfq.floorplan_file)) rfq.floorplan_file = ctx.files.find(isImage)?.filename ?? null;
+  if (!rfq.floorplan_file || !names.has(rfq.floorplan_file)) rfq.floorplan_file = ctx.files.find(isImage)?.filename ?? null;
   rfq.requirements = rfq.requirements.slice(0, 60);
   ctx.state.rfq = rfq;
   return `${rfq.requirements.length} requirements from ${ctx.files.length} file(s)`;

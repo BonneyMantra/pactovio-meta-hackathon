@@ -52,7 +52,7 @@ const DESIGN = {
   links: [{ from: 'n1', to: 'n2', label: 'MQTT 5' }, { from: 'n1', to: 'n9', label: 'dangling' }],
   zone_map: [{ zone: 'Z1', device_sku: 'EXT-PIR-SENS', input: 'IN1', wiring: 'NC loop, 2-core' }, { zone: 'Z2', device_sku: 'NOT-SUPPLIED', input: 'IN2', wiring: 'n/a' }],
 };
-const PLACEMENTS = { placements: [
+const PLACEMENTS = { anchors: [{ id: 'A1', what: 'ATM 1' }, { id: 'A2', what: 'legend swatch' }], placements: [
   { device_sku: 'EXT-PIR-SENS', label: 'PIR - ATM lobby', anchor_id: 'A1', where: 'above', approx_xy: null },
   { device_sku: 'RT-AP-8Z', label: 'Panel - server room', anchor_id: null, where: 'on', approx_xy: [0.2, 0.55] },
   { device_sku: 'NOT-IN-KIT', label: 'ghost', anchor_id: 'A2', where: 'on', approx_xy: null },
