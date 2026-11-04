@@ -169,3 +169,9 @@ textarea.rq-hearing { color: var(--ink-2); }
 .pd-editing [data-edit]:hover { background: rgba(11, 95, 120, 0.05); }
 .pd-editing [data-edit]:focus { outline: 1.5px solid var(--pd-teal, #0b5f78); background: rgba(11, 95, 120, 0.06); }
 @media print { .pd-editing [data-edit] { outline: none; background: none; } }
+
+/* Composer: the Meta model that will handle the next send */
+.cm-model { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 9px 0 7px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); font-size: 12px; font-weight: 500; white-space: nowrap; cursor: default; transition: background .2s, color .2s; }
+.cm-model img { width: 16px; height: auto; display: block; }
+.cm-model[data-mode="voice"] { background: var(--bad-soft); color: var(--bad); }
+@media (max-width: 600px) { .cm-model { padding: 0 7px; } .cm-model span { display: none; } }

@@ -5,6 +5,13 @@ import { agentLabel } from '../agent-id.js';
 import { messageEl, richText, toolGroup, actionCard } from './agent-thread.js';
 import { rfqKit } from './agent-rfq.js';
 
+// The model behind each composer state, as the server runs it: the agent lane (LANE_AGENT, Muse Spark 1.3), the proposal
+// run's orchestrator (Muse Wonder, Spark takes over if it errors), and speech-to-text on the mic.
+const MODEL = {
+  chat: ['Muse Spark', 'Muse Spark 1.3 answers in chat'],
+  proposal: ['Muse Wonder', 'Muse Wonder orchestrates the proposal run'],
+  voice: ['Muse Voice Transcribe', 'Muse Voice Transcribe is turning your speech into text'],
+};
 const SUGGEST = ["What's on today?", 'What is our win rate on banking bids?', 'Which open tenders fit us best?', 'Summarise the newest RFQ in the inbox'];
 
 export async function render(root, _p, ctx) {
@@ -18,11 +25,21 @@ export async function render(root, _p, ctx) {
   const sub = h('div.xs.muted');
   const headRight = h('div', { style: { display: 'flex', gap: '6px' } });
   const ta = h('textarea', { rows: '1', placeholder: 'Ask about a tender, an RFQ or a quote…', 'aria-label': 'Message the agent' });
-  const sendBtn = h('button.send', { title: 'Send', 'aria-label': 'Send' }, icon('send', 16));
+  const sendBtn = h('button.send', { title: 'Send (Enter) · Shift+Enter for a new line', 'aria-label': 'Send' }, icon('send', 16));
   const chips = h('div.suggest', SUGGEST.map((s) => h('button.chip.outline', { onclick: () => send(s) }, s)));
   const dot = h('span.live-dot', { title: 'Connecting' });
 
-  const composer = h('div.composer', ta, h('span.xs.muted.hint', '↵ send · ⇧↵ new line'), sendBtn);
+  // Which Meta model handles what you are about to send (the mic, a proposal run, or plain chat). Shortcuts live in its tooltip.
+  const modelName = h('span');
+  const modelTag = h('span.cm-model', { role: 'status', 'aria-live': 'polite' }, h('img', { src: '/assets/brand/meta/mark.svg', alt: 'Meta', width: '16', height: '11' }), modelName);
+  const showModel = (m) => {
+    const [name, does] = MODEL[m] || MODEL.chat;
+    modelName.textContent = name;
+    modelTag.title = `${does} · Enter to send · Shift+Enter for a new line`;
+    modelTag.dataset.mode = m;
+  };
+  showModel('chat');
+  const composer = h('div.composer', ta, modelTag, sendBtn);
   const composerWrap = h('div.composer-wrap', chips, composer);
   const win = h('div.agent-win.card',
     h('div.agent-side',
@@ -34,7 +51,7 @@ export async function render(root, _p, ctx) {
       feed,
       composerWrap));
   root.append(win);
-  const kit = rfqKit({ win, ta, feed, scroll: () => { feed.scrollTop = feed.scrollHeight; }, threadId: () => state.current, setBusy: (b) => setBusy(b), thread: { ensure: ensureThread, rename: renameThread } });
+  const kit = rfqKit({ win, ta, feed, scroll: () => { feed.scrollTop = feed.scrollHeight; }, threadId: () => state.current, setBusy: (b) => setBusy(b), thread: { ensure: ensureThread, rename: renameThread }, onMode: showModel });
   composer.prepend(kit.attach);
   composer.insertBefore(kit.mic, sendBtn);
   composerWrap.insertBefore(kit.tray, composer);

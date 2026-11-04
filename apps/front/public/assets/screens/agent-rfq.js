@@ -27,8 +27,11 @@ export function rfqTitle(rfq, filename = '') {
 }
 const fileTitle = (name) => String(name || 'RFQ').replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' ').trim().slice(0, 80);
 
-export function rfqKit({ win, ta, feed, scroll, threadId, setBusy, thread }) {
-  let files = [], rec = null, timer = null, hints = [], base = '', heard = '';
+export function rfqKit({ win, ta, feed, scroll, threadId, setBusy, thread, onMode }) {
+  let files = [], rec = null, hearing = false, timer = null, hints = [], base = '', heard = '';
+  // What the next send does: 'voice' while the mic records or transcribes, 'proposal' with an RFQ attached, else 'chat'.
+  const mode = () => (hearing ? 'voice' : files.length ? 'proposal' : 'chat');
+  const tell = () => onMode?.(mode());
   // The company's short name for the agent's first reply ("the way Rax writes them").
   let company = null;
   api('/brain').then((b) => { const n = b?.profile?.legal_name || b?.profile?.name || ''; company = n.split(/\s+/)[0] || null; }).catch(() => {});
@@ -61,6 +64,7 @@ export function rfqKit({ win, ta, feed, scroll, threadId, setBusy, thread }) {
       h('span.rq-fname', f.name), h('span.rq-tag', i === 0 ? 'RFQ' : 'Drawing'), h('span.xs.muted', kb(f.size)),
       h('button', { type: 'button', 'aria-label': `Remove ${f.name}`, onclick: () => { files.splice(i, 1); draw(); } }, icon('x', 12)))));
     ta.placeholder = files.length ? 'Add a note for this proposal (optional)…' : 'Ask about a tender, an RFQ or a quote…';
+    tell();
   }
 
   const show = (t) => { ta.value = `${base}${t}`; ta.dispatchEvent(new Event('input')); };
@@ -86,13 +90,13 @@ export function rfqKit({ win, ta, feed, scroll, threadId, setBusy, thread }) {
         if (text || heard) { show(text || heard); ta.focus(); }
         else toast('No speech was recognised. Try again a little closer to the microphone.');
       } catch (e) { if (heard) show(heard); else toast(e.message || 'Voice transcription failed.'); }
-      finally { mic.classList.remove('busy'); mic.disabled = false; mic.replaceChildren(icon('mic', 17)); }
+      finally { mic.classList.remove('busy'); mic.disabled = false; mic.replaceChildren(icon('mic', 17)); hearing = false; tell(); }
       return;
     }
     try { rec = await startRecording(); } catch { toast('Microphone access was blocked. Allow it in the browser to speak to the agent.'); return; }
     base = ta.value.trim() ? `${ta.value.trim()} ` : ''; heard = '';
     const t0 = Date.now();
-    mic.classList.add('rec'); ta.classList.add('rq-hearing');
+    mic.classList.add('rec'); ta.classList.add('rq-hearing'); hearing = true; tell();
     const tick = () => { const s = Math.floor((Date.now() - t0) / 1000); mic.replaceChildren(h('i'), h('span', `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`)); if (s >= 120) toggleMic(); };
     tick(); timer = setInterval(tick, 500);
     listen(rec);
@@ -147,5 +151,5 @@ export function rfqKit({ win, ta, feed, scroll, threadId, setBusy, thread }) {
     poll();
   }
 
-  return { tray, attach, mic, hasFiles: () => files.length > 0, run };
+  return { tray, attach, mic, mode, hasFiles: () => files.length > 0, run };
 }
