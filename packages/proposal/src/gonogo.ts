@@ -35,8 +35,8 @@ export function goNoGo(ctx: RunCtx, today = new Date()): GoNoGo | undefined {
     if (Number.isFinite(due)) { days = Math.round((due - today.getTime()) / 86_400_000); if (days >= 0) reasons.push(`Bid due ${rfq.due_date.slice(0, 10)}: ${days} days to close the gaps.`); }
   }
 
-  let conf = 0.2 + 0.4 * coverage + 0.35 * (winRate ?? 0.5) - 0.07 * eligDev.length - 0.025 * eligPart.length - (days !== null && days < 10 ? 0.05 : 0);
+  let conf = 0.2 + 0.4 * coverage + 0.35 * (winRate ?? 0.5) - 0.06 * Math.min(3, eligDev.length) - Math.min(0.12, 0.015 * eligPart.length) - (days !== null && days < 10 ? 0.05 : 0);
   conf = Math.round(Math.min(0.95, Math.max(0.08, conf)) * 100) / 100;
-  const decision: GoNoGo['decision'] = eligDev.length >= 3 || conf < 0.35 ? 'no_go' : eligDev.length || eligPart.length || conf < 0.6 ? 'conditional' : 'go';
+  const decision: GoNoGo['decision'] = eligDev.length >= 4 || conf < 0.3 ? 'no_go' : eligDev.length || eligPart.length || conf < 0.6 ? 'conditional' : 'go';
   return { decision, confidence: conf, reasons, basis: { coverage: Math.round(coverage * 100) / 100, similar_won: won, similar_decided: similar.length, eligibility_gaps: eligDev.length, eligibility_to_confirm: eligPart.length, days_left: days } };
 }

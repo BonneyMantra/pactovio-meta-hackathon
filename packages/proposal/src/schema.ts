@@ -58,7 +58,7 @@ export const Proposal = z.object({
     per_site_items: z.array(z.object({ sku: z.string(), qty: z.number().int().positive() })),
     per_branch_items: z.array(z.object({ sku: z.string(), qty: z.number().int().positive() })).optional(),
     sites: z.object({ atm: z.number().int().min(0), branch: z.number().int().min(0) }),
-    zone_map: z.array(z.object({ zone: z.string(), device_sku: z.string(), input: z.string(), wiring: z.string() })),
+    zone_map: z.array(z.object({ zone: z.string(), device_sku: z.string(), input: z.string(), wiring: z.string(), site: z.enum(['atm', 'branch', 'site']).optional() })),
   }).optional(),
   floorplan: z.object({
     image_ref: z.string(), placements: z.array(Placement),
@@ -67,7 +67,12 @@ export const Proposal = z.object({
     sam_calls: z.number().int().optional(),
   }).optional(),
   go_no_go: GoNoGo.optional(),
-  concept_visual: z.object({ image_ref: z.string(), prompt: z.string(), label: z.literal('Concept visual — generated, not a product photo') }).optional(),
+  concept_visual: z.object({
+    image_ref: z.string(), prompt: z.string(), label: z.literal('Concept visual — generated, not a product photo'),
+    /** Typical-site device placement on the visual: SAM 3.1 objects + anchored devices. */
+    site: z.string().optional(), placements: z.array(Placement).optional(),
+    objects: z.array(z.object({ id: z.string(), what: z.string(), box: z.array(z.number()) })).optional(),
+  }).optional(),
   learned_from: z.array(z.string()).default([]),
   style_applied: z.array(z.string()).default([]),
   struck_claims: z.array(z.object({ text: z.string(), reason: z.string() })).default([]),

@@ -13,7 +13,7 @@ export interface RunState {
   design?: import('./design').DesignResult;
   floorplan?: import('./floorplan').FloorplanResult | { skipped: string };
   compliance?: import('./compliance').ComplianceRow[];
-  visual?: { image_key: string; prompt: string } | { skipped: string };
+  visual?: import('./visual').VisualState | { skipped: string };
   claims?: import('./claims').ClaimReport;
   /** Which model drove each step (orchestrator or direct), for the UI. */
   models: Record<string, string[]>;

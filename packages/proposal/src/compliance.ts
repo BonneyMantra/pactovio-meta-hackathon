@@ -19,8 +19,8 @@ export async function companyFacts(ctx: RunCtx): Promise<string> {
 
 const SYSTEM = `You are the compliance reviewer for a supplier's bid. For EACH requirement decide complies / partial / deviation, with a one-line remark.
 Rules:
-- A functional requirement "complies" only if a selected catalogue item or listed engineering package delivers it; "partial" when it needs custom engineering, a bought-out item with OEM confirmation, or confirmation of a spec; "deviation" when not met.
-- Eligibility and commercial requirements (turnover, certifications, references, service centres, authorisations) "comply" ONLY when the company facts below state it; otherwise "partial" or "deviation" and the remark says what evidence is missing. Never assume a qualification.
+- A functional requirement "complies" when a selected catalogue item, bought-out item or listed engineering package delivers it as described (name it); "partial" only when part of it is not covered or depends on something outside the supply (OEM authorisation, client-side work); "deviation" when the offer does not meet it.
+- Eligibility and commercial requirements (turnover, certifications, references, service centres, authorisations): "complies" ONLY when the company facts below state it; "partial" when the facts are silent (remark: "To confirm: <evidence to attach>"); "deviation" only when the facts or past proposals show it is not met (e.g. too few qualifying references, no presence in a required state). Never assume a qualification.
 - Remarks are short, factual, no marketing language, and cite the sku or work package that delivers the item.`;
 
 export const buildCompliance = (ctx: RunCtx): Promise<string> => runStep(ctx, 'compliance_matrix', () => !!ctx.state.compliance, async () => {

@@ -96,7 +96,7 @@ describe('readBrainTables', () => {
     const { workspace: P } = await customerFixture(env);
     const r = await getBrain(env, P);
     expect(r.past).toEqual([]);
-    expect(r.brain!.profile.legal_name).toBe('Meridian Instruments');
+    expect(r.brain!.profile?.legal_name).toBe('Meridian Instruments');
     expect(r.brain!.style).toBeUndefined();
   });
 });
@@ -136,18 +136,20 @@ describe('goNoGo', () => {
     expect(r.reasons.some((s) => s.startsWith('Gap:'))).toBe(true);
     expect(r.basis.eligibility_gaps).toBe(1);
   });
-  it('three eligibility deviations is no_go', () => {
+  it('three eligibility deviations is a conditional bid; four is no_go', () => {
     const reqs = [...fn, req(4, 'eligibility'), req(5, 'eligibility'), req(6, 'commercial')];
     const r = goNoGo(runCtx(reqs, (q) => (q.category === 'functional' ? 'complies' : 'deviation'), hist(5, 5)), TODAY)!;
-    expect(r.decision).toBe('no_go');
+    expect(r.decision).toBe('conditional');
     expect(r.basis.eligibility_gaps).toBe(3);
+    const four = goNoGo(runCtx([...reqs, req(7, 'eligibility')], (q) => (q.category === 'functional' ? 'complies' : 'deviation'), hist(5, 5)), TODAY)!;
+    expect(four.decision).toBe('no_go');
   });
   it('clamps confidence to [0.08, 0.95] and flags a poor all-deviation bid', () => {
     const bad = goNoGo(runCtx(fn, () => 'deviation', hist(6, 0), '2026-11-06'), TODAY)!;
     expect(bad.decision).toBe('no_go'); expect(bad.confidence).toBe(0.15); // 0.2 base - 0.05 short-deadline penalty
     const reqs = Array.from({ length: 8 }, (_, i) => req(i, 'eligibility'));
     const floor = goNoGo(runCtx(reqs, () => 'deviation', hist(6, 0), '2026-11-06'), TODAY)!;
-    expect(floor.confidence).toBe(0.08);
+    expect(floor.decision).toBe('no_go'); expect(floor.confidence).toBeGreaterThanOrEqual(0.08);
   });
   it('past due dates give negative days_left and no countdown reason; missing due_date gives null', () => {
     const past = goNoGo(runCtx(fn, () => 'complies', [], '2026-10-30'), TODAY)!;

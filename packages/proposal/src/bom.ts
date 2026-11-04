@@ -31,7 +31,8 @@ const SYSTEM = `You write the commercial and narrative parts of a supplier's pro
 - plan: 4-6 phases with weeks; the sum of weeks is the elapsed project length.
 - Never state any rupee total, subtotal, GST or grand total in prose; write {{TOTAL_INR}} where the project value belongs (prices are computed by the system).
 - Only mention products that appear in "Selected catalogue lines" or your external_items. Never invent certifications, client names or numbers that are not in the inputs.
-- Follow the supplier voice rules and fixed phrases when provided. Executive summary: 3 short paragraphs.`;
+- Follow the supplier voice rules and fixed phrases when provided. Executive summary: 3 short paragraphs.
+- Prose is for a bank's procurement committee: name products by what they are ("an 8-zone ATM alarm panel", "edge video analytics"), never by sku codes; at most one sku in any sentence. solution_overview: 2-3 short paragraphs (per ATM site, per branch, central platform), separated by a blank line.`;
 
 export const composeBom = (ctx: RunCtx): Promise<string> => runStep(ctx, 'compose_bom', () => !!ctx.state.bom, async () => {
   const { rfq, selection } = ctx.state;
