@@ -118,7 +118,7 @@ What the model decides and what code decides (detail and line references in [adr
 | `claim_check` (`claims.ts`) | none | Strikes any sentence whose figure, name, standard or date has no evidence |
 | go/no-go (`gonogo.ts`) | none | Weighs coverage, win rate on similar past bids, deviations and deadline |
 
-Every stage writes a `proposal_steps` row with its models, tokens, cost, milliseconds and summary. It also saves the whole run state, so a Workflow retry resumes after the last finished stage (`packages/proposal/src/ctx.ts`).
+Every stage writes a `proposal_steps` row with its models, tokens, cost, milliseconds and summary. `GET /api/proposals/:id/events` streams those rows to the browser as server-sent events while the run is going (`apps/api/src/routes/proposal-events.ts`, protocol in [API-STREAM.md](API-STREAM.md)). The proposal screen refreshes when a step lands and falls back to polling on any stream error. A public page draws one finished run from the same rows: https://pactovio-meta.pages.dev/trace. It also saves the whole run state, so a Workflow retry resumes after the last finished stage (`packages/proposal/src/ctx.ts`).
 
 ### SAM 3.1 placement pipeline
 

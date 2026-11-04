@@ -6,13 +6,13 @@
 
 **An AI bid desk for technical B2B suppliers.** Pactovio learns how a company wins from its past proposals and CRM. It reads a buyer's RFQ, then returns a priced, page-cited, evidence-checked proposal in the company's own voice. Nothing leaves until a person approves it.
 
-**Live:** https://pactovio-meta.pages.dev (the product is at `/app`). Built for the Meta Global AI Developer Hackathon 2026, Startups Track.
+**Live:** https://pactovio-meta.pages.dev (the product is at `/app`). **[One real run, traced](https://pactovio-meta.pages.dev/trace):** the timeline, models, tokens, cost and floor-plan placements of a production bid. Built for the Meta Global AI Developer Hackathon 2026, Startups Track.
 
 Measured in production (read-only, 5 Nov 2026):
 
 - **A full bid on five Meta models costs $0.39 and takes 7.2 minutes**, averaged over 13 runs.
 - **Muse Wonder orchestrated all 13.**
-- **Learning one past proposal costs $0.026.**
+- **Learning one past proposal costs $0.026.** Spark's reading of 45 past proposal PDFs matches the source records on **93.7%** of fields, and on **99.2%** of bill-of-materials lines ([eval](docs/EVALS.md#eval-how-accurately-muse-spark-reads-past-proposals)).
 - **787 tests** run on every push.
 
 Engineering docs: [Architecture](docs/ARCHITECTURE.md) · [Models and lanes](docs/MODELS.md) · [Evals and tests](docs/EVALS.md) · [Security](docs/SECURITY.md) · [Decision records](docs/adr/README.md) · [API](docs/API.md) · [Contributing](CONTRIBUTING.md)
@@ -115,6 +115,11 @@ Connectors run through Composio: Gmail, Outlook, Slack, Teams, HubSpot, Salesfor
   - no tracked env files or token-shaped secrets
   - no script targeting a retired deployment
   - LICENSE and CODEOWNERS present
+- **Evals** (`packages/evals`, `scripts/evals`, [EVALS.md](docs/EVALS.md)):
+  - Spark's reading of 45 past proposals: 93.7% of fields and 99.2% bill-of-materials F1 against the source records.
+  - Production proposals scored in code: 0.96 overall, with 100% page citations, catalogue prices and arithmetic.
+  - A live Wonder vs Spark orchestrator comparison.
+- **Live progress.** `GET /api/proposals/:id/events` streams step telemetry as server-sent events, and the proposal screen falls back to polling ([API-STREAM.md](docs/API-STREAM.md)).
 - **Durable runs.** Five Cloudflare Workflows with per-step retries. Proposal stages are idempotent and resume after a failure ([ADR 0004](docs/adr/0004-wonder-orchestrates-idempotent-tools.md)).
 
 ## Built during the hackathon

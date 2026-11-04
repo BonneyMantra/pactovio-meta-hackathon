@@ -132,6 +132,77 @@ Per stage (mean over successful runs):
 | Past-proposal PDFs read natively by Muse Spark | 225 over 5 learning runs (45 per run). Status `done` for all 225; none failed |
 | Cost per PDF | mean **$0.026** (`muse-spark-1.3@low`), so learning 45 proposals costs about $1.18 |
 
+## Eval: how accurately Muse Spark reads past proposals
+
+**What it measures.** Each of the 45 past proposal PDFs is scored against the structured record it was rendered from. The records are at `pactovio-demo-data/rax-proposals/out/*.json`, outside this repo. What is scored is the extraction stored in production `brain_documents` by the latest completed learning run (`brn_6c31979717ecc592a8d4`, read-only snapshot, 5 Nov 2026).
+
+**Code.** The scorer is `packages/evals/src/brain-score.ts`, with unit tests in `packages/evals/test/brain-score.test.ts`. The CLI is `scripts/evals/brain-extraction.ts`. The result is [`docs/evals/brain-extraction.json`](evals/brain-extraction.json).
+
+| Result | Value |
+|---|---|
+| Documents matched | **45 / 45** |
+| Overall field accuracy (macro mean, 19 fields) | **93.7%** |
+| Exact on these 15 fields: ref, revision, date, validity, client, RFQ ref, title, prepared by, total value (±0.5%), warranty ×2, AMC %, engineering items, engineering person-days (±5%), compliance rows | 100% |
+| Bill of materials: SKU precision / recall / F1 over 381 line items | **99.2% / 99.2% / 99.2%** |
+| Quantity exact on matched SKUs | **100%** |
+| Client city | 97.8% |
+| Solution type (4 classes) | 84.4%. All 7 misses read `fully_custom_engineered` as `own_plus_custom_engineering` |
+| Turnaround days | 55.6%. The PDFs never state it; it can only be derived from the issue date and the RFQ date |
+| Client sector | 42.2%. The PDFs print no sector, so Spark infers one, often coarser (for example "Retail" where the record says "Retail chain") |
+| Win or loss (reported, not in the overall) | 20%. A proposal PDF cannot know its own outcome, so Spark correctly returns `pending`. The app takes outcome from HubSpot deals (`packages/brain/src/outcomes.ts`) |
+
+Reproduce with `npx tsx scripts/evals/brain-extraction.ts --truth <records dir> --snapshot <export.json> --out docs/evals/brain-extraction.json`.
+
+## Eval: proposal quality, scored in code
+
+**What it scores.** Every completed production proposal (13 of them) is checked against its own workspace data: the catalogue, the learned past proposals and their outcomes (read-only snapshot, 5 Nov 2026). Every check is deterministic.
+
+**Code.** The scorer is `packages/evals/src/proposal-score.ts`, with tests in `packages/evals/test/proposal-score.test.ts`. The CLI is `scripts/evals/proposal-quality.ts`. The result is [`docs/evals/proposal-quality.json`](evals/proposal-quality.json).
+
+| Check | Proposals scored | Mean (min–max) |
+|---|---|---|
+| **Overall** (weighted: price 0.20, arithmetic 0.20, citations, evidence, grounding, floor plan 0.15 each) | 13 | **0.96** (0.87–1.00) |
+| Requirements carrying a document + page citation | 10 | **100%** |
+| BoM lines priced exactly at the workspace catalogue price | 10 | **100%** |
+| Arithmetic re-computed from the proposal (lines, subtotal, discount, GST, total) | 13 | **100%** |
+| Compliance rows for every requirement, each with a status | 13 | **100%** |
+| `learned_from` refs that exist in the learned past proposals | 10 | **100%** |
+| Evidence items that resolve to a real page, SKU or past proposal | 13 | 92% (71–100%) |
+| Floor-plan placements anchored to a SAM 3.1 object | 8 | 81% (69–87%) |
+| Struck sentences ÷ checked claims (lower is better) | 13 | 8% (0–27%) |
+
+A check counts as *not applicable*, and is left out of that proposal's mean, in these cases:
+
+- A run whose RFQ was pasted text with no pages has no page citations to check.
+- A workspace with no catalogue has no catalogue prices to check.
+- A run with no floor-plan image has no placements to check.
+
+**Findings we have not fixed:**
+
+- **Totals are above the won range.** Every hero bid totals ₹2.2–3.8 crore. That is above the 90th percentile of Rax's won proposals of the same type (₹0.24–0.98 crore), most likely because 120 ATMs and 18 branches is a bigger rollout than any past win. The value is reported, not weighted, because nothing yet validates a total against bid size.
+- **One run had an implausible total.** It ran before the catalogue existed and priced only budgetary external lines, at ₹171 crore. The empty-catalogue guard (`packages/proposal/src/run.ts`) now stops such runs before any model call.
+- **Two pasted-text runs have weak evidence sources.** One cites the client's name as if it were a document, so 0 of its 17 evidence items resolve.
+
+## Eval: Muse Wonder vs Muse Spark as the orchestrator
+
+**Setup.** The same hero RFP pack and 67-product catalogue went through two live arms, run in parallel on 5 Nov 2026 with $0.76 spent in total. In the Spark arm, the script answers any `muse-wonder-1.0` request with a 404, so `wonderLoop` falls back to Spark on the same nine tools. No product code changed.
+
+**Code.** The script is `scripts/evals/orchestrator-ab.ts`. Results are in [`docs/evals/orchestrator-ab.md`](evals/orchestrator-ab.md) and `orchestrator-ab.json`.
+
+| | Wonder | Spark fallback |
+|---|---|---|
+| Total cost / wall time | $0.383 / 8.98 min | $0.381 / 8.94 min |
+| Orchestrator's own cost | $0.036 | $0.029 |
+| Tool order | nine tools, intended order | identical |
+| Requirements with page citations | 35 (100%) | 39 (100%) |
+| Floor-plan placements | 14 | 3 |
+
+**Reading the result.**
+
+- Orchestration was indistinguishable: both orders were the same, cost and wall time were within 1%, and neither had errors. The fallback therefore loses nothing in a Wonder outage.
+- The output differences come from stages that run on Spark in both arms, and n = 1 cannot separate them from run-to-run variance.
+- **Finding:** when Wonder is unavailable, the tool loop first finishes on the `reason` lane, then `wonderLoop` runs the Spark agent lane again (`packages/models/src/wonder.ts:33-41`). The stages are idempotent, so the second pass is nearly free, but the first pass should be accepted. The fix is noted and was not shipped during the code freeze.
+
 ## Live scripts
 
 | Script | What it does |
@@ -142,6 +213,6 @@ Per stage (mean over successful runs):
 
 ## Not measured yet
 
-- **Extraction accuracy of the Company Brain against the 45 ground-truth records.** The ground truth exists, but no scored comparison is in the repo yet.
-- **Proposal quality against a rubric.** Placement count, evidence count and struck claims (above) are proxies, not a quality score.
+- **Human grading of proposal quality.** The scores above are computed checks, not an expert's judgement of the writing.
+- **Variance.** Repeated runs per configuration would put error bars on cost, placements and totals.
 - **Voice Transcribe.** It is exercised with a software test input, not a native microphone.
