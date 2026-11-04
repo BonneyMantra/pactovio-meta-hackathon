@@ -44,6 +44,7 @@ describe('classification parsing', () => {
 
 describe('autopilot step', () => {
   it('without a proposal engine wired it records not_configured instead of faking a run', async () => {
+    registerProposalRunner(null);
     await saveSettings(env, a.workspace, { enabled: true });
     await addIntake(a.workspace, 'intake_nc');
     const r = await autopilotStep(env, job(a.workspace, 'intake_nc', 'm-nc'), a.workspace, MSG, cls('rfq'));

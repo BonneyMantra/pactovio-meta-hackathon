@@ -34,7 +34,8 @@ export async function touchChecked(env: Env, ws: string, cursorMs?: number): Pro
 export interface InboxItem {
   intake_id: string; title: string; sender: string | null; received_at: string; status: string;
   kind: string; confidence: number; reason: string; action: AutopilotAction;
-  proposal: { run_id: string | null; status: string | null; proposal_id: string | null } | null;
+  attachments: string[];
+  proposal: { run_id: string | null; status: string | null; proposal_id: string | null; total_inr: number | null; model: string | null; title: string | null } | null;
 }
 interface Joined { intake_id: string; title: string; sender: string | null; received_at: string; status: string; message_id: string; kind: string; confidence: number; reason: string; action: AutopilotAction; proposal_run_id: string | null; proposal_id: string | null; proposal_status: string | null }
 
@@ -52,11 +53,33 @@ export async function listInbox(env: Env, ws: string, limit = 50): Promise<Inbox
       .bind(live.status, r.proposal_id, new Date().toISOString(), ws, r.message_id).run();
     if (live.status === 'ready') await env.DB.prepare("UPDATE intakes SET status = 'ready' WHERE id = ? AND workspace_id = ?").bind(r.intake_id, ws).run();
   }
-  return list.map((r) => ({
-    intake_id: r.intake_id, title: r.title, sender: r.sender, received_at: r.received_at, status: r.status, kind: r.kind,
-    confidence: r.confidence, reason: r.reason, action: r.action,
-    proposal: r.action === 'proposal' ? { run_id: r.proposal_run_id, status: r.proposal_status, proposal_id: r.proposal_id } : null,
-  }));
+  const { files, props } = await enrich(env, ws, list);
+  return list.map((r) => {
+    const p = r.proposal_id ? props.get(r.proposal_id) : undefined;
+    return {
+      intake_id: r.intake_id, title: r.title, sender: r.sender, received_at: r.received_at, status: r.status, kind: r.kind,
+      confidence: r.confidence, reason: r.reason, action: r.action, attachments: files.get(r.intake_id) ?? [],
+      proposal: r.action === 'proposal' ? { run_id: r.proposal_run_id, status: r.proposal_status, proposal_id: r.proposal_id, total_inr: p?.total_inr ?? null, model: p?.orchestrator ?? null, title: p?.title ?? null } : null,
+    };
+  });
+}
+
+/** Attachment names per intake and the finished proposal's headline (value, orchestrating model) for the Inbox cards. */
+async function enrich(env: Env, ws: string, list: Joined[]) {
+  const files = new Map<string, string[]>();
+  const props = new Map<string, { total_inr: number | null; orchestrator: string | null; title: string | null }>();
+  const intakeIds = list.map((r) => r.intake_id);
+  const propIds = list.flatMap((r) => (r.proposal_id ? [r.proposal_id] : []));
+  if (intakeIds.length) {
+    const docs = await rows<{ intake_id: string; filename: string }>(env.DB, `SELECT intake_id, filename FROM documents WHERE intake_id IN (${intakeIds.map(() => '?').join(',')}) ORDER BY filename`, ...intakeIds);
+    for (const d of docs) files.set(d.intake_id, [...(files.get(d.intake_id) ?? []), d.filename]);
+  }
+  if (propIds.length) {
+    const ps = await rows<{ id: string; total_inr: number | null; orchestrator: string | null; title: string | null }>(env.DB, `SELECT id, json_extract(proposal_json, '$.commercials.total_inr') AS total_inr, orchestrator, title
+      FROM proposals WHERE workspace_id = ? AND id IN (${propIds.map(() => '?').join(',')})`, ws, ...propIds);
+    for (const p of ps) props.set(p.id, p);
+  }
+  return { files, props };
 }
 
 export async function inboxCounts(env: Env, ws: string) {

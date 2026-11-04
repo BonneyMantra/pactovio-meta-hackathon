@@ -49,7 +49,7 @@ export async function autopilotStep(env: Env, job: IntakeJob, ws: string, msg: I
 
   try {
     const files = msg.attachments.map((a) => ({ filename: a.filename, mimetype: mimeFor(a.filename), r2Key: a.r2Key }));
-    const run = await startProposalRun(env, ws, { intakeId: job.intakeId, files, text: `${msg.subject}\n\n${msg.body}`.slice(0, 40_000) });
+    const run = await startProposalRun(env, ws, { intakeId: job.intakeId, files, text: `${msg.subject}\n\n${msg.body}`.slice(0, 40_000), title: (cls.subject || msg.subject || '').slice(0, 200) || undefined });
     const status = run.status ?? 'queued';
     await env.DB.batch([
       env.DB.prepare('UPDATE autopilot_messages SET proposal_run_id = ?, proposal_id = ?, proposal_status = ?, updated_at = ? WHERE workspace_id = ? AND message_id = ?')
