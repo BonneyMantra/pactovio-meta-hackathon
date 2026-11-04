@@ -16,7 +16,8 @@ const plain = (t, skus) => String(t).replace(/\s*\[([^\]]+)\]/g, (m, c) => (c.sp
   .replace(/\s+([.,;:])/g, '$1').trim().replace(/[.;\s]*$/, '.');
 
 function card(n, i, onSave) {
-  const f = n.fit || {}, scored = f.method === 'ai', prods = n.matched_products || [];
+  const f = n.fit || {}, scored = f.method === 'ai';
+  const prods = scored && f.score >= 25 ? n.matched_products || [] : []; // below 25 a cited SKU is a weak link, not a match
   const skus = new Set(prods.map((p) => p.sku.toUpperCase()));
   const save = h('button.btn.btn-secondary.btn-sm', { type: 'button', onclick: () => onSave(n, save) }, icon('check', 14), 'Save to my tenders');
   const reasons = [...(f.reasons || []), ...(f.strengths || [])].slice(0, 2).map((r) => plain(r, skus));
@@ -32,7 +33,7 @@ function card(n, i, onSave) {
     h('div.tw-facts', fact('Region', where), fact('Deadline', when), fact('Value', money(n.value))),
     h('div', h('div.ps-k', 'Matching products'),
       prods.length ? h('div.tw-prods', prods.map((p) => h('span.chip.outline', { title: p.sku }, p.name, h('b', p.sku))))
-        : h('div.xs.muted', scored ? 'Nothing in your catalogue matches this notice.' : 'Not scored yet.')),
+        : h('div.xs.muted', scored ? 'No strong match in your catalogue.' : 'Not scored yet.')),
     n.summary ? h('div.small', { style: { lineHeight: '20px' } }, n.summary) : null,
     reasons.length ? h('div.ps-why', icon('brain', 14), h('span', reasons.join(' '))) : null,
     f.risks?.length ? h('div.xs.muted', `Risk: ${plain(f.risks[0], skus)}`) : null,

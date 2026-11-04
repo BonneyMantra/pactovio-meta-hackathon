@@ -268,6 +268,6 @@
 .tw-fact > span:last-child { font-size: 13.5px; line-height: 19px; color: var(--ink); overflow-wrap: anywhere; }
 .tw-fact.na > span:last-child { color: var(--ink-3); }
 .tw-prods { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-.tw-prods .chip { max-width: 100%; }
+.tw-prods .chip { max-width: 100%; white-space: normal; height: auto; min-height: 26px; padding-top: 3px; padding-bottom: 3px; line-height: 18px; }
 .tw-prods .chip b { font-family: var(--mono); font-weight: 500; font-size: 11px; color: var(--ink-3); margin-left: 6px; }
 @media (max-width: 640px) { .tw-facts { grid-template-columns: 1fr 1fr; } .tw-facts .tw-fact:first-child { grid-column: 1 / -1; } }
