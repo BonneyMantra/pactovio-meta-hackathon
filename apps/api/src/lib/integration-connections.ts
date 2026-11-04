@@ -1,3 +1,4 @@
+import { isSiteOrigin, siteOrigins } from './onboarding-origins';
 import { z } from 'zod';
 import type { Env } from '@pactovio/contracts/env';
 import { HttpError } from '@pactovio/contracts';
@@ -29,7 +30,7 @@ export async function listConnections(env: Env, workspace: string) {
 export async function startConnection(env: Env, workspace: string, session: string, slug: string, origin: string, input: z.infer<typeof ConnectInput>) {
   if (!await isCustomerSessionActive(env.DB, session, workspace)) throw new HttpError(401, 'Sign in to connect an integration', 'unauthorized');
   const url = new URL(origin);
-  if (url.origin !== origin || !['http:', 'https:'].includes(url.protocol) || env.ENVIRONMENT === 'production' && url.protocol !== 'https:' || env.PUBLIC_ORIGIN && origin !== env.PUBLIC_ORIGIN) throw new HttpError(403, 'Invalid connection origin', 'origin_forbidden');
+  if (url.origin !== origin || !['http:', 'https:'].includes(url.protocol) || env.ENVIRONMENT === 'production' && url.protocol !== 'https:' || siteOrigins(env).length > 0 && !isSiteOrigin(env, origin)) throw new HttpError(403, 'Invalid connection origin', 'origin_forbidden');
   const toolkit = await nativeToolkit(env, Slug.parse(slug));
   if ((await connectionAvailability(env, toolkit)).connection.availability !== 'ready') setupRequired();
   const config = await existingHostedConfig(env, toolkit); if (!config) setupRequired();

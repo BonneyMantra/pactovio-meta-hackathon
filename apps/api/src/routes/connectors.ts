@@ -13,6 +13,7 @@ import type { Handler, Register } from '../lib/router';
 import type { AppEnv } from '../lib/types';
 import { integrationVerifier, UNIVERSAL_OAUTH_COOKIE } from './integration-workflows';
 import { pendingOAuthFlow } from '../lib/oauth-dispatch';
+import { flowOrigin, qaHandoff } from '../lib/onboarding-origins';
 
 const TEST_CAP_PER_HOUR = 20;
 
@@ -31,7 +32,7 @@ export const register: Register = (r) => {
     const provider = known(params.id);
     if (!auth.sessionId || !auth.userId) throw new HttpError(403, 'Connect using a customer browser session', 'forbidden');
     const state = randomToken(32);
-    const redirect_url = await connectUrl(env, workspaceId, provider, { origin: env.PUBLIC_ORIGIN ?? new URL(c.req.url).origin, redirectTo: body.redirect_to, sessionId: auth.sessionId, state });
+    const redirect_url = await connectUrl(env, workspaceId, provider, { origin: flowOrigin(c), redirectTo: body.redirect_to, sessionId: auth.sessionId, state });
     deleteCookie(c, UNIVERSAL_OAUTH_COOKIE, { path: '/api' });
     setCookie(c, 'pv_oauth', state, { httpOnly: true, secure: env.ENVIRONMENT !== 'development' || new URL(c.req.url).protocol === 'https:', sameSite: 'Lax', path: '/api/connectors', maxAge: 600 });
     return { redirect_url };
@@ -63,6 +64,8 @@ export const register: Register = (r) => {
   // Composio sends the browser back here after OAuth (not part of the typed contract: a redirect, not JSON).
   const callback = async (c: Context<AppEnv>) => {
     const universal = getCookie(c, UNIVERSAL_OAUTH_COOKIE), legacy = getCookie(c, 'pv_oauth');
+    const handoff = qaHandoff(c, !!(universal || legacy));
+    if (handoff) return c.redirect(handoff, 302);
     if (universal) {
       // Both flows share this project verifier URL; pick the pending attempt this signed-in session actually started.
       const flow = legacy ? await pendingOAuthFlow(c.env, (await sessionAuth(c)).sessionId!, universal, legacy) : 'universal';

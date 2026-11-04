@@ -1,3 +1,4 @@
+import { flowOrigin, isSiteOrigin, siteOrigins } from '../lib/onboarding-origins';
 import { Hono, type Context } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
@@ -21,7 +22,7 @@ async function body(c: Context<AppEnv>): Promise<unknown> {
 export async function integrationVerifier(c: Context<AppEnv>) {
   const auth = await customerAuth(c), query = CallbackInput.parse(c.req.query());
   const origin = new URL(c.req.url).origin;
-  if (c.env.PUBLIC_ORIGIN && origin !== c.env.PUBLIC_ORIGIN) throw new HttpError(403, 'Invalid callback origin.', 'origin_forbidden');
+  if (siteOrigins(c.env).length && !isSiteOrigin(c.env, origin)) throw new HttpError(403, 'Invalid callback origin.', 'origin_forbidden');
   const result = await completeIntegrationOAuth(c.env, auth.sessionId!, auth.workspaceId,
     origin, getCookie(c, UNIVERSAL_OAUTH_COOKIE), query);
   // A stale callback must preserve the newer attempt's cookie.
@@ -59,7 +60,7 @@ routes.post('/toolkits/:slug/connect', async c => {
   z.object({}).strict().parse(c.req.query());
   const auth = c.get('auth');
   const result = await startConnection(c.env, auth.workspaceId, auth.sessionId!, Slug.parse(c.req.param('slug')),
-    c.env.PUBLIC_ORIGIN ?? new URL(c.req.url).origin, ConnectInput.parse(await body(c)));
+    flowOrigin(c), ConnectInput.parse(await body(c)));
   deleteCookie(c, 'pv_oauth', { path: '/api/connectors' });
   setCookie(c, UNIVERSAL_OAUTH_COOKIE, result.state, { httpOnly: true, sameSite: 'Lax', path: '/api', maxAge: 600,
     secure: c.env.ENVIRONMENT !== 'development' || new URL(c.req.url).protocol === 'https:' });
