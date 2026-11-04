@@ -3,7 +3,7 @@ import { api, h, icon, chip, fmt, toast, load, empty } from '../ui.js';
 import { friendlyError, connectorDestination } from '../customer-api.js';
 import { logoTile, opt, confirmRow } from './ops-kit.js';
 
-const CATS = [['email', 'Email'], ['chat', 'Chat'], ['crm', 'CRM'], ['files', 'Files'], ['calendar', 'Calendar'], ['projects', 'Projects'], ['signing', 'Signing'], ['accounting', 'Accounting']];
+const CATS = [['email', 'Email'], ['chat', 'Chat'], ['crm', 'CRM'], ['storage', 'Files'], ['calendar', 'Calendar'], ['tasks', 'Projects'], ['signing', 'Signing'], ['accounting', 'Accounting']];
 const READONLY = /^(watch_|unwatch_|get_|list_)/;
 
 export async function render(root, _p, ctx) {
@@ -11,8 +11,8 @@ export async function render(root, _p, ctx) {
   const head = h('div.page-head', h('div', h('h1.title', 'Connections'), h('div.sub', 'Where Pactovio listens for requests and where it files the work.')));
   const body = h('div');
   const callback = new URLSearchParams(location.hash.split('?')[1] || '');
-  if (callback.get('status') === 'failed') root.append(h('div.error-box', { role: 'status' }, 'The connection did not complete. Choose Connect to try again.'));
-  if (callback.get('status') === 'success') root.append(h('div.small.ink2', { role: 'status' }, 'Connection returned. Checking current provider status below.'));
+  if (callback.get('status') === 'failed') root.append(h('div.error-box', { role: 'status', style: { marginBottom: '14px' } }, 'The connection did not complete. Choose Connect to try again.'));
+  if (callback.get('status') === 'success') root.append(h('div.small.ink2', { role: 'status', style: { marginBottom: '14px' } }, 'Connection returned. Checking current provider status below.'));
   const events = h('div.events-list');
   root.append(head, h('div.cx-layout', body, h('aside.card.events-panel',
     h('div.events-head', h('span.live-dot.on'), h('span.small', { style: { fontWeight: 510 } }, 'Live events'), h('span.xs.muted', 'workspace stream')), events)));

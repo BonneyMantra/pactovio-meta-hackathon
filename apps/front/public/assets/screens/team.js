@@ -29,7 +29,8 @@ export async function render(root, _p, ctx) {
       h('section.card.tm-card', h('div.tm-head', h('h2', 'Members'), h('span.xs.muted.tm-count')), form, list),
       inbox));
 
-  let busy = false, gone = false, fresh = '';
+  let busy = false, gone = false, fresh = '', twins = new Set();
+  const label = (email) => (twins.has(person(email)) ? email.split('@')[0] : person(email));
   const say = (text, tone = '') => { status.textContent = text; status.dataset.tone = tone; };
 
   async function draw() {
@@ -38,12 +39,14 @@ export async function render(root, _p, ctx) {
     if (gone) return;
     const members = t.members || [], invites = t.invites || [];
     root.querySelector('.tm-count').textContent = `${members.length} member${members.length === 1 ? '' : 's'}${invites.length ? ` · ${invites.length} invited` : ''}`;
+    const names = [...members, ...invites].map((x) => person(x.email));
+    twins = new Set(names.filter((n, i) => names.indexOf(n) !== i));
     list.replaceChildren(...members.map(memberRow), ...invites.map(inviteRow));
   }
 
   function memberRow(m) {
     return h('li.tm-row', h('span.tm-av', initials(m.email)),
-      h('div.tm-who', h('strong', person(m.email)), h('span.xs.muted', m.email)),
+      h('div.tm-who', h('strong', label(m.email)), h('span.xs.muted', m.email)),
       h('span.tm-role', m.role === 'owner' ? 'Owner' : 'Member', m.you ? h('span.muted', ' · you') : null));
   }
 
@@ -59,7 +62,7 @@ export async function render(root, _p, ctx) {
     foot.append(resend, cancel);
     const sent = inv.sent_at || inv.invited_at;
     const row = h(`li.tm-row.tm-pending${inv.email === fresh ? '.tm-new' : ''}`, h('span.tm-av.tm-av-pending', initials(inv.email)),
-      h('div.tm-who', h('strong', person(inv.email)), h('span.xs.muted', inv.email)),
+      h('div.tm-who', h('strong', label(inv.email)), h('span.xs.muted', inv.email)),
       h('span.tm-sent', h('span.chip.warn', h('span.dot'), 'Invite sent'), h('span.xs.muted', sent ? fmt.ago(sent) : '')), foot);
     return row;
   }
@@ -73,7 +76,13 @@ export async function render(root, _p, ctx) {
     if (!btn) send.replaceChildren(h('span.pd-spin', { 'aria-hidden': 'true' }), 'Sending…');
     say('');
     try {
-      await api('/team/invites', { method: 'POST', body: { email } });
+      // One quiet retry for a transient edge/network failure; a 429 on the retry means the first attempt went out.
+      try { await api('/team/invites', { method: 'POST', body: { email } }); }
+      catch (e) {
+        if (!(e.status === 405 || e.status >= 500 || !e.status) || e.code === 'delivery_unavailable') throw e;
+        await new Promise((r) => setTimeout(r, 700));
+        try { await api('/team/invites', { method: 'POST', body: { email } }); } catch (x) { if (x.status !== 429) throw x; }
+      }
       fresh = email; if (!again) input.value = '';
       say(`Invite sent to ${email}. They join when they sign in with that address.`, 'ok');
       await draw();

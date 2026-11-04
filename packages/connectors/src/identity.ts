@@ -14,4 +14,6 @@ export async function tokenHash(value: string): Promise<string> {
 export function stateToken(): string {
   return Array.from(crypto.getRandomValues(new Uint8Array(32)), (v) => v.toString(16).padStart(2, '0')).join('');
 }
-export const safeReturn = (to?: string): string => to === '/app#/onboarding' ? to : '/app#/connections';
+// Where a provider consent may land: a fixed list of in-app screens, never an arbitrary URL.
+const RETURNS = new Set(['/app#/onboarding', '/app#/team', '/app#/inbox', '/app#/brain/learning']);
+export const safeReturn = (to?: string): string => (to && RETURNS.has(to) ? to : '/app#/connections');

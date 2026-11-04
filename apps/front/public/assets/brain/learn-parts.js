@@ -43,7 +43,13 @@ export function corpusGrid(total) {
     resize(n) { while (tiles.length < n) { const t = h('i'); tiles.push(t); el.append(t); } while (tiles.length > n && tiles.length > 1) tiles.pop().remove(); },
     // Several documents are read at once: each in-flight tile pulses until its own result lands.
     reading(i) { tiles[i]?.classList.add('cur'); },
-    mark(ev) { const t = tile(ev); if (t) { t.className = ev.type === 'file_failed' ? 'fail' : (ev.outcome || 'done'); t.title = [ev.ref, ev.client].filter(Boolean).join(' · '); } },
+    mark(ev) { const t = tile(ev); if (t) { t.className = ev.type === 'file_failed' ? 'fail' : (ev.outcome || 'done'); t.title = [ev.ref, ev.client].filter(Boolean).join(' · '); if (ev.ref) t.dataset.ref = ev.ref; } },
+    /** HubSpot deal outcomes joined by proposal ref: each tile takes its won / lost / open colour in turn. */
+    outcomes(byRef) {
+      let k = 0;
+      tiles.forEach((t) => { const o = byRef.get(t.dataset.ref); if (o && !t.classList.contains('fail')) setTimeout(() => { t.className = o; }, 40 * k++); });
+      return k;
+    },
   };
 }
 
@@ -83,5 +89,10 @@ export function livePanel() {
       voice ? h('div.lr-sub', 'Your voice') : null, voice ? h('p.lr-learnt', at(order.length + 1), voice) : null,
       terms ? h('div.lr-sub', 'Your payment terms') : null, terms ? h('p.lr-learnt', at(order.length + 3), terms) : null);
   }
-  return { el, update, style, final };
+  /** Win rate once the CRM outcomes are in, before the style is derived. */
+  function outcomes(items) {
+    const won = items.filter((x) => x.outcome === 'won').length, lost = items.filter((x) => x.outcome === 'lost').length;
+    if (won + lost) countUp(win, (won / (won + lost)) * 100, (v) => `${Math.round(v)}%`, 900);
+  }
+  return { el, update, style, final, outcomes };
 }

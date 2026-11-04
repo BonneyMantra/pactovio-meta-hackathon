@@ -1,7 +1,7 @@
 // The agent learning from past proposals: Drive connect → folder pick → live reading animation driven by the real
 // learning events (GET /api/brain/progress) → deal outcomes from HubSpot → style profile → ready.
 // Used in onboarding and at #/brain/learning.
-import { h, icon, errorBox } from '../ui.js';
+import { h, icon, errorBox, api } from '../ui.js';
 import { friendlyError, connectorDestination } from '../customer-api.js';
 import { getBrain } from '../brain-api.js';
 import { driveFolders, startLearn, learnProgress, connectProvider, LEARN_MODEL } from './learn-api.js';
@@ -84,7 +84,8 @@ export function learningView(root, opts = {}) {
       const ev = queue.shift();
       if (ev) handle(ev);
       if (!queue.length && finishedState) return complete(finishedState);
-      const held = ev?.type === 'file_done' ? (queue.length > 16 ? 160 : 620) : 0;
+      // Phase changes stay on screen long enough to read; documents tick faster when many are waiting.
+      const held = ev?.type === 'file_done' ? (queue.length > 16 ? 160 : 620) : ev?.type === 'outcomes' ? (/^Matched/.test(ev.message || '') ? 3400 : 2600) : 0;
       tick = setTimeout(step, Math.max(held, queue.length > 12 ? 60 : queue.length > 4 ? 130 : 240));
     };
     function handle(ev) {
@@ -98,7 +99,14 @@ export function learningView(root, opts = {}) {
         done += 1; counter.textContent = String(done); bar.style.width = `${total ? (done / total) * 100 : 0}%`; grid.mark(ev);
         if (ev.type === 'file_done') { read.done(ev); live.update(ev); learned.prepend(learnedRow(ev)); while (learned.children.length > 6) learned.lastElementChild.remove(); }
       } else if (ev.type === 'outcomes') {
-        title.textContent = 'Checking which bids you won'; setPhase(ev.message || 'Reading deal outcomes from HubSpot', !/^Matched/.test(ev.message || ''));
+        const matched = /^Matched/.test(ev.message || '');
+        title.textContent = 'Checking which bids you won'; setPhase(ev.message || 'Reading deal outcomes from HubSpot', !matched);
+        if (matched) api('/brain/proposals').then((r) => {
+          if (disposed) return;
+          const items = Array.isArray(r?.items) ? r.items : [];
+          grid.outcomes(new Map(items.map((x) => [x.ref, x.outcome])));
+          live.outcomes(items);
+        }).catch(() => { /* the final brain still carries the win rate */ });
       } else if (ev.type === 'deriving') {
         title.textContent = 'Learning how you write'; setPhase(`${LEARN_MODEL} is distilling your structure, voice and commercial terms`);
       }
