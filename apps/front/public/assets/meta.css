@@ -262,3 +262,12 @@
 .ps-body { max-width: 680px; }
 @media (max-width: 760px) { .agent-win { grid-template-columns: minmax(0, 1fr); } .welcome { padding: 32px 4px; text-align: center; } .welcome .h3 { font-size: 21px; } }
 @media (max-width: 600px) { .bb-learned th:nth-child(3), .bb-learned td:nth-child(3) { display: none; } .bb-learned td:first-child { white-space: nowrap; } }
+/* Worldwide tender card: the four facts a bid manager decides on */
+.tw-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.tw-fact { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--line-soft); border-radius: 10px; background: var(--surface-2); min-width: 0; }
+.tw-fact > span:last-child { font-size: 13.5px; line-height: 19px; color: var(--ink); overflow-wrap: anywhere; }
+.tw-fact.na > span:last-child { color: var(--ink-3); }
+.tw-prods { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.tw-prods .chip { max-width: 100%; }
+.tw-prods .chip b { font-family: var(--mono); font-weight: 500; font-size: 11px; color: var(--ink-3); margin-left: 6px; }
+@media (max-width: 640px) { .tw-facts { grid-template-columns: 1fr 1fr; } .tw-facts .tw-fact:first-child { grid-column: 1 / -1; } }

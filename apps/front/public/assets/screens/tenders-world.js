@@ -11,23 +11,31 @@ const money = (v) => {
 };
 const AI_MSG = { budget: 'The daily AI limit was reached, so new notices are ranked by keyword overlap until tomorrow.', models_disabled: 'AI ranking is paused, so notices are ordered by keyword overlap.', unavailable: 'Muse Spark did not answer, so some notices are not scored yet.' };
 
+/** Drops the [SKU] codes that already show as product chips; past-proposal refs stay as the evidence they are. */
+const plain = (t, skus) => String(t).replace(/\s*\[([^\]]+)\]/g, (m, c) => (c.split(/[,;]\s*/).every((x) => skus.has(x.trim().toUpperCase())) ? '' : m))
+  .replace(/\s+([.,;:])/g, '$1').trim().replace(/[.;\s]*$/, '.');
+
 function card(n, i, onSave) {
-  const f = n.fit || {}, scored = f.method === 'ai';
+  const f = n.fit || {}, scored = f.method === 'ai', prods = n.matched_products || [];
+  const skus = new Set(prods.map((p) => p.sku.toUpperCase()));
   const save = h('button.btn.btn-secondary.btn-sm', { type: 'button', onclick: () => onSave(n, save) }, icon('check', 14), 'Save to my tenders');
-  const reasons = [...(f.reasons || []), ...(f.strengths || [])].slice(0, 2);
-  return h('article.card', { style: { padding: '18px 20px', display: 'grid', gap: '10px', animation: `rise 360ms var(--ease) ${i * 60}ms backwards` } },
+  const reasons = [...(f.reasons || []), ...(f.strengths || [])].slice(0, 2).map((r) => plain(r, skus));
+  const fact = (k, v) => h(`div.tw-fact${v ? '' : '.na'}`, h('span.ps-k', { style: { marginBottom: 0 } }, k), h('span', v || 'Not stated'));
+  const where = [n.country_name, n.region_label].filter(Boolean).join(' · ');
+  const when = n.deadline ? `${fmt.date(n.deadline)}${n.days_left != null ? ` · ${n.days_left} days left` : ''}` : null;
+  return h('article.card', { style: { padding: '18px 20px', display: 'grid', gap: '12px', animation: `rise 360ms var(--ease) ${i * 60}ms backwards` } },
     h('div', { style: { display: 'flex', gap: '14px', alignItems: 'flex-start' } },
       fitRing(scored ? f.score : null, 46),
       h('div', { style: { minWidth: 0, flex: 1 } },
         h('div', { style: { fontSize: '16px', fontWeight: 550, letterSpacing: '-0.015em', lineHeight: '22px' } }, n.title || 'Untitled notice'),
-        h('div.small.ink2', [n.buyer, n.country_name].filter(Boolean).join(' · ') || dash),
-        h('div.xs.muted.num', { style: { marginTop: '4px', display: 'flex', gap: '12px', flexWrap: 'wrap' } },
-          money(n.value) ? h('span', money(n.value)) : null,
-          n.deadline ? h('span', `Closes ${fmt.date(n.deadline)}${n.days_left != null ? ` · ${n.days_left} days left` : ''}`) : null,
-          n.source ? h('span', String(n.source).toUpperCase()) : null))),
+        h('div.small.ink2', [n.buyer, n.source ? String(n.source).toUpperCase() : null].filter(Boolean).join(' · ') || dash))),
+    h('div.tw-facts', fact('Region', where), fact('Deadline', when), fact('Value', money(n.value))),
+    h('div', h('div.ps-k', 'Matching products'),
+      prods.length ? h('div.tw-prods', prods.map((p) => h('span.chip.outline', { title: p.sku }, p.name, h('b', p.sku))))
+        : h('div.xs.muted', scored ? 'Nothing in your catalogue matches this notice.' : 'Not scored yet.')),
     n.summary ? h('div.small', { style: { lineHeight: '20px' } }, n.summary) : null,
-    reasons.length ? h('div.ps-why', icon('brain', 14), h('span', reasons.map((r) => String(r).trim().replace(/[.;\s]*$/, '.')).join(' '))) : null,
-    f.risks?.length ? h('div.xs.muted', `Risk: ${f.risks[0]}`) : null,
+    reasons.length ? h('div.ps-why', icon('brain', 14), h('span', reasons.join(' '))) : null,
+    f.risks?.length ? h('div.xs.muted', `Risk: ${plain(f.risks[0], skus)}`) : null,
     h('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' } }, save,
       n.url ? h('a.btn.btn-ghost.btn-sm', { href: n.url, target: '_blank', rel: 'noopener' }, icon('out', 14), 'Official notice') : null));
 }

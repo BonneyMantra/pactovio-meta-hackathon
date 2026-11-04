@@ -17,7 +17,7 @@ function splitDraft(text) {
 function card(p, i) {
   const d = splitDraft(p.draft_outreach_email);
   const body = h('div.ps-draft', { hidden: i > 0 },
-    h('div.ps-draft-head', h('span.chip.outline', icon('lock', 12), 'Draft only · never sent'), h('span.xs.muted', `To: ${p.org}`)),
+    h('div.ps-draft-head', h('span.chip.outline', icon('lock', 12), 'Draft · not sent'), h('span.xs.muted', `To: ${p.org}`)),
     d.subject ? h('div.ps-subj', d.subject) : null, h('div.ps-body', d.body),
     h('div.ps-draft-foot', h('button.btn.btn-secondary.btn-sm', { type: 'button', onclick: async () => {
       try { await navigator.clipboard.writeText(p.draft_outreach_email); toast('Draft copied'); } catch { toast('Select the text to copy it'); }

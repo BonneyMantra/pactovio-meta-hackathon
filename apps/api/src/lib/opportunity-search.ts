@@ -61,6 +61,19 @@ function counts<K extends string>(rows: Row[], keysOf: (r: Row) => K[]): Map<K, 
   return m;
 }
 
+/** Catalogue SKUs the assessment cites as [SKU], kept only when the workspace really sells them (the model may not invent a match). */
+export async function citedProducts(env: Env, ws: string): Promise<(texts: string[]) => { sku: string; name: string }[]> {
+  const rows = (await env.DB.prepare('SELECT sku, name FROM products WHERE workspace_id = ?').bind(ws).all<{ sku: string; name: string }>()).results;
+  const bySku = new Map(rows.map((p) => [p.sku.toUpperCase(), p]));
+  return (texts) => {
+    const out = new Map<string, { sku: string; name: string }>();
+    for (const t of texts) for (const m of t.matchAll(/\[([^\]]{2,60})\]/g)) {
+      for (const code of m[1]!.split(/[,;]\s*/)) { const p = bySku.get(code.trim().toUpperCase()); if (p) out.set(p.sku, { sku: p.sku, name: p.name }); }
+    }
+    return [...out.values()].slice(0, 6);
+  };
+}
+
 /** Worldwide pool -> filters -> sort -> one page; only that page (<= 20) is AI-assessed, each notice cached. */
 export async function searchOpportunities(env: Env, _workspace: string, state: OnboardingState, input: SearchInput, lang: string) {
   state = await withBrain(env, _workspace, state); // fit is scored against the catalogue and Company Brain
@@ -113,7 +126,11 @@ export async function searchOpportunities(env: Env, _workspace: string, state: O
   page.forEach((r) => { const a = assessed.get(r.key); if (a) r.score = a.score; });
   if (input.sort === 'relevance') page.sort(byRelevance); // fresh assessments reorder within the scored set only
   page = page.slice(0, input.limit);
-  const notices = page.map((r) => toNotice(r.t, assessed.get(r.key) ?? null, lang, now, segment));
+  const cited = await citedProducts(env, _workspace);
+  const notices = page.map((r) => {
+    const n = toNotice(r.t, assessed.get(r.key) ?? null, lang, now, segment);
+    return { ...n, region_label: n.region ? REGION_LABELS[n.region] : null, matched_products: cited([...n.fit.reasons, ...n.fit.strengths]) };
+  });
   return {
     notices, total: matched.length, offset: input.offset, limit: input.limit, sort: input.sort, domains, facets, lang, ai,
     searched_at: now.toISOString(), sources_failed: failed,
