@@ -88,7 +88,8 @@ Past work you may reference by ref only: ${selection.learned_from.join(', ') || 
   const total = groupInr(t.total_inr);
   const fill = (s: string) => s.replaceAll('{{TOTAL_INR}}', `₹${total}`);
   const kit = (scope: string) => selection.lines.filter((l) => l.scope === scope).map((l) => ({ sku: l.sku, qty: Math.max(1, Math.ceil(l.qty)) }));
-  const applied = ['payment_terms', 'warranty_months_commissioning', 'amc_pct', 'validity_days', 'section_order', 'voice_rules', 'phrases'].map((k) => ((ctx.brain.brain?.style as Record<string, unknown> | undefined)?.[k] ? `brain:${k}` : `default:${k}`));
+  const learned = ctx.brain.brain?.style as Record<string, unknown> | undefined;
+  const applied = [...['payment_terms', 'warranty_months_commissioning', 'amc_pct', 'validity_days', 'section_order', 'phrases'].map((k) => (learned?.[k] ? `brain:${k}` : `default:${k}`)), ...(style.voice_rule_ids ?? [])];
   const assumptions = [...n.assumptions];
   if (supply.some((s) => s.type === 'external')) assumptions.push('External items are budgetary and subject to OEM quotation at order.');
 

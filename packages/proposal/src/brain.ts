@@ -1,48 +1,45 @@
 import type { Env } from '@pactovio/contracts/env';
+import { readBrainTables } from './brain-read';
 
-/** Company Brain as B1 builds it (subset the bid engine reads). All fields optional: a workspace may not have learned yet. */
+/** Company Brain as the bid engine reads it (normalised from B1's tables). All fields optional: a workspace may not have learned yet. */
 export interface BrainStyle {
-  section_order?: string[]; voice_rules?: string[]; phrases?: string[];
+  section_order?: string[];
+  /** Plain-text rules for prompts, e.g. "V1: Open with the client's own words". */
+  voice_rules?: string[];
+  /** Rule ids as the Company Brain names them (V1, V2...), echoed in `style_applied`. */
+  voice_rule_ids?: string[];
+  phrases?: string[];
   payment_terms?: string; warranty?: string; warranty_months_commissioning?: number; warranty_months_dispatch?: number;
   amc_pct?: number; validity_days?: number; discount_pattern?: string;
   engineering_rates_inr?: { firmware?: number; software?: number; default?: number };
   prepared_by?: { name: string; title: string };
 }
 export interface CompanyBrain {
-  profile?: { legal_name?: string; hq?: { city?: string; country?: string } };
+  profile?: { legal_name?: string; name?: string; hq?: { city?: string; country?: string } } & Record<string, unknown>;
   catalogue_count?: number; proposals_learned?: number;
   style?: BrainStyle;
   stats?: Record<string, unknown>;
   learned_at?: string;
 }
 export interface PastProposal {
-  ref: string; title: string; solution_type: string; sector?: string; client?: string;
+  ref: string; title: string; solution_type: string; sector?: string; client?: string; city?: string; date?: string;
   total_inr?: number; skus?: string[]; outcome?: 'won' | 'lost' | 'pending'; summary?: string;
 }
 export interface BrainData { brain: CompanyBrain | null; past: PastProposal[] }
 
-/** Test seam: fixtures keyed by workspace id, used when the brain tables are absent. Never populated in production. */
+/** Test seam: fixtures keyed by workspace id. Never populated in production. */
 const fixtures = new Map<string, BrainData>();
 export const setBrainFixture = (workspaceId: string, d: BrainData | null): void => { if (d) fixtures.set(workspaceId, d); else fixtures.delete(workspaceId); };
 
 /**
- * Read the workspace's Company Brain from D1. B1 owns the tables; this reads `company_brain(workspace_id, brain_json)` and
- * `brain_proposals(workspace_id, ref, data_json)` when they exist and degrades to "no brain" (neutral style) when they do not.
+ * Read the workspace's Company Brain from B1's tables (migration 0086): `company_brain` style/stats, the learned
+ * `brain_documents` (one structured past proposal each) joined to HubSpot `brain_outcomes`, and the workspace profile.
+ * Degrades to "no brain" (neutral style) when nothing has been learned yet.
  */
 export async function getBrain(env: Pick<Env, 'DB'>, workspaceId: string): Promise<BrainData> {
   const fx = fixtures.get(workspaceId);
   if (fx) return fx;
-  let brain: CompanyBrain | null = null;
-  let past: PastProposal[] = [];
-  try {
-    const r = await env.DB.prepare('SELECT brain_json FROM company_brain WHERE workspace_id = ?').bind(workspaceId).first<{ brain_json: string }>();
-    if (r?.brain_json) brain = JSON.parse(r.brain_json) as CompanyBrain;
-  } catch { /* table not migrated yet */ }
-  try {
-    const rs = await env.DB.prepare('SELECT data_json FROM brain_proposals WHERE workspace_id = ? LIMIT 200').bind(workspaceId).all<{ data_json: string }>();
-    past = rs.results.map((x) => JSON.parse(x.data_json) as PastProposal);
-  } catch { /* table not migrated yet */ }
-  return { brain, past };
+  try { return await readBrainTables(env.DB, workspaceId); } catch { return { brain: null, past: [] }; }
 }
 
 export const DEFAULT_STYLE: Required<Pick<BrainStyle, 'payment_terms' | 'warranty_months_commissioning' | 'warranty_months_dispatch' | 'amc_pct' | 'validity_days'>> & BrainStyle = {
