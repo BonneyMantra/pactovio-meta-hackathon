@@ -117,3 +117,10 @@
   .ag-comp-foot { grid-template-columns: 1fr; }
   .hm-work { grid-template-columns: 1fr; }
 }
+
+/* In-app 404 */
+.nf { max-width: 560px; margin: 48px auto; padding: 32px; display: grid; gap: 10px; justify-items: start; }
+.nf .title { font-size: 26px; line-height: 1.2; font-weight: 550; letter-spacing: -0.03em; margin: 6px 0 0; }
+.nf p { margin: 0; }
+.nf-path { font-family: var(--mono); font-size: 12px; padding: 4px 8px; border-radius: 6px; background: var(--surface-2); color: var(--ink-2); max-width: 100%; overflow-wrap: anywhere; }
+.nf-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }

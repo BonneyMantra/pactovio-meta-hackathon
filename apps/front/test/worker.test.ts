@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 // @ts-expect-error plain JS module
-import worker, { isApiPath, pickTarget } from '../public/_worker.js';
+import worker, { appRedirect, isApiPath, pickTarget } from '../public/_worker.js';
 
 const svc = (name: string) => ({ name, fetch: async () => new Response(name) });
 
@@ -32,5 +32,16 @@ describe('Pages _worker.js router', () => {
   it('returns a JSON 502 when no API binding exists', async () => {
     const res = await worker.fetch(new Request('https://pactovio.pages.dev/api/health'), {});
     expect(res.status).toBe(502);
+  });
+  it('redirects path-style app links to the in-app hash route, and nothing else', async () => {
+    const u = (p: string) => new URL(`https://pactovio-meta.pages.dev${p}`);
+    expect(appRedirect(u('/app/proposals/prp_01abc'))).toBe('https://pactovio-meta.pages.dev/app#/proposals/prp_01abc');
+    expect(appRedirect(u('/app/brain/'))).toBe('https://pactovio-meta.pages.dev/app#/brain');
+    for (const p of ['/app', '/app/', '/app.html', '/apps/x', '/app/../etc', '/app/<script>', '/api/app/x']) expect(appRedirect(u(p)), p).toBeNull();
+    const res = await worker.fetch(new Request('https://pactovio-meta.pages.dev/app/tenders/t1'), { ASSETS: svc('assets') });
+    expect(res.status).toBe(302);
+    expect(res.headers.get('location')).toBe('https://pactovio-meta.pages.dev/app#/tenders/t1');
+    const post = await worker.fetch(new Request('https://pactovio-meta.pages.dev/app/tenders/t1', { method: 'POST' }), { ASSETS: svc('assets') });
+    expect(await post.text()).toBe('assets');
   });
 });

@@ -7,6 +7,7 @@ import { renderOnboarding } from './onboarding.js';
 import { clearCompanyDraft } from './company-form.js';
 import { rememberSetupReturn, restoreSetupReturn, clearSetupReturn } from './onboarding-return.js';
 import { setupPending } from './screens/setup-results.js';
+import { rememberDeepLink, restoreDeepLink, clearDeepLink } from './deep-link.js';
 import { agentAvatar, companyMark, initials, loadBrain, probeLogo, sideAgentCard } from './agent-id.js';
 
 // The sidebar follows the story: the agent and its work first, then what it knows about the company.
@@ -42,6 +43,9 @@ function parse() {
 
 const ctx = { session: null, billing: null, setup: null, brain: null, counts: {}, setCrumbs, refreshCounts, refreshSetup };
 const SETUP_ROUTE = { id: 'setup', label: 'Setup', mod: 'setup' };
+const NOT_FOUND = { id: 'not-found', label: 'Not found', mod: 'not-found' };
+const RETURNS = new Set(['onboarding', 'setup-connections']);
+const DETAIL = new Set(['inbox', 'proposals', 'quotes', 'tenders', 'brain']); // sections with a <section>-detail screen
 let cleanup = null, gateCleanup = null, generation = 0, ready = false;
 
 
@@ -137,7 +141,10 @@ async function route() {
   if (!ready || !ctx.session) return;
   const current = ++generation;
   const { section, id, rest } = parse();
-  const nav = section === 'setup' ? SETUP_ROUTE : [...NAV, ...HIDDEN].find((n) => n.id === section) || NAV[0];
+  // Provider returns land on #/onboarding or #/setup-connections and are rewritten on boot; anything else unknown is a 404.
+  const known = section === 'setup' ? SETUP_ROUTE : [...NAV, ...HIDDEN].find((n) => n.id === section) || (RETURNS.has(section) ? NAV[0] : null);
+  const missing = !known || (id && !DETAIL.has(known.id));
+  const nav = missing ? NOT_FOUND : known;
   setDrawer(false);
   closeMenus();
   renderSide(nav.id);
@@ -147,7 +154,7 @@ async function route() {
   view.replaceChildren(root);
   setCrumbs(nav.label);
   window.scrollTo(0, 0);
-  const modName = id ? `${nav.mod}-detail` : nav.mod;
+  const modName = missing ? 'not-found' : id ? `${nav.mod}-detail` : nav.mod;
   try {
     const mod = await import(`./screens/${modName}.js`);
     if (current !== generation || !ready) return;
@@ -174,11 +181,12 @@ function authenticate(notice = '') {
 }
 
 async function signOut() {
-  try { await logout(); authenticate('You have signed out.'); clearCompanyDraft(); clearSetupReturn(); }
+  try { await logout(); clearDeepLink(); authenticate('You have signed out.'); clearCompanyDraft(); clearSetupReturn(); }
   catch (error) { toast(`Could not sign out. ${friendlyError(error)}`); }
 }
 
 async function boot() {
+  rememberDeepLink();
   clearWorkspace();
   const current = generation;
   const gate = gateFrame();
@@ -200,6 +208,7 @@ async function boot() {
     // Provider sign-ins return to #/onboarding; a returning customer still finishing v2 setup goes back to #/setup.
     if (setupPending(ctx.setup) && /^#\/onboarding(\?|$)/.test(location.hash)) history.replaceState(null, '', `/app#/setup${location.hash.slice(12)}`);
     restoreSetupReturn(session.workspace_id);
+    restoreDeepLink();
     leaveGate(); ready = true; route();
   } catch (error) {
     if (current !== generation) return;

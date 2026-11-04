@@ -8,6 +8,13 @@ export function isApiPath(pathname) {
   return API_PATH.test(pathname);
 }
 
+// /app/proposals/prp_1 -> /app#/proposals/prp_1: path-style app links open the in-app route (hash router).
+const APP_PATH = /^\/app\/([a-z][a-z-]{1,30}(?:\/[\w.~%-]{1,120}){0,3})\/?$/;
+export function appRedirect(url) {
+  const m = APP_PATH.exec(url.pathname);
+  return m ? `${url.origin}/app#/${m[1]}` : null;
+}
+
 export function pickTarget(pathname, env) {
   if (isApiPath(pathname)) return env.API;
   return env.WEB ?? env.ASSETS ?? env.API;
@@ -15,7 +22,10 @@ export function pickTarget(pathname, env) {
 
 export default {
   async fetch(request, env) {
-    const target = pickTarget(new URL(request.url).pathname, env);
+    const url = new URL(request.url);
+    const to = ['GET', 'HEAD'].includes(request.method) ? appRedirect(url) : null;
+    if (to) return Response.redirect(to, 302);
+    const target = pickTarget(url.pathname, env);
     if (!target) return new Response(JSON.stringify({ error: 'API service binding missing', code: 'misconfigured' }), { status: 502, headers: { 'content-type': 'application/json' } });
     return target.fetch(request);
   },

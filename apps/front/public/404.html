@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Page not found — Pactovio</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="/assets/brand/mark.svg?v=65a3b187" type="image/svg+xml" sizes="any" />
+  <link rel="stylesheet" href="/assets/pv.css" />
+  <link rel="stylesheet" href="/assets/landing.css" />
+  <style>
+    .nf-page { min-height: calc(100vh - 62px); display: grid; place-items: center; padding: 48px 0 96px; }
+    .nf-card { max-width: 560px; }
+    .nf-card .k { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; color: var(--accent); }
+    .nf-card h1 { margin: 12px 0 0; }
+    .nf-card p { margin: 16px 0 0; color: var(--ink-2); font-size: 17px; line-height: 26px; }
+    .nf-card code { display: inline-block; margin-top: 16px; padding: 4px 8px; border-radius: 6px; background: var(--surface-2); font: 12px var(--mono); color: var(--ink-2); overflow-wrap: anywhere; max-width: 100%; }
+    .nf-card .acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+  </style>
+</head>
+<body>
+<header class="l-nav" id="nav"><div class="container in">
+  <a class="l-logo" href="/"><img class="mark" src="/assets/brand/mark.svg" alt="" width="24" height="24" />Pactovio</a>
+  <nav class="l-links" aria-label="Main"><a href="/#product">Product</a><a href="/#how">How it works</a><a href="/#story">The story</a><a href="/pricing">Pricing</a></nav>
+  <div class="l-cta"><a class="btn btn-secondary" href="/app">Sign in</a><a class="btn btn-primary" href="/app">Create your agent</a></div>
+</div></header>
+<main class="container nf-page"><div class="nf-card">
+  <div class="k">404 · PAGE NOT FOUND</div>
+  <h1 class="display">This page doesn’t exist.</h1>
+  <p>The link may be mistyped or out of date. If you were opening something in your workspace, sign in to continue.</p>
+  <code id="nf-path"></code>
+  <div class="acts"><a class="btn btn-primary" href="/">Go to the homepage</a><a class="btn btn-secondary" href="/app">Sign in</a></div>
+</div></main>
+<script>document.getElementById('nf-path').textContent = location.pathname;</script>
+</body>
+</html>
