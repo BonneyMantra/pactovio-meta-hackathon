@@ -27,6 +27,7 @@ import { customerAuthRoutes } from './routes/customer-auth';
 import { onboardingRoutes } from './routes/onboarding';
 import { integrationRoutes } from './routes/integrations';
 import { integrationWorkflowRoutes } from './routes/integration-workflows';
+import { workspaceLogoRoutes } from './routes/workspaces';
 import { productImageRoutes } from './routes/product-images';
 import { autopilotRoutes } from './routes/autopilot';
 import { prospectRoutes } from './routes/prospects';
@@ -50,6 +51,7 @@ export function buildApp() {
   app.route('/api/integrations', integrationRoutes);
   app.route('/api/integrations/workflows', integrationWorkflowRoutes);
   app.route('/api/products', productImageRoutes);
+  app.route('/api/workspaces', workspaceLogoRoutes);
   app.route('/api/autopilot', autopilotRoutes);
   app.route('/api/prospects', prospectRoutes);
   app.route('/api/brain', brainRoutes);
