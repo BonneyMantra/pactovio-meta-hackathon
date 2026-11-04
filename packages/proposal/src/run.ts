@@ -3,7 +3,7 @@ import { isBudgetError, budgetMessage } from '@pactovio/models';
 import { assemble } from './assemble';
 import { getBrain } from './brain';
 import { loadCatalogue } from './catalogue';
-import type { RfqFile, RunCtx, RunState } from './ctx';
+import { RunStopped, type RfqFile, type RunCtx, type RunState } from './ctx';
 import { orchestrate } from './orchestrate';
 import { getProposalRow, loadProposalJson, persistence } from './store';
 
@@ -36,14 +36,15 @@ export async function runProposal(env: Env, p: RunParams, hooks: { fetchImpl?: t
       state: saved ?? ({ models: {} } as RunState), persist: persistence(env, p.workspaceId, p.proposalId), fetchImpl: hooks.fetchImpl,
     };
     ctx.state.models ??= {};
+    if (!ctx.catalogue.length) throw new RunStopped('Your catalogue is empty, so there is nothing to price this bid from. Connect HubSpot (or add your products) and send the RFQ again.');
     const o = await orchestrate(ctx, { forceSpark: p.forceSpark });
     const proposal = assemble(ctx);
     const cost = (await db.prepare('SELECT COALESCE(SUM(cost_usd), 0) AS c FROM proposal_steps WHERE proposal_id = ? AND name != ?').bind(p.proposalId, 'orchestrate').first<{ c: number }>())?.c ?? 0;
     await db.prepare("UPDATE proposals SET status = 'completed', title = ?, proposal_json = ?, orchestrator = ?, cost_usd = ?, updated_at = ? WHERE id = ?")
       .bind(proposal.title, JSON.stringify(proposal), o.orchestrator, cost + o.row.costUsd, new Date().toISOString(), p.proposalId).run();
   } catch (e) {
-    const msg = isBudgetError(e) ? budgetMessage(e) : e instanceof Error && /_API_KEY/.test(e.message) ? 'Model access is not configured' : 'The proposal run failed; try again';
+    const msg = e instanceof RunStopped ? e.publicMessage : isBudgetError(e) ? budgetMessage(e) : e instanceof Error && /_API_KEY/.test(e.message) ? 'Model access is not configured' : 'The proposal run failed; try again';
     await db.prepare("UPDATE proposals SET status = 'failed', error = ?, updated_at = ? WHERE id = ?").bind(msg, new Date().toISOString(), p.proposalId).run();
-    if (!isBudgetError(e)) throw e;
+    if (!isBudgetError(e) && !(e instanceof RunStopped)) throw e;
   }
 }

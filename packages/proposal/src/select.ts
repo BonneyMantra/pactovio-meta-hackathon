@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { lexicalScores } from '@pactovio/quote';
 import { shortlist } from './catalogue';
-import { ask, runStep, type RunCtx } from './ctx';
+import { ask, runStep, RunStopped, type RunCtx } from './ctx';
 import type { PastProposal } from './brain';
 
 export const Scope = z.enum(['per_atm_site', 'per_branch_site', 'central', 'project']);
@@ -29,6 +29,7 @@ Rules:
 export const selectSolution = (ctx: RunCtx): Promise<string> => runStep(ctx, 'select_solution', () => !!ctx.state.selection, async () => {
   const rfq = ctx.state.rfq;
   if (!rfq) throw new Error('read_rfq must run before select_solution');
+  if (!ctx.catalogue.length) throw new RunStopped('Your catalogue is empty, so there is nothing to price this bid from. Connect HubSpot (or add your products) and send the RFQ again.');
   const fn = rfq.requirements.filter((r) => r.category !== 'eligibility' && r.category !== 'commercial');
   const short = shortlist(ctx.catalogue, [rfq.title, ...fn.map((r) => r.text)], 6, 45);
   const past = similarPast(ctx.brain.past, `${rfq.title} ${rfq.summary} ${rfq.client.sector}`);

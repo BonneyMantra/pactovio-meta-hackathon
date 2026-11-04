@@ -37,6 +37,9 @@ export interface RunCtx {
   acc?: StepAcc;
 }
 
+/** A failure the bid desk can act on; its message is shown as is (everything else becomes a generic retry message). */
+export class RunStopped extends Error { readonly publicMessage: string; constructor(m: string) { super(m); this.publicMessage = m; } }
+
 /** Fold a model call (Spark, SAM, Image...) into the step currently running. */
 export function addUsage(ctx: RunCtx, u: { model: string; tokensIn?: number; tokensOut?: number; costUsd: number; ms: number }): void {
   const a = ctx.acc;
