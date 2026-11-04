@@ -9,7 +9,9 @@ import type { OnboardingState } from './onboarding-state';
 import { withBrain } from './opportunity-brain';
 import { cpvWords } from './opportunity-cpv';
 import { proposalIndex } from './brain-store';
-import { assessNotices, profileHash, readScores } from './opportunity-assess';
+import { assessNotices, profileHash, readScores, type Readable } from './opportunity-assess';
+import { capabilityProfile, cpvHit, cpvPrefixes, profileSummary, profileTerms } from './opportunity-profile';
+import { loadDetail } from './opportunity-detail';
 import { countryName, noticeValue, toNotice } from './opportunity-notice';
 import { loadPool, noticeDomains, viewKey, type ViewTender } from './opportunity-pool';
 
@@ -47,10 +49,11 @@ function priorities(state: OnboardingState): { country: string; regions: Set<Reg
 }
 
 type Row = { t: ViewTender; key: string; code: string; region: Region | null; domains: Domain[]; words: string; score?: number; heuristic: number };
-// Scored >= 40 first, then not-yet-scored, then known poor fits: a 48 must not sink below notices nobody has read yet.
-const tier = (r: Row) => (r.score === undefined ? 1 : r.score >= 40 ? 0 : 2);
-/** The first relevance page scores a wider candidate set and keeps the best, so one weak keyword match cannot crowd out a real fit. */
-const FIRST_PAGE_CANDIDATES = 24;
+// Read and scored notices first, best rubric score first; the recall order decides among notices not read yet (they are read in the
+// background, so the list converges on the best fits instead of re-reading a fresh batch on every open).
+const tier = (r: Row) => (r.score === undefined ? 1 : 0);
+/** The first relevance page deep-assesses the top candidates eagerly (each a full read on Muse Spark) and keeps the best. */
+const FIRST_PAGE_CANDIDATES = 12;
 const byRelevance = (a: Row, b: Row) => tier(a) - tier(b) || (b.score ?? 0) - (a.score ?? 0) || b.heuristic - a.heuristic
   || (a.t.deadline ?? '9999').localeCompare(b.t.deadline ?? '9999');
 const SORTS: Record<SearchInput['sort'], (a: Row, b: Row) => number> = {
@@ -91,21 +94,27 @@ export async function citedProducts(env: Env, ws: string): Promise<(texts: strin
 }
 
 /** Worldwide pool -> filters -> sort -> one page; only that page (<= 20) is AI-assessed, each notice cached. */
-export async function searchOpportunities(env: Env, _workspace: string, state: OnboardingState, input: SearchInput, lang: string) {
+export async function searchOpportunities(env: Env, _workspace: string, state: OnboardingState, input: SearchInput, lang: string, waitUntil?: (p: Promise<unknown>) => void) {
   state = await withBrain(env, _workspace, state); // fit is scored against the catalogue and Company Brain
   const segment = state.company.supplier_segment;
   if (!segment) throw new HttpError(409, 'Choose your supplier segment before searching for opportunities.', 'company_incomplete', { missing: ['supplier_segment'] });
   const now = new Date();
   const domains = input.domains?.length ? input.domains : SEGMENT_DOMAINS[segment];
   const { pool, failed } = await loadPool(env, domains, now);
-  const hash = await profileHash(state), scores = await readScores(env, lang, hash);
-  const prio = priorities(state), terms = fitTerms(state);
+  const [hash, cap] = await Promise.all([profileHash(state), capabilityProfile(env, state)]);
+  const scores = await readScores(env, lang, hash);
+  const prio = priorities(state), terms = [...new Set([...fitTerms(state), ...profileTerms(cap)])], cpvs = cpvPrefixes(cap);
   const rows: Row[] = pool.map((t) => {
     const code = iso2(t.country), region = code ? regionOf(code) : null, words = haystack(t);
     const place = code && (code === prio.country || prio.countries.has(code)) ? 3 : region && prio.regions.has(region) ? 2 : 0;
     const head = wordSet(fold([t.title, ...t.lots.map((l) => l.title), cpvWords(t.cpv ?? [])].join(' '))), body = wordSet(words);
     const inHead = terms.filter((x) => has(head, x)).length, inBody = terms.filter((x) => !has(head, x) && has(body, x)).length;
-    return { t, key: viewKey(t), code, region, domains: noticeDomains(t), words, score: scores[viewKey(t)], heuristic: place * 10 + Math.min(inHead * 3 + inBody, 24) };
+    // Recall: the capability profile's CPV families and multilingual terms, then where the buyer is.
+    // Capability first: a notice nothing in the profile recalls ranks below every recalled one, wherever it is; place breaks ties.
+    // Recalled = in one of the profile's CPV classes, or two capability terms in the title/lots/CPV words (one generic word is not enough).
+    const inCpv = cpvHit(cpvs, t.cpv ?? []), recalled = inCpv || inHead >= 2 || (inHead >= 1 && inBody >= 2);
+    const recall = (inCpv ? 20 : 0) + Math.min(inHead * 4 + Math.min(inBody, 4), 28);
+    return { t, key: viewKey(t), code, region, domains: noticeDomains(t), words, score: scores[viewKey(t)], heuristic: (recalled ? 100 : 0) + recall * 3 + place * 4 };
   });
   const q = fold(input.q ?? '').split(/\s+/).filter(Boolean);
   const currency = input.currency ?? 'EUR', horizon = input.deadline_within_days ? now.getTime() + input.deadline_within_days * 86_400_000 : null;
@@ -137,7 +146,20 @@ export async function searchOpportunities(env: Env, _workspace: string, state: O
   const matched = pre.filter((r) => inRegion(r) && inCountry(r) && inDomain(r)).sort(SORTS[input.sort]);
   const wide = input.sort === 'relevance' && input.offset === 0;
   let page = matched.slice(input.offset, input.offset + (wide ? Math.max(input.limit, FIRST_PAGE_CANDIDATES) : input.limit));
-  const { byKey, keys, ai } = await assessNotices(env, state, page.map((r) => r.t), lang);
+  // Candidates without a cached rubric are read in full: the live notice text and the buyer's documents link.
+  const enrich = async (t: Readable): Promise<Readable> => {
+    const { detail } = await loadDetail(env, state, t.source as never, t.source_ref);
+    const lots = detail.lots.map((l) => [l.title, l.description].filter(Boolean).join(': ')).join('\n');
+    return { ...t, readText: [detail.description, lots, detail.award_criteria.length ? `Award criteria: ${detail.award_criteria.map((a) => [a.name ?? a.type, a.weight].filter(Boolean).join(' ')).join('; ')}` : '']
+      .filter(Boolean).join('\n\n') || undefined, documentsUrl: detail.documents_url ?? null };
+  };
+  const { byKey, keys, ai } = await assessNotices(env, state, page.map((r) => r.t), lang, enrich);
+  // Eager: the next candidates are assessed in the background so the list is ready on the next open.
+  if (wide && waitUntil) {
+    const onPage = new Set(page.map((r) => r.key));
+    const next = matched.filter((r) => r.score === undefined && !onPage.has(r.key)).slice(0, 8).map((r) => r.t);
+    if (next.length) waitUntil(assessNotices(env, state, next, lang, enrich).catch(() => undefined));
+  }
   const assessed = new Map(page.map((r, i) => [r.key, byKey.get(keys[i]!) ?? null]));
   page.forEach((r) => { const a = assessed.get(r.key); if (a) r.score = a.score; });
   if (input.sort === 'relevance') page.sort(byRelevance); // fresh assessments reorder within the scored set only
@@ -145,10 +167,15 @@ export async function searchOpportunities(env: Env, _workspace: string, state: O
   const cited = await citedProducts(env, _workspace);
   const notices = page.map((r) => {
     const n = toNotice(r.t, assessed.get(r.key) ?? null, lang, now, segment);
-    return { ...n, region_label: n.region ? REGION_LABELS[n.region] : null, ...cited([...n.fit.reasons, ...n.fit.strengths]) };
+    const rb = n.fit.rubric;
+    const fromRubric = rb && {
+      matched_products: [...new Map(rb.requirements.flatMap((q) => q.products).map((x) => [x.sku, x])).values()].slice(0, 6),
+      matched_proposals: rb.past.map(({ ref, client, outcome, total_inr }) => ({ ref, client, outcome, total_inr })),
+    };
+    return { ...n, region_label: n.region ? REGION_LABELS[n.region] : null, ...(fromRubric || cited([...n.fit.reasons, ...n.fit.strengths])) };
   });
   return {
     notices, total: matched.length, offset: input.offset, limit: input.limit, sort: input.sort, domains, facets, lang, ai,
-    searched_at: now.toISOString(), sources_failed: failed,
+    searched_at: now.toISOString(), sources_failed: failed, profile: profileSummary(cap),
   };
 }

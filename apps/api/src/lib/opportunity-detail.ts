@@ -1,4 +1,5 @@
 import { fromRow, HttpError, newId, type Tender } from '@pactovio/contracts';
+import { startProposal } from '@pactovio/proposal';
 import type { Env } from '@pactovio/contracts/env';
 import {
   fetchFtsDetail, fetchTedDetail, NoticeNotFound, poolDetail, searchWorldBank, SEGMENT_DOMAINS, upsertTenders, type NoticeDetail, type NoticeSource,
@@ -59,7 +60,7 @@ export async function opportunityDetail(env: Env, state: OnboardingState, source
   const now = new Date();
   const { detail, partial } = await loadDetail(env, state, source, id);
   const view = viewed(detail.tender, source, id);
-  const forModel = { ...view, raw: { ...(view.raw ?? {}), description: (detail.description ?? '').slice(0, 1500) || view.raw?.description } };
+  const forModel = { ...view, readText: detail.description || undefined, documentsUrl: detail.documents_url ?? null };
   const { byKey, keys, ai } = await assessNotices(env, state, [forModel], lang);
   const notice = toNotice(view, byKey.get(keys[0]!) ?? null, lang, now, state.company.supplier_segment, detail.exact_cpv_labels);
   return {
@@ -114,4 +115,21 @@ export async function saveOpportunity(env: Env, ws: string, state: OnboardingSta
   const total = await db.prepare('SELECT COUNT(*) AS n FROM workspace_deadlines WHERE workspace_id = ?').bind(ws).first<{ n: number }>();
   await patchData(db, ws, { results: { opportunities: { saved }, deadlines: { count: total?.n ?? 0, at } } });
   return { tender_id: tenderId, status: match?.status ?? 'new', fit_score: fit, deadlines: dates.map(({ kind, title, due_at }) => ({ kind, title, due_at })), saved };
+}
+
+/** "Prepare bid": a real proposal run (Workflow A) on the notice. The run reads the full notice text; tender documents on a buyer
+ * portal are not downloadable from the public APIs, so the proposal says it was prepared from the notice. */
+export async function prepareBid(env: Env, ws: string, state: OnboardingState, source: NoticeSource, id: string, waitUntil: (p: Promise<unknown>) => void) {
+  const { detail } = await loadDetail(env, state, source, id);
+  const t = detail.tender, v = detail.estimated_value;
+  const text = [`Public tender notice ${source.toUpperCase()} ${id}`, `Title: ${t.title}`, `Buyer: ${detail.buyer.name || t.buyer}${detail.buyer.city ? `, ${detail.buyer.city}` : ''} (${t.country})`,
+    t.deadline ? `Submission deadline: ${t.deadline}` : '', v ? `Estimated value: ${v.currency} ${Math.round(v.amount_minor / 100).toLocaleString('en')}` : '',
+    t.cpv.length ? `CPV: ${t.cpv.slice(0, 10).join(', ')}` : '',
+    detail.lots.length ? `Lots:\n${detail.lots.map((l) => `- ${l.title}${l.description ? `: ${l.description}` : ''}`).join('\n')}` : '',
+    detail.description ? `Notice text:\n${detail.description}` : '',
+    detail.award_criteria.length ? `Award criteria: ${detail.award_criteria.map((a) => [a.name ?? a.type, a.weight].filter(Boolean).join(' ')).join('; ')}` : '',
+    detail.documents_url ? `Tender documents (buyer portal, not attached): ${detail.documents_url}` : '',
+    t.url ? `Official notice: ${t.url}` : ''].filter(Boolean).join('\n').slice(0, 40_000);
+  const r = await startProposal(env, ws, { source: 'api', text, title: `${t.buyer}: ${t.title}`.slice(0, 200) }, waitUntil);
+  return { proposal_id: r.proposalId, documents_attached: false, documents_url: detail.documents_url ?? null };
 }

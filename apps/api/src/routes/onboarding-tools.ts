@@ -9,7 +9,7 @@ import { extractDeadlines } from '../lib/deadline-extract';
 import { listDeadlines, refineTitles, saveDeadlines } from '../lib/deadline-store';
 import { createOnboardingQuote, quoteCandidates } from '../lib/onboarding-quote';
 import { patchData, readOnboarding, saveResult } from '../lib/onboarding-state';
-import { assessByIds, opportunityDetail, saveOpportunity } from '../lib/opportunity-detail';
+import { assessByIds, opportunityDetail, prepareBid, saveOpportunity } from '../lib/opportunity-detail';
 import { resolveLang } from '../lib/opportunity-notice';
 import { searchOpportunities } from '../lib/opportunity-search';
 import { withBrain } from '../lib/opportunity-brain';
@@ -54,7 +54,7 @@ export function registerOnboardingTools(app: Hono<AppEnv>): void {
     const input = OpportunitySearchInput.parse({ ...searchQuery(new URL(c.req.url).searchParams), ...raw });
     await takeLimit(c.env.DB, `onboarding-opps:${ws}`, 120, 3600);
     const lang = resolveLang(input.lang, c.req.header('accept-language'));
-    const out = await searchOpportunities(c.env, ws, await readOnboarding(c.env.DB, ws), input, lang);
+    const out = await searchOpportunities(c.env, ws, await readOnboarding(c.env.DB, ws), input, lang, (p) => c.executionCtx.waitUntil(p));
     if (input.offset === 0) {
       await saveResult(c.env.DB, ws, 'opportunities', {
         count: out.total, lang, ai_ran: out.ai.ran, ai_scored: out.notices.filter((n) => n.fit.method === 'ai').length,
@@ -74,6 +74,11 @@ export function registerOnboardingTools(app: Hono<AppEnv>): void {
     await takeLimit(c.env.DB, `onboarding-opps-save:${ws}`, 60, 3600);
     const lang = resolveLang(input.lang, c.req.header('accept-language'));
     return c.json(await saveOpportunity(c.env, ws, await withBrain(c.env, ws, await readOnboarding(c.env.DB, ws)), input.source, input.id, lang));
+  });
+  app.post('/opportunities/prepare', async (c) => {
+    const ws = c.get('auth').workspaceId, input = await body(c, OpportunitySaveInput, 1_000);
+    await takeLimit(c.env.DB, `proposal:${ws}`, 30, 3600);
+    return c.json(await prepareBid(c.env, ws, await readOnboarding(c.env.DB, ws), input.source, input.id, (p) => c.executionCtx.waitUntil(p)), 201);
   });
   app.get('/opportunities/:source/:id', async (c) => {
     const ws = c.get('auth').workspaceId;

@@ -62,7 +62,7 @@ export function noticeUrl(t: Tender, lang: string): string | null {
 }
 
 export function fitFrom(a: NoticeAssessment | null): OpportunityFit {
-  return a ? { method: 'ai', score: Math.round(a.score), reasons: a.reasons, strengths: a.strengths, risks: a.risks }
+  return a ? { method: 'ai', score: Math.round(a.score), reasons: a.reasons, strengths: a.strengths, risks: a.risks, ...(a.rubric ? { rubric: a.rubric } : {}) }
     : { method: 'unassessed', reasons: [], strengths: [], risks: [] };
 }
 

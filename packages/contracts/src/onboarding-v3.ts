@@ -37,6 +37,27 @@ export const OpportunityDetailQuery = z.object({ lang: LangTag.optional() }).str
 export const OpportunitySaveInput = z.object({ source: OpportunitySource, id: NoticeId, lang: LangTag.optional() }).strict();
 
 /** One model assessment of one notice; cached per (notice, language, profile hash). */
+/** Explainable fit rubric (Muse Spark extracts requirements and evidence; the sub-scores and the weighted total are computed in code). */
+const Coverage = z.enum(['full', 'partial', 'none']);
+const Check = z.enum(['ok', 'risk', 'unknown']);
+export const FitRubric = z.object({
+  version: z.literal(2), model: z.string().max(80),
+  weights: z.object({ capability: z.number(), track_record: z.number(), eligibility: z.number(), commercial: z.number() }),
+  scores: z.object({ capability: z.number().int(), track_record: z.number().int(), eligibility: z.number().int(), commercial: z.number().int() }),
+  weighted: z.number().int().min(0).max(100), capped: z.boolean(), overall: z.number().int().min(0).max(100),
+  verdict: z.enum(['bid', 'bid_with_conditions', 'pass']), verdict_note: z.string().max(400), top_risk: z.string().max(400),
+  requirements: z.array(z.object({ text: z.string().max(240), coverage: Coverage, products: z.array(z.object({ sku: z.string(), name: z.string() })).max(4) })).max(10),
+  coverage_pct: z.number().int().min(0).max(100),
+  past: z.array(z.object({ ref: z.string(), client: z.string(), sector: z.string(), solution_type: z.string(), total_inr: z.number(), outcome: z.string(),
+    similarity: z.enum(['high', 'medium', 'low']), why: z.string().max(240) })).max(3),
+  track_note: z.string().max(300),
+  eligibility: z.array(z.object({ check: z.string().max(60), status: Check, note: z.string().max(240) })).max(6),
+  commercial: z.object({ value_inr: z.number().nullable(), value_label: z.string().nullable(), median_inr: z.number().nullable(),
+    won_min_inr: z.number().nullable(), won_max_inr: z.number().nullable(), note: z.string().max(300) }),
+  read: z.object({ chars: z.number().int(), documents: z.boolean(), documents_url: z.string().nullable() }),
+});
+export type FitRubric = z.infer<typeof FitRubric>;
+
 export const NoticeAssessment = z.object({
   title: z.string().trim().min(1).max(400),
   summary: z.string().trim().min(1).max(700),
@@ -44,6 +65,7 @@ export const NoticeAssessment = z.object({
   reasons: z.array(z.string().trim().min(1).max(300)).min(1).max(3),
   strengths: z.array(z.string().trim().min(1).max(300)).max(4),
   risks: z.array(z.string().trim().min(1).max(300)).max(4),
+  rubric: FitRubric.optional(),
 });
 export type NoticeAssessment = z.infer<typeof NoticeAssessment>;
 
@@ -51,6 +73,7 @@ export const OpportunityFit = z.object({
   method: z.enum(['ai', 'unassessed']),
   score: z.number().int().min(0).max(100).optional(),
   reasons: z.array(z.string()), strengths: z.array(z.string()), risks: z.array(z.string()),
+  rubric: FitRubric.optional(),
 });
 export type OpportunityFit = z.infer<typeof OpportunityFit>;
 

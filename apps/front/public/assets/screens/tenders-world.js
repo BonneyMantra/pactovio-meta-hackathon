@@ -3,6 +3,7 @@
 import { api, h, icon, fmt, toast, empty, errorBox, skeleton } from '../ui.js';
 import { dash, fitRing } from './work-kit.js';
 import { modelChip } from '../doc/rail.js';
+import { rubricBlock, verdictChip } from './tenders-rubric.js';
 
 const money = (v) => {
   if (!v?.amount_minor || !v.currency || v.amount_minor < 100_00) return null; // portals publish 1 or 0 as "not stated"
@@ -15,39 +16,53 @@ const AI_MSG = { budget: 'The daily AI limit was reached, so new notices are ran
 const plain = (t, skus) => String(t).replace(/\s*\[([^\]]+)\]/g, (m, c) => (c.split(/[,;]\s*/).every((x) => skus.has(x.trim().toUpperCase())) ? '' : m))
   .replace(/\s+([.,;:])/g, '$1').trim().replace(/[.;\s]*$/, '.');
 
+async function prepareBid(n, btn) {
+  btn.disabled = true;
+  try {
+    const r = await api('/onboarding/opportunities/prepare', { method: 'POST', body: { source: n.source, id: n.id } });
+    toast(r.documents_url ? 'Proposal run started from the full notice text. The tender documents are on the buyer portal and were not attached.' : 'Proposal run started from the full notice text.');
+    location.hash = `#/proposals/${encodeURIComponent(r.proposal_id)}`;
+  } catch (e) { btn.disabled = false; toast(e.message); }
+}
+
 function card(n, i, onSave) {
-  const f = n.fit || {}, scored = f.method === 'ai';
+  const f = n.fit || {}, scored = f.method === 'ai', rb = f.rubric;
   const strong = scored && f.score >= 25; // below 25 a cited SKU or past proposal is a weak link, not a match
   const prods = strong ? n.matched_products || [] : [], past = strong ? n.matched_proposals || [] : [];
   const skus = new Set([...prods.map((p) => p.sku), ...past.map((p) => p.ref)].map((x) => x.toUpperCase()));
   const save = h('button.btn.btn-secondary.btn-sm', { type: 'button', onclick: () => onSave(n, save) }, icon('check', 14), 'Save to my tenders');
+  const prep = rb ? h('button.btn.btn-primary.btn-sm', { type: 'button', onclick: () => prepareBid(n, prep) }, icon('bolt', 14), 'Prepare bid') : null;
   const reasons = [...(f.reasons || []), ...(f.strengths || [])].slice(0, 2).map((r) => plain(r, skus));
   const fact = (k, v) => h(`div.tw-fact${v ? '' : '.na'}`, h('span.ps-k', { style: { marginBottom: 0 } }, k), h('span', v || 'Not stated'));
   const where = [n.country_name, n.region_label].filter(Boolean).join(' · ');
   const when = n.deadline ? `${fmt.date(n.deadline)}${n.days_left != null ? ` · ${n.days_left} days left` : ''}` : null;
-  return h('article.card', { style: { padding: '18px 20px', display: 'grid', gap: '12px', animation: `rise 360ms var(--ease) ${i * 60}ms backwards` } },
-    h('div', { style: { display: 'flex', gap: '14px', alignItems: 'flex-start' } },
-      fitRing(scored ? f.score : null, 46),
-      h('div', { style: { minWidth: 0, flex: 1 } },
-        h('div', { style: { fontSize: '16px', fontWeight: 550, letterSpacing: '-0.015em', lineHeight: '22px' } }, n.title || 'Untitled notice'),
-        h('div.small.ink2', [n.buyer, n.source ? String(n.source).toUpperCase() : null].filter(Boolean).join(' · ') || dash))),
-    h('div.tw-facts', fact('Region', where), fact('Deadline', when), fact('Value', money(n.value))),
+  const legacy = rb ? [] : [
     h('div', h('div.ps-k', 'Matching products'),
       prods.length ? h('div.tw-prods', prods.map((p) => h('span.chip.outline', { title: p.sku }, p.name, h('b', p.sku))))
         : h('div.xs.muted', scored ? 'No strong match in your catalogue.' : 'Not scored yet.')),
     past.length ? h('div', h('div.ps-k', 'Matching past proposals'), h('div.tw-prods', past.map((p) => h('span.chip.outline', { title: p.ref },
       p.client || p.ref, h('b', p.ref), p.outcome === 'won' ? h('span.tw-won', 'Won') : p.outcome === 'lost' ? h('span.tw-lost', 'Lost') : null)))) : null,
-    n.summary ? h('div.small', { style: { lineHeight: '20px' } }, n.summary) : null,
     reasons.length ? h('div.ps-why', icon('brain', 14), h('span', reasons.join(' '))) : null,
-    f.risks?.length ? h('div.xs.muted', `Risk: ${plain(f.risks[0], skus)}`) : null,
-    h('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' } }, save,
+    f.risks?.length ? h('div.xs.muted', `Risk: ${plain(f.risks[0], skus)}`) : null];
+  return h('article.card', { style: { padding: '18px 20px', display: 'grid', gap: '12px', animation: `rise 360ms var(--ease) ${i * 60}ms backwards` } },
+    h('div.tw-head', { style: { display: 'flex', gap: '14px', alignItems: 'flex-start' } },
+      fitRing(scored ? f.score : null, 46),
+      h('div', { style: { minWidth: 0, flex: 1 } },
+        h('div', { style: { fontSize: '16px', fontWeight: 550, letterSpacing: '-0.015em', lineHeight: '22px' } }, n.title || 'Untitled notice'),
+        h('div.small.ink2', [n.buyer, n.source ? String(n.source).toUpperCase() : null].filter(Boolean).join(' · ') || dash)),
+      rb ? verdictChip(rb) : null),
+    h('div.tw-facts', fact('Region', where), fact('Deadline', when), fact('Value', money(n.value))),
+    n.summary ? h('div.small', { style: { lineHeight: '20px' } }, n.summary) : null,
+    rb ? rubricBlock(rb, { open: i === 0 }) : null,
+    ...legacy.filter(Boolean),
+    h('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' } }, prep, save,
       n.url ? h('a.btn.btn-ghost.btn-sm', { href: n.url, target: '_blank', rel: 'noopener' }, icon('out', 14), 'Official notice') : null));
 }
 
 /** Renders into `box`; returns nothing. Each search costs model calls, so it runs once per visit and on explicit refresh. */
 export async function worldwide(box, { q = '' } = {}) {
   const list = h('div', { style: { display: 'grid', gap: '12px' } }, skeleton(6));
-  const meta = h('div.small.ink2', { style: { display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' } }, 'Ranking open notices against your Company Brain on ', modelChip('Muse Spark'), '…');
+  const meta = h('div.small.ink2', { style: { display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' } }, 'Reading the best-matching open notices in full and scoring each against your Company Brain on ', modelChip('Muse Spark'), '…');
   const input = h('input.input', { type: 'search', placeholder: 'Narrow by keyword, e.g. CCTV, surveillance, access control', value: q, style: { flex: 1, minWidth: '200px' } });
   const go = h('button.btn.btn-primary.btn-sm', { type: 'submit' }, icon('search', 14), 'Search');
   const form = h('form', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '6px' }, onsubmit: (e) => { e.preventDefault(); worldwide(box, { q: input.value.trim() }); } }, input, go);
@@ -67,9 +82,14 @@ export async function worldwide(box, { q = '' } = {}) {
   const notices = r.notices || [];
   const scored = notices.filter((n) => n.fit?.method === 'ai').length;
   meta.replaceChildren(...[
-    h('span', `${(r.total ?? notices.length).toLocaleString('en-IN')} open notices worldwide · top ${notices.length} ranked against your catalogue and past proposals`),
+    h('span', `${(r.total ?? notices.length).toLocaleString('en-IN')} open notices worldwide · top ${notices.length} read in full and scored against your catalogue and past proposals`),
     scored ? h('span', { style: { display: 'inline-flex', gap: '6px', alignItems: 'center' } }, 'by', modelChip('Muse Spark')) : null,
     r.sources_failed?.length ? h('span.xs.muted', `${r.sources_failed.join(', ')} not answering`) : null].filter(Boolean));
+  if (r.profile) {
+    const p = r.profile;
+    meta.append(h('div.tw-recall', h('span.ps-k', { style: { marginBottom: 0 } }, 'Recall'),
+      h('span.xs', `Capability profile from your catalogue and Company Brain: ${[...(p.domains || []).slice(0, 4)].join(', ')}. Candidates matched on ${p.cpv_count} CPV families and ${p.terms_count} terms in ${(p.languages || []).length} languages.`)));
+  }
   if (r.ai?.code && AI_MSG[r.ai.code]) meta.append(h('div.xs.muted', { style: { width: '100%' } }, AI_MSG[r.ai.code]));
   list.replaceChildren(...(notices.length ? notices.map((n, i) => card(n, i, onSave))
     : [h('div.card', empty('Nothing open matches right now', q ? 'Try a broader keyword.' : 'New notices are pulled from public portals every day.'))]));

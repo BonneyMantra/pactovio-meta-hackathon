@@ -1,6 +1,8 @@
 import type { Env } from '@pactovio/contracts/env';
 import { getBrain } from './autopilot-seams';
 import type { OnboardingState } from './onboarding-state';
+import { proposalIndex } from './brain-store';
+import type { Evidence } from './opportunity-rubric';
 
 const MAX_SKUS = 40;
 const MAX_REFS = 25;
@@ -23,10 +25,19 @@ export async function brainText(env: Env, workspace: string): Promise<string> {
   return lines.join('\n');
 }
 
+/** The workspace's real SKUs and learned proposals: the only evidence a rubric may cite (not part of the cache hash; brainText is). */
+export async function evidenceOf(env: Env, workspace: string): Promise<Evidence> {
+  const [prods, index] = await Promise.all([
+    env.DB.prepare('SELECT sku, name FROM products WHERE workspace_id = ? LIMIT 2000').bind(workspace).all<{ sku: string; name: string }>().then((r) => r.results),
+    proposalIndex(env.DB, workspace).catch(() => []),
+  ]);
+  return { products: prods, proposals: index.map((p) => ({ ref: p.ref, client: p.client, sector: p.sector, solution_type: p.solution_type, total_inr: p.total_inr, outcome: p.outcome })) };
+}
+
 /** Profile plus catalogue/brain evidence. Never throws: without a catalogue it returns the state unchanged. */
-export async function withBrain(env: Env, workspace: string, state: OnboardingState): Promise<OnboardingState & { brainText?: string }> {
+export async function withBrain(env: Env, workspace: string, state: OnboardingState): Promise<OnboardingState & { brainText?: string; evidence?: Evidence }> {
   try {
-    const text = await brainText(env, workspace);
-    return text ? { ...state, brainText: text } : state;
+    const [text, evidence] = await Promise.all([brainText(env, workspace), evidenceOf(env, workspace)]);
+    return text ? { ...state, brainText: text, evidence } : state;
   } catch { return state; }
 }
