@@ -117,8 +117,8 @@ export class Composio {
     return r.items?.find((i) => i.name === name && i.status !== 'DISABLED')?.id ?? null;
   }
 
-  async createManagedAuthConfig(toolkit: string, name: string): Promise<string> {
-    const r = await this.request<{ auth_config: { id: string } }>('POST', '/auth_configs', { toolkit: { slug: toolkit }, auth_config: { name, type: 'use_composio_managed_auth' } });
+  async createManagedAuthConfig(toolkit: string, name: string, scopes?: string): Promise<string> {
+    const r = await this.request<{ auth_config: { id: string } }>('POST', '/auth_configs', { toolkit: { slug: toolkit }, auth_config: { name, type: 'use_composio_managed_auth', ...(scopes ? { credentials: { scopes } } : {}) } });
     return r.auth_config.id;
   }
 

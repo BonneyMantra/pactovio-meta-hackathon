@@ -15,6 +15,11 @@ export interface ProviderSpec {
   actions: string[];
   /** Composio managed OAuth available (verified against GET /toolkits/{slug} on 30 Oct 2026). */
   managedAuth: boolean;
+  /**
+   * Explicit OAuth scopes for Composio's managed app (comma-separated). Composio's HubSpot defaults require tier-gated scopes
+   * (custom objects, CMS, content) that make the install fail on portals without those hubs.
+   */
+  scopes?: string;
   /** Provider shares one Composio connected account with another provider id (Outlook mail + calendar). */
   sharesAccountWith?: string;
   /** Needs a Microsoft 365 work/school account; personal outlook.com cannot connect. */
@@ -41,6 +46,7 @@ export const PROVIDERS: ProviderSpec[] = [
     whatItDoes: 'The agent posts the same proactive messages, with approve and decline links, to a Teams channel. Needs a Microsoft 365 work or school account.',
     actions: ['post_message'] },
   { provider: 'hubspot', toolkit: 'hubspot', name: 'HubSpot', category: 'crm', managedAuth: true,
+    scopes: 'oauth,e-commerce,crm.objects.deals.read,crm.objects.deals.write,crm.objects.contacts.read,crm.objects.contacts.write,crm.objects.companies.read',
     description: 'A deal per bid with stage, value and deadline.',
     whatItDoes: 'Creates or updates one deal per tender or quote (stage, amount, close date) and attaches a note with the verdict and its reasons.',
     actions: ['create_deal', 'update_deal', 'add_note', 'list_products', 'list_deals'] },

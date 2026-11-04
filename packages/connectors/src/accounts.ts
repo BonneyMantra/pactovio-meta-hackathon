@@ -12,8 +12,9 @@ import { completeOAuth, requireOAuthSession, saveOAuthState, safeReturn, stateTo
 const SYNC_TTL_S = 20;
 
 async function authConfigId(env: Env, spec: ProviderSpec, deps: Deps): Promise<string> {
-  const name = `pactovio-${spec.toolkit}`;
-  const cacheKey = `cx:ac:${spec.toolkit}`;
+  // A config with explicit scopes gets its own name, so an earlier default-scoped config is never reused.
+  const name = spec.scopes ? `pactovio-${spec.toolkit}-scoped` : `pactovio-${spec.toolkit}`;
+  const cacheKey = `cx:ac:${name}`;
   const cached = await env.CACHE.get(cacheKey).catch(() => null);
   if (cached) return cached;
   const c = composioFor(env, deps);
@@ -22,7 +23,7 @@ async function authConfigId(env: Env, spec: ProviderSpec, deps: Deps): Promise<s
     if (!spec.managedAuth) {
       throw new HttpError(409, `${spec.name} needs our own OAuth app in Composio first (auth config "${name}"). ${spec.ownApp ?? ''}`.trim(), 'needs_setup');
     }
-    id = await c.createManagedAuthConfig(spec.toolkit, name);
+    id = await c.createManagedAuthConfig(spec.toolkit, name, spec.scopes);
   }
   await env.CACHE.put(cacheKey, id, { expirationTtl: 3600 }).catch(() => undefined);
   return id;
