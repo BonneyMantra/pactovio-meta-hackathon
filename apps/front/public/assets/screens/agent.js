@@ -8,7 +8,7 @@ import { rfqKit } from './agent-rfq.js';
 const SUGGEST = ["What's on today?", 'What is our win rate on banking bids?', 'Which open tenders fit us best?', 'Summarise the newest RFQ in the inbox'];
 
 export async function render(root, _p, ctx) {
-  ctx.setCrumbs('Agent');
+  ctx.setCrumbs('Chat');
   root.classList.add('agent-page');
   const state = { threads: [], current: null, ws: null, wsOpen: false, busy: false, live: null, cards: new Map(), closed: false };
 
