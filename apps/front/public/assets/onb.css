@@ -79,3 +79,64 @@
 /* Learning view at tablet widths: the tall reading column no longer stretches the gap between the two right panels */
 @media (max-width: 1100px) and (min-width: 681px) { .lr-body { grid-template-rows: auto 1fr; } .lr-mid { align-self: start; } }
 @media (max-width: 680px) { .ob-src-list { margin-left: 0; width: 100%; } .ob-src-list a { line-height: 1.6; white-space: nowrap; } }
+
+/* ── Onboarding in the sign-in frame (assets/onb/stage.js): the working panel and the left-column pieces ── */
+.pv-panel { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.pv-panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px 14px; flex-wrap: wrap; }
+.pv-panel-head h2 { margin: 2px 0 0; font-size: 20px; font-weight: 600; letter-spacing: -.02em; line-height: 1.25; overflow-wrap: anywhere; }
+.pv-kicker { font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.pv-live, .pv-tag-ok { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 99px; font-size: 11.5px; font-weight: 550; white-space: nowrap; }
+.pv-live { background: #fdeee4; color: #9e410d; }
+.pv-live i { width: 7px; height: 7px; border-radius: 50%; background: #e2601f; animation: pv-pulse 1.4s ease-in-out infinite; }
+@keyframes pv-pulse { 50% { opacity: .35; transform: scale(.8); } }
+.pv-tag-ok { background: #e8f2ea; color: #24633e; }
+.pv-source { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; padding: 12px; border: 1px solid var(--line-soft); border-radius: 12px; background: #fff; }
+.pv-source strong { display: block; font-size: 14px; font-weight: 600; }
+.pv-source div > span { font-size: 12.5px; color: var(--ink-2); }
+.pv-bigcount { display: flex; align-items: baseline; gap: 8px; }
+.pv-bigcount .num { font-size: 56px; font-weight: 600; letter-spacing: -.045em; line-height: 1; }
+.pv-bigcount > span:last-child { font-size: 15px; color: var(--ink-2); }
+.pv-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.pv-row .pv-btn { flex: 1 1 auto; }
+.pv-skip { display: flex; }
+.pv-back { align-self: flex-start; padding: 0; }
+.pv-rail-note { display: flex; align-items: center; gap: 8px; padding-top: 14px; border-top: 1px solid var(--line-soft); font-size: 12.5px; color: var(--ink-2); }
+.pv-stage .ob-ready-mark { width: 48px; height: 48px; border-radius: 14px; margin-bottom: 18px; }
+.pv-stage .ob-row-ask { background: #fffaf6; }
+.ob-skel { display: grid; gap: 12px; padding: 6px 2px; }
+.ob-skel span { display: block; height: 12px; border-radius: 6px; background: linear-gradient(90deg, #efedea 0%, #f8f7f5 45%, #efedea 90%); background-size: 220% 100%; animation: pv-shimmer 1.6s ease-in-out infinite, lr-in 420ms var(--ease) backwards; }
+@keyframes pv-shimmer { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+.ob-structure ol { list-style: none; counter-reset: sec; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px; }
+.ob-structure li { counter-increment: sec; display: flex; gap: 8px; align-items: baseline; padding: 8px 10px; border-radius: 9px; background: #fff; box-shadow: var(--hair); font-size: 12.5px; animation: lr-in 380ms var(--ease) backwards; }
+.ob-structure li::before { content: counter(sec, decimal-leading-zero); font: 500 10.5px var(--mono); color: var(--ink-3); }
+.pv-panel-form .company-form { gap: 14px; }
+/* The learning view's Drive connect and folder pick, as left-column questions */
+.pv-ask .lr-pick { max-width: none; margin: 0; padding: 0; background: none; box-shadow: none; gap: 18px; }
+.pv-ask .lr-pick > .access-step { display: none; }
+.pv-ask .lr-pick h2 { margin: 0; font-size: 30px; font-weight: 600; letter-spacing: -.035em; line-height: 1.15; text-wrap: balance; }
+.pv-ask .lr-pick > p { margin: -8px 0 0; font-size: 13.5px; line-height: 1.6; color: var(--ink-2); }
+.pv-ask .lr-pick .ob-connect { grid-template-columns: auto 1fr; margin: 0; background: #fff; box-shadow: none; border: 1px solid var(--line-soft); border-radius: 12px; padding: 12px; }
+.pv-ask .lr-pick .btn, .pv-ask .lr-pick-foot .btn { grid-column: 1 / -1; width: 100%; min-height: 44px; border-radius: 10px; justify-content: center; font-weight: 550; }
+.pv-ask .lr-pick-foot { flex-direction: column-reverse; align-items: stretch; margin: 0; }
+.pv-ask .lr-folder { background: #fff; }
+.pv-ask .lr-wait { padding: 0; }
+.pv-work .pv-learn .lr-pick { margin-top: 0; }
+@media (min-width: 1024px) {
+  .pv-work .ob-products { max-height: none; overflow: visible; mask-image: none; -webkit-mask-image: none; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .pv-work .ob-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 1023.98px) {
+  .pv-work .pv-panel { padding: 16px; border-radius: 14px; background: #fff; box-shadow: var(--shadow-card); }
+  .pv-work .ob-products { max-height: 460px; }
+  .pv-bigcount .num { font-size: 44px; }
+}
+.ob-noimg { color: var(--ink-4); display: grid; place-items: center; }
+.pv-skip .pv-btn-text { padding-left: 0; }
+.pv-ask .ob-connect strong { font-size: 14px; font-weight: 600; }
+.pv-ask .ob-connect .small { font-size: 12.5px; }
+.pv-rail-note { align-items: flex-start; } .pv-rail-note .ico { margin-top: 3px; }
+.pv-work .lr-top .access-step { font-family: var(--font); font-size: 10.5px; font-weight: 600; letter-spacing: .1em; color: var(--ink-3); }
+.pv-work .lr-top h2 { font-weight: 600; letter-spacing: -.035em; }
+@media (min-width: 1280px) { .pv-work .ob-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.pv-steps { flex-wrap: wrap; }
+@media (min-width: 1024px) and (max-width: 1279px) { .pv-stage[data-mode=onb] .pv-steps li:not([aria-current]) .pv-step-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } }

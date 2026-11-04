@@ -1,5 +1,8 @@
+// Customer access: email → 6-digit code, in the same frame the onboarding continues in (assets/onb/stage.js).
 import { h, icon } from './ui.js';
-import { requestCode, verifyCode, friendlyError } from './customer-api.js';
+import { requestCode, verifyCode } from './customer-api.js';
+import { stage } from './onb/stage.js';
+import { otpField } from './onb/otp.js';
 
 export function gateFrame() {
   document.body.classList.add('pv-gated');
@@ -8,88 +11,143 @@ export function gateFrame() {
   return gate;
 }
 export function leaveGate() { document.getElementById('access')?.remove(); document.body.classList.remove('pv-gated'); }
-export function gateLayout(root, content, setup = false) {
-  root.replaceChildren(h('header.access-header', h('a.brand', { href: '/' }, h('img', { src: '/assets/brand/lockup.svg', alt: 'Pactovio', width: 134, height: 32 })),
-    h('a.small.ink2', { href: '/#how' }, 'How Pactovio works')),
-  h(`div.access-layout${setup ? '.access-setup' : ''}`,
-    h('aside.access-story', h('span.access-eyebrow', 'YOUR NEXT OPPORTUNITY, ANSWERED'), h('h1', 'Good work starts\nwith your company.'),
-      h('p.ink2', 'Bring your requests, capabilities and evidence together. Pactovio helps you decide what to bid for, then drafts the response.'),
-      h('div.access-promise', icon('shield', 20), h('div', h('strong.small', 'A workspace of your own'), h('p.small.ink2', 'Your company information and connections stay in your private workspace.')))), content),
-    h('footer.access-footer.small.ink2', h('span', 'Pactovio · From request to response'), h('span', h('a', { href: '/privacy' }, 'Privacy'), ' · ', h('a', { href: '/terms' }, 'Terms'))));
-}
-export function gateError(root, error, retry) {
-  gateLayout(root, h('section.card.access-card', h('span.access-step', 'CONNECTION INTERRUPTED'), h('h2.h2', 'Let’s try that again'),
-    h('p.ink2', friendlyError(error)), h('button.btn.btn-primary', { onclick: retry }, icon('refresh'), 'Try again')));
+
+/** A short notice ("Opening your private workspace…") in the left column; the panel and mode stay as they are. */
+export function gateLayout(root, content) {
+  stage(root).ask(h('div.pv-form.pv-notice-wrap', content));
 }
 
+export function gateError(root, error, retry) {
+  const s = stage(root);
+  s.ask(h('div.pv-form', h('div.pv-heading', h('h1', { tabindex: '-1' }, 'Let’s try that again'), h('p.pv-lede', errorText(error))),
+    h('button.pv-btn', { type: 'button', onclick: retry }, 'Try again', icon('refresh', 16))));
+  s.el.querySelector('.pv-btn')?.focus();
+}
+
+// Only the address and non-secret timestamps survive a reload; the code itself is never stored.
+const KEY = 'pactovio.auth.challenge.v1';
+function readSaved() {
+  try {
+    const v = JSON.parse(localStorage.getItem(KEY) || 'null');
+    return v && typeof v.email === 'string' && Number.isFinite(v.retryAt) && Number.isFinite(v.expiresAt) && v.expiresAt > Date.now() ? v : null;
+  } catch { return null; }
+}
+function writeSaved(v) { try { if (v) localStorage.setItem(KEY, JSON.stringify(v)); else localStorage.removeItem(KEY); } catch { /* optional */ } }
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+function errorText(e) {
+  if (e?.status === 401) return 'Your session expired. Sign in again to continue.';
+  if (e?.status === 429) return 'Too many attempts. Wait a moment and try again.';
+  if (e?.code === 'invalid_code') return 'That code is incorrect or expired. Use the latest email or request a new code.';
+  if ([400, 409, 422].includes(e?.status) && e.message && !/^Request failed/.test(e.message) && e.message.length < 200) return e.message;
+  return 'We could not complete that request. Your details are still here. Please try again.';
+}
+const sendError = (e) => (['auth_unavailable', 'delivery_unavailable'].includes(e?.code) ? 'We could not send a code right now. Try again in a little while.' : errorText(e));
+
 export function renderAuth(root, onVerified, notice = '') {
-  let email = '', step = 'email', retryAt = 0, expiresAt = 0, busy = false, disposed = false;
-  let interval, status, form, resend, expiry, input, submit;
-  const remaining = () => Math.max(0, Math.ceil((retryAt - Date.now()) / 1000));
-  const fail = (e) => { status.textContent = friendlyError(e); status.className = 'access-status error-box'; status.focus(); };
-  function tick() {
-    if (step === 'email') { submit.disabled = busy || remaining() > 0; submit.firstChild.textContent = remaining() ? `Try again in ${remaining()}s` : 'Continue with email'; return; }
-    if (!resend) return;
-    resend.disabled = busy || remaining() > 0;
-    resend.textContent = remaining() ? `Resend code in ${remaining()}s` : 'Resend code';
-    const seconds = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
-    expiry.textContent = seconds ? `Code expires in ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}` : 'This code has expired. Request a new one below.';
-    submit.disabled = busy || !seconds;
-  }
-  function setBusy(value) {
-    busy = value; form.setAttribute('aria-busy', String(value));
-    form.querySelectorAll('button, input').forEach((el) => { el.disabled = value; });
-    tick();
-  }
-  async function send() {
-    setBusy(true); status.textContent = 'Sending your code…';
-    try {
-      const result = await requestCode(email);
-      if (disposed) return;
-      retryAt = Date.now() + (result.retry_after || 60) * 1000;
-      expiresAt = Date.now() + (result.expires_in || 600) * 1000;
-      step = 'code'; draw(); status.textContent = 'Code sent. Check your inbox and spam folder.';
-    } catch (e) {
-      if (disposed) return;
-      if (e.status === 429) retryAt = Date.now() + (e.retryAfter || 60) * 1000;
-      fail(e);
-    } finally { if (!disposed) setBusy(false); }
-  }
-  function draw() {
-    clearInterval(interval); resend = null;
-    status = h('div.access-status.small.ink2', { id: 'auth-status', role: 'status', 'aria-live': 'polite', tabindex: '-1' }, step === 'email' ? notice : '');
-    input = step === 'email'
-      ? h('input.input', { id: 'auth-email', name: 'email', type: 'email', autocomplete: 'email', required: true, maxlength: 254, value: email, placeholder: 'you@company.com', 'aria-describedby': 'auth-status' })
-      : h('input.input.access-code', { id: 'auth-code', name: 'code', type: 'text', inputmode: 'numeric', autocomplete: 'one-time-code', pattern: '[0-9]{6}', minlength: 6, maxlength: 6, required: true, placeholder: '000000', 'aria-describedby': 'code-expiry auth-status', oninput: (e) => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6); }, onpaste: (e) => { e.preventDefault(); e.target.value = (e.clipboardData?.getData('text') || '').replace(/\D/g, '').slice(0, 6); } });
-    submit = h('button.btn.btn-primary.access-submit', { type: 'submit' }, step === 'email' ? 'Continue with email' : 'Verify & continue', icon('arrow'));
-    form = h('form.access-form', { novalidate: true, onsubmit: async (e) => {
-      e.preventDefault(); if (busy) return;
-      if (step === 'email') {
-        email = input.value.trim().toLowerCase();
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { status.textContent = 'Enter a valid email address, such as you@company.com.'; input.setAttribute('aria-invalid', 'true'); input.focus(); return; }
-        input.removeAttribute('aria-invalid'); await send(); return;
-      }
-      if (!/^[0-9]{6}$/.test(input.value)) { status.textContent = 'Enter the six-digit code from your latest email.'; input.setAttribute('aria-invalid', 'true'); input.focus(); return; }
-      input.removeAttribute('aria-invalid');
-      const code = input.value; setBusy(true); status.textContent = 'Verifying your code…';
-      try { await verifyCode(email, code); if (!disposed) await onVerified(); }
-      catch (err) { if (!disposed) { fail(err); input.select(); } }
-      finally { if (!disposed) setBusy(false); }
-    } }, h('label.access-label', { for: input.id }, step === 'email' ? 'Work email' : 'Six-digit code'), input, submit, status);
-    if (step === 'code') {
-      expiry = h('div.small.ink2', { id: 'code-expiry' });
-      resend = h('button.btn.btn-ghost.btn-sm', { type: 'button', onclick: send }, 'Resend code');
-      form.append(expiry, h('div.access-code-actions', resend,
-        h('button.btn.btn-ghost.btn-sm', { type: 'button', onclick: () => { step = 'email'; draw(); } }, 'Change email')));
-      tick();
+  const s = stage(root).mode('auth').work(null).who(null);
+  const saved = readSaved();
+  let email = saved?.email || '', step = saved ? 'code' : 'email', challenge = saved;
+  let busy = '', error = '', info = notice, verifyAt = 0, seq = 0, disposed = false;
+  let ui = {};
+
+  const now = () => Date.now();
+  const matches = () => !!challenge && challenge.email === email.trim().toLowerCase();
+  const remaining = () => (matches() ? Math.max(0, Math.ceil((challenge.retryAt - now()) / 1000)) : 0);
+  const expired = () => step === 'code' && (!matches() || challenge.expiresAt <= now());
+  const verifyWait = () => Math.max(0, Math.ceil((verifyAt - now()) / 1000));
+
+  function paint() {
+    if (disposed || !ui.button) return;
+    const code = step === 'code', wait = code ? verifyWait() : remaining();
+    const label = busy === 'request' ? 'Sending code…' : busy === 'verify' ? 'Verifying…' : wait ? `Try again in ${wait}s` : code ? 'Verify code' : 'Continue';
+    ui.button.replaceChildren(...(busy ? [h('span.pv-spin', { 'aria-hidden': 'true' }), label] : [label, icon('arrow', 16)]));
+    ui.button.disabled = !!busy || (code ? expired() || verifyWait() > 0 : remaining() > 0);
+    ui.form.setAttribute('aria-busy', String(!!busy));
+    const text = error || (code ? (expired() ? 'This code has expired. Request a new one.' : 'Enter the 6-digit code from your inbox.') : info);
+    if (ui.status.textContent !== text) ui.status.textContent = text;
+    ui.status.className = error ? 'pv-status pv-error' : 'pv-status';
+    ui.status.setAttribute('role', error ? 'alert' : 'status');
+    if (code) {
+      ui.otp.invalid(!!error); ui.otp.disabled(!!busy || expired());
+      ui.resend.disabled = !!busy || remaining() > 0;
+      ui.resend.textContent = remaining() ? `Resend code in ${remaining()}s` : 'Resend code';
+    } else {
+      ui.email.disabled = !!busy;
+      ui.email.setAttribute('aria-invalid', String(!!error));
     }
-    gateLayout(root, h('section.card.access-card', h('span.access-step', step === 'email' ? 'SIGN IN OR CREATE AN ACCOUNT' : 'CHECK YOUR INBOX'),
-      h('h2.h2', step === 'email' ? 'Welcome to Pactovio' : 'You’ve got a code'),
-      h('p.ink2', step === 'email' ? 'Use your email to get started. We’ll send a sign-in code — no password to remember.' : ['Enter the code we sent to ', h('strong.access-email', email), '.']),
-      form, step === 'email' ? h('p.xs.ink2.access-terms', 'By continuing, you agree to our ', h('a', { href: '/terms' }, 'Terms'), ' and ', h('a', { href: '/privacy' }, 'Privacy Policy'), '.') : null));
-    interval = setInterval(tick, 1000); tick();
-    input.focus();
   }
+
+  async function send() {
+    if (busy || remaining()) return;
+    const value = (ui.email ? ui.email.value : email).trim().toLowerCase();
+    if (!EMAIL.test(value) || value.length > 254) { error = 'Enter a valid email address.'; paint(); ui.email?.focus(); return; }
+    const id = ++seq;
+    busy = 'request'; error = ''; info = ''; paint();
+    try {
+      const r = await requestCode(value);
+      if (disposed || id !== seq) return;
+      email = value;
+      challenge = { email: value, retryAt: now() + (r.retry_after || 60) * 1000, expiresAt: now() + (r.expires_in || 600) * 1000 };
+      writeSaved(challenge);
+      busy = ''; step = 'code'; draw();
+    } catch (e) {
+      if (disposed || id !== seq) return;
+      error = sendError(e);
+      if (e.status === 429) challenge = { email: value, retryAt: now() + (e.retryAfter || 60) * 1000, expiresAt: challenge?.expiresAt ?? 0 };
+      busy = ''; paint(); (ui.email || ui.otp)?.focus();
+    }
+  }
+
+  async function verify() {
+    if (busy || expired() || verifyWait()) return;
+    const code = ui.otp.value;
+    if (!/^\d{6}$/.test(code)) { error = 'Enter all six digits from your email.'; paint(); ui.otp.focus(); return; }
+    const id = ++seq;
+    busy = 'verify'; error = ''; paint();
+    try {
+      await verifyCode(email, code);
+      if (disposed || id !== seq) return;
+      writeSaved(null);
+      await onVerified();
+    } catch (e) {
+      if (disposed || id !== seq) return;
+      error = errorText(e);
+      if (e.status === 429) verifyAt = now() + (e.retryAfter || 60) * 1000;
+      busy = ''; ui.otp.clear(); paint(); ui.otp.focus();
+    }
+  }
+
+  function changeMail() {
+    seq += 1; busy = ''; challenge = null; writeSaved(null); error = ''; info = ''; verifyAt = 0; step = 'email';
+    draw();
+  }
+
+  function draw() {
+    const code = step === 'code';
+    const status = h('p.pv-status', { id: 'auth-status', role: 'status' });
+    const button = h('button.pv-btn', { type: 'submit' });
+    const heading = h('div.pv-heading', h('h1', { tabindex: '-1' }, code ? 'Check your email' : 'Sign in or sign up'),
+      code ? h('p.pv-subtitle', h('span', email), h('button.pv-link', { type: 'button', onclick: changeMail }, 'Change Mail?')) : null);
+    ui = { status, button };
+    let field;
+    if (code) {
+      ui.otp = otpField({ id: 'auth-code', describedBy: 'auth-status', onChange: () => { if (error) { error = ''; paint(); } }, onComplete: () => verify() });
+      ui.resend = h('button.pv-link.pv-resend', { type: 'button', onclick: () => send() });
+      field = h('div.pv-field', h('label.sr-only', { for: 'auth-code' }, '6-digit code'), ui.otp.el);
+    } else {
+      ui.email = h('input.pv-input', { id: 'auth-email', name: 'email', type: 'email', autocomplete: 'email', inputmode: 'email', maxlength: 254, placeholder: 'you@company.com', value: email, 'aria-describedby': 'auth-status',
+        oninput: (e) => { email = e.target.value; if (error) { error = ''; paint(); } else paint(); } });
+      field = h('div.pv-field', h('label.pv-label', { for: 'auth-email' }, 'Email address'), ui.email);
+    }
+    ui.form = h('form.pv-form.pv-auth-form', { novalidate: true, onsubmit: (e) => { e.preventDefault(); if (code) verify(); else send(); } },
+      heading, field, status, button, code ? ui.resend : null);
+    s.ask(ui.form);
+    paint();
+    (code ? ui.otp : ui.email).focus({ preventScroll: true });
+  }
+
+  const timer = setInterval(paint, 1000);
   draw();
-  return () => { disposed = true; clearInterval(interval); root.replaceChildren(); };
+  return () => { disposed = true; seq += 1; clearInterval(timer); };
 }

@@ -62,7 +62,7 @@ export function learningView(root, opts = {}) {
   }
 
   function animate(first) {
-    opts.onStart?.();
+    opts.onStart?.(first);
     let total = first.total || 0;
     const queue = [], seen = new Set(), inflight = new Set();
     let lastSeq = 0, finishedState = null;
