@@ -18,15 +18,12 @@ Rax Tech International (Chennai; e-surveillance, IoT, automation; 49 products) i
 
 ## Screenshots
 
-Files to add under `docs/screenshots/`:
-
-- `brain.png` (Company Brain: style profile and win-rate stats)
-- `inbox-autopilot.png` (Inbox with "Proposal ready")
-- `proposal-requirements.png` (page-cited requirements, go/no-go)
-- `proposal-floorplan.png` (devices placed on the buyer's plan)
-- `proposal-pdf.png` (cover with labelled concept visual)
-- `tenders.png` (ranked tenders)
-- `prospects.png` (prospects with drafted outreach)
+| | |
+|---|---|
+| ![Company Brain](docs/screenshots/brain.png) Company Brain: what it learned about Rax | ![Inbox autopilot](docs/screenshots/inbox-autopilot.png) Gmail autopilot: proposal ready while you were away |
+| ![Eligibility gaps](docs/screenshots/proposal-requirements.png) Run in chat: page-cited eligibility gaps | ![Floor plan](docs/screenshots/proposal-floorplan.png) Devices placed on the buyer's floor plan with SAM 3.1 |
+| ![Proposal](docs/screenshots/proposal-pdf.png) The proposal, ready for review | ![Tenders](docs/screenshots/tenders.png) Tenders worldwide, ranked for Rax |
+| ![Prospects](docs/screenshots/prospects.png) Prospects with source links and a drafted email | |
 
 ## Architecture
 
