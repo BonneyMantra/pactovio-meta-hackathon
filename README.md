@@ -34,7 +34,7 @@ Built for the Meta Global AI Developer Hackathon 2026. Hosted target: https://pa
                                          fan-out          ledger | pack files | cache
         |
         v
-   Meta Model API (Muse Spark 1.3 lanes)                  Tavily (buyer intel)
+   Meta Model API (Muse Spark 1.3 lanes)                  Muse Spark web search (buyer intel)
    Swap-ready: Fireworks / Baseten / Modal (OpenAI-compatible)
 ```
 
@@ -84,7 +84,7 @@ On the real Teagasc pack (public tender, 3 lots, EUR 5.95M) the sample company's
 
 Sign in or create an account with a six-digit email code. New customers receive an empty, private workspace and complete company setup before entering the app. Company details are saved between visits; evidence, products, requests, quotes, agent threads and connected accounts belong to that workspace. Customer cookies are opaque, hashed server-side, HttpOnly, Secure and revocable. Legacy anonymous sample cookies do not authenticate customer APIs.
 
-Per customer browser session: 2 fresh pack reads, 3 Tavily buyer refreshes and 10 agent messages a minute. Globally: one fresh pack run in flight, Tavily 25/day and 150/month, and a hard **$0.25/day model spend cap** with a kill switch. Budget exhaustion is an error, not a fabricated answer. New customer workspaces have no recorded replays. Scheduled scans exclude retained samples and customers whose setup is incomplete. `GET /api/limits` returns the current counters and budget.
+Per customer browser session: 2 fresh pack reads, 3 buyer web-search refreshes and 10 agent messages a minute. Globally: one fresh pack run in flight, web search 25/day and 150/month, and a hard **$0.25/day model spend cap** with a kill switch. Budget exhaustion is an error, not a fabricated answer. New customer workspaces have no recorded replays. Scheduled scans exclude retained samples and customers whose setup is incomplete. `GET /api/limits` returns the current counters and budget.
 
 Each customer connects their own tools through Composio. The project callback verifier must be configured before production customer connections are enabled; credentials and shared demo accounts are never adopted into customer workspaces. See [configuration, migration and verification](apps/api/CUSTOMER-AUTH.md).
 
@@ -134,7 +134,7 @@ The private, licensed UI kit source that the front end was designed with is not 
 ```bash
 npm install
 cd apps/api
-# put META_API_KEY (and optionally TAVILY_API_KEY) in .env.local, gitignored; dev.sh turns it into .dev.vars
+# put META_API_KEY in .env.local, gitignored; dev.sh turns it into .dev.vars
 npx tsx scripts/seed-packs.ts --state .wrangler/state     # migrates, seeds the sample companies, extracts the real packs
 npx tsx scripts/seed-samples.ts --apply --local           # company evidence and the Kestrel catalogue
 PORT=8788 npm run dev                                     # http://localhost:8788/api/health

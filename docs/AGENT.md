@@ -58,7 +58,7 @@ Everything is also under `/v1` with `Authorization: Bearer pk_...`.
 
 `list_today`, `search_tenders`, `get_tender`, `start_pack_run`, `get_matrix`, `get_verdicts`, `draft_answers`, `approve_answer`, `buyer_intel`, `list_intakes`, `create_design_request_from_text`, `match_design_request`, `create_quote`, `list_connectors`, `run_connector_action`, `billing_status`, `get_limits`.
 
-Confirmation required (the tool returns a pending action and does nothing until a human confirms): `start_pack_run`, `draft_answers`, `approve_answer`, `create_design_request_from_text`, `match_design_request`, `create_quote`, `run_connector_action`, and `buyer_intel` when `refresh: true` (live Tavily call). Read tools run immediately and return compact JSON (at most 30 matrix rows, gaps first). A tool whose owning lane is not built yet returns `{ error, code: "not_available_yet" }` as data.
+Confirmation required (the tool returns a pending action and does nothing until a human confirms): `start_pack_run`, `draft_answers`, `approve_answer`, `create_design_request_from_text`, `match_design_request`, `create_quote`, `run_connector_action`, and `buyer_intel` when `refresh: true` (live Muse Spark web search). Read tools run immediately and return compact JSON (at most 30 matrix rows, gaps first). A tool whose owning lane is not built yet returns `{ error, code: "not_available_yet" }` as data.
 
 ## Proactive messages
 

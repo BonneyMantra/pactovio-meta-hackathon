@@ -74,7 +74,7 @@ Cookies: the API sets `pv_s` (HttpOnly, SameSite=Lax). From a dev server on anot
 | GET | `/runs/{id}` | params `id` | `RunDetail` | live | engine | Run with its steps |
 | GET | `/runs/{id}/stream` | params `id` | (sse) | live | engine | SSE stream of run steps (event: step | done) |
 | GET | `/buyers/{id}` | params `id` | `BuyerIntel` | live | engine | Buyer intelligence by buyer_key |
-| POST | `/buyers/{id}/refresh` | params `id` | `RefreshBuyerResult` | live | engine | Refresh buyer intel with a live Tavily search (capped per session) |
+| POST | `/buyers/{id}/refresh` | params `id` | `RefreshBuyerResult` | live | engine | Refresh buyer intel with a live Muse Spark web search (capped per session) |
 | GET | `/evidence` | query `limit`, `cursor` | `{ items: Entity[] }` | sample | pack | Evidence library |
 | GET | `/evidence/{id}` | params `id` | `Evidence` | sample | pack | One evidence item |
 | POST | `/evidence` | - | (multipart) | live | pack | Upload evidence (multipart: file, title, kind, valid_to) |

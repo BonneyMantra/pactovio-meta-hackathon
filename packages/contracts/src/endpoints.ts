@@ -45,7 +45,7 @@ export const endpoints = {
   streamRun: ep({ id: 'streamRun', method: 'GET', path: '/runs/{id}/stream', tag: 'runs', summary: 'SSE stream of run steps (event: step | done)', params: id, response: z.unknown(), status: 'live', lane: 'engine', kind: 'sse' }),
 
   getBuyer: ep({ id: 'getBuyer', method: 'GET', path: '/buyers/{id}', tag: 'buyers', summary: 'Buyer intelligence by buyer_key', params: id, response: BuyerIntel, status: 'live', lane: 'engine' }),
-  refreshBuyer: ep({ id: 'refreshBuyer', method: 'POST', path: '/buyers/{id}/refresh', tag: 'buyers', summary: 'Refresh buyer intel with a live Tavily search (capped per session)', params: id, response: V.RefreshBuyerResult, status: 'live', lane: 'engine' }),
+  refreshBuyer: ep({ id: 'refreshBuyer', method: 'POST', path: '/buyers/{id}/refresh', tag: 'buyers', summary: 'Refresh buyer intel with a live Muse Spark web search (capped per session)', params: id, response: V.RefreshBuyerResult, status: 'live', lane: 'engine' }),
 
   listEvidence: ep({ id: 'listEvidence', method: 'GET', path: '/evidence', tag: 'evidence', summary: 'Evidence library', query: PageQuery, response: z.object({ items: z.array(Evidence) }), status: 'sample', lane: 'pack' }),
   getEvidence: ep({ id: 'getEvidence', method: 'GET', path: '/evidence/{id}', tag: 'evidence', summary: 'One evidence item', params: id, response: Evidence, status: 'sample', lane: 'pack' }),

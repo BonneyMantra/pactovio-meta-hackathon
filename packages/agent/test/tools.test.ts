@@ -49,7 +49,7 @@ describe('tool registry', () => {
     const mutating = agentTools.filter((t) => t.mutating).map((t) => t.name).sort();
     expect(mutating).toEqual(['approve_answer', 'create_design_request_from_text', 'create_quote', 'draft_answers', 'match_design_request', 'run_connector_action', 'start_pack_run']);
   });
-  it('buyer_intel only needs confirmation when it refreshes through Tavily', () => {
+  it('buyer_intel only needs confirmation when it refreshes through web search', () => {
     const t = getTool('buyer_intel')!;
     expect(requiresConfirmation(t, { refresh: false })).toBe(false);
     expect(requiresConfirmation(t, { refresh: true })).toBe(true);

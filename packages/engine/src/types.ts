@@ -8,7 +8,7 @@ export interface RunCtx {
   runId: string;
   workspaceId: string;
   tenderId: string;
-  /** Test seam: replaces the HTTP client for every model and Tavily call. */
+  /** Test seam: replaces the HTTP client for every model call and web search. */
   fetch?: typeof fetch;
 }
 

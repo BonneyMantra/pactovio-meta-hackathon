@@ -20,7 +20,7 @@ export { docxBytesToPages, docxToPages } from './docx-text';
 export { filledKey } from './form';
 export { buyerIntelImpl, buyerQuery } from './intel';
 export { ingestEvidenceImpl } from './evidence-ingest';
-export { CAPS, consumeFreshRun, consumeTavilyCall, consumeTavilyRefresh } from './caps';
+export { CAPS, consumeFreshRun, consumeSearchCall, consumeSearchRefresh } from './caps';
 export { draftAnswersImpl, enforceWordLimit } from './draft';
 export { loadChunks, chunkText, ensureChunks, ensureProfileEvidence } from './retrieve';
 
@@ -41,7 +41,7 @@ export function claimCheck(text: string, evidence: Evidence[]): Promise<ClaimT[]
   return claimCheckImpl(text, evidence);
 }
 
-/** Buyer intelligence; `refresh` makes a live Tavily call (KV-cached, capped per session and per day). */
+/** Buyer intelligence; `refresh` makes a live Muse Spark web search (KV-cached, capped per session and per day). */
 export function buyerIntel(env: Env, buyerKey: string, opts: { refresh: boolean; sessionId?: string }): Promise<BuyerIntel> {
   return buyerIntelImpl(env, buyerKey, opts);
 }

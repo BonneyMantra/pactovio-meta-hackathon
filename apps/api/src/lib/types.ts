@@ -13,4 +13,4 @@ export type AppEnv = { Bindings: Env; Variables: { auth: Auth } };
 export const DEFAULT_WORKSPACE_ID = 'ws_harbour_digital';
 export const SESSION_COOKIE = 'pv_s';
 /** Judge-mode caps per session (BUILD-BRIEF section 4). */
-export const CAPS = { runs: 2, tavily: 3, agentTurnsPerMin: 10 } as const;
+export const CAPS = { runs: 2, search: 3, agentTurnsPerMin: 10 } as const;

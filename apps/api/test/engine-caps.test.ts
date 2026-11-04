@@ -1,12 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { HttpError, newId } from '@pactovio/contracts';
 import type { Env } from '@pactovio/contracts/env';
-import { buyerIntelImpl, CAPS, consumeFreshRun, consumeTavilyCall, consumeTavilyRefresh } from '@pactovio/engine';
+import { buyerIntelImpl, CAPS, consumeFreshRun, consumeSearchCall, consumeSearchRefresh } from '@pactovio/engine';
 import { startPackRunImpl } from '../../../packages/engine/src/start';
 import { makeEnv } from './helpers';
-// responses recorded from the live Tavily API (one search, one extract) for the Teagasc buyer
-import recordedSearch from '../../../packages/engine/test/fixtures/tavily-teagasc-search.json';
-import recordedExtract from '../../../packages/engine/test/fixtures/tavily-teagasc-extract.json';
 
 const HARBOUR = 'ws_harbour_digital';
 const TEAGASC = 'tnd_sample_teagasc_p4941';
@@ -27,7 +24,7 @@ async function session(): Promise<string> {
   await env.DB.prepare('INSERT INTO judge_sessions (id, workspace_id, created_at) VALUES (?, ?, ?)').bind(id, HARBOUR, new Date().toISOString()).run();
   return id;
 }
-const used = async (id: string) => (await env.DB.prepare('SELECT runs_used, tavily_used FROM judge_sessions WHERE id = ?').bind(id).first<{ runs_used: number; tavily_used: number }>())!;
+const used = async (id: string) => (await env.DB.prepare('SELECT runs_used, tavily_used AS search_used FROM judge_sessions WHERE id = ?').bind(id).first<{ runs_used: number; search_used: number }>())!;
 const finishAll = () => env.DB.prepare("UPDATE runs SET status = 'completed' WHERE status IN ('queued','running')").run();
 
 describe('judge caps: fresh pack runs', () => {
@@ -111,69 +108,83 @@ describe('judge caps: fresh pack runs', () => {
   });
 });
 
-describe('caps: Tavily', () => {
+describe('caps: web search', () => {
   it('3 buyer refreshes per session', async () => {
     const s = await session();
-    for (let i = 1; i <= CAPS.tavilyRefreshes; i++) expect(await consumeTavilyRefresh(env.DB, s)).toBe(i);
-    await expect(consumeTavilyRefresh(env.DB, s)).rejects.toMatchObject({ status: 429, code: 'cap_session' });
+    for (let i = 1; i <= CAPS.searchRefreshes; i++) expect(await consumeSearchRefresh(env.DB, s)).toBe(i);
+    await expect(consumeSearchRefresh(env.DB, s)).rejects.toMatchObject({ status: 429, code: 'cap_session' });
   });
-  it('30 live calls per day', async () => {
-    await env.DB.prepare("DELETE FROM limits_counters WHERE key = 'tavily'").run();
-    for (let i = 0; i < CAPS.tavilyPerDay; i++) await consumeTavilyCall(env.DB);
-    await expect(consumeTavilyCall(env.DB)).rejects.toMatchObject({ status: 429, code: 'cap_day' });
-    await env.DB.prepare("DELETE FROM limits_counters WHERE key = 'tavily'").run();
+  it('daily live search calls are capped', async () => {
+    await env.DB.prepare("DELETE FROM limits_counters WHERE key = 'web_search'").run();
+    for (let i = 0; i < CAPS.searchPerDay; i++) await consumeSearchCall(env.DB);
+    await expect(consumeSearchCall(env.DB)).rejects.toMatchObject({ status: 429, code: 'cap_day' });
+    await env.DB.prepare("DELETE FROM limits_counters WHERE key = 'web_search'").run();
   });
 });
 
-describe('buyer intel (recorded Tavily fixtures)', () => {
+describe('buyer intel (Muse Spark web search, stubbed Responses API)', () => {
   const calls: string[] = [];
-  const fetchFake = (async (url: string | URL | Request, init?: RequestInit) => {
-    const u = String(url);
-    calls.push(u);
-    if (u.includes('api.tavily.com/search')) return Response.json({ results: recordedSearch });
-    if (u.includes('api.tavily.com/extract')) return Response.json({ results: recordedExtract.map((x) => ({ url: x.url, raw_content: x.text })) });
-    if (u.includes('/chat/completions')) {
-      const body = JSON.parse(String(init?.body ?? '{}')) as { model: string };
-      return Response.json({ id: 'x', object: 'chat.completion', created: 1, model: body.model, choices: [{ index: 0, finish_reason: 'stop', message: { role: 'assistant', content: JSON.stringify({ summary: 'Teagasc is the Irish agriculture and food development authority.', facts: [{ label: 'Remit', value: 'Agriculture and food development authority', source_idx: 0 }, { label: 'Research portfolio', value: 'About 300 research projects', source_idx: 1 }, { label: 'Bogus', value: 'dropped: source index out of range', source_idx: 9 }] }) } }], usage: { prompt_tokens: 900, completion_tokens: 120 } });
-    }
-    return new Response('unexpected', { status: 500 });
-  }) as typeof fetch;
-  const e = () => ({ ...env, TAVILY_API_KEY: 'tvly-test', META_API_KEY: 'test' }) as Env;
+  const payload = {
+    id: 'resp_1', object: 'response', status: 'completed',
+    output: [
+      { type: 'web_search_call', id: 'ws1', status: 'completed', results: [
+        { type: 'web_search_result', title: 'Teagasc', url: 'https://www.teagasc.ie/about/', snippet: '..' },
+        { type: 'web_search_result', title: 'Teagasc research', url: 'https://www.teagasc.ie/research/', snippet: '..' },
+      ] },
+      { type: 'message', role: 'assistant', content: [{ type: 'output_text', annotations: [], text: JSON.stringify({
+        summary: 'Teagasc is the Irish agriculture and food development authority.',
+        facts: [
+          { label: 'Remit', value: 'Agriculture and food development authority', source_idx: 0 },
+          { label: 'Invented', value: 'cites a page the search never returned', source_idx: 1 },
+          { label: 'Research portfolio', value: 'About 300 research projects', source_idx: 2 },
+          { label: 'Bogus', value: 'source index out of range', source_idx: 9 },
+        ],
+        sources: [
+          { title: 'About Teagasc', url: 'https://www.teagasc.ie/about', snippet: 'Authority' },
+          { title: 'Made up', url: 'https://invented.example/teagasc', snippet: 'not returned by search' },
+          { title: 'Research', url: 'https://www.teagasc.ie/research/', snippet: 'Projects' },
+        ],
+      }) }] },
+    ],
+  };
+  const fetchFake = (async (url: string | URL | Request) => {
+    calls.push(String(url));
+    return new Response(JSON.stringify(payload), { status: 200, headers: { 'content-type': 'application/json' } });
+  }) as unknown as typeof fetch;
+  const e = () => ({ ...env, META_API_KEY: 'test' }) as Env;
 
-  it('reading intel never calls Tavily (nothing runs on page load)', async () => {
+  it('reading intel never searches (nothing runs on page load)', async () => {
     calls.length = 0;
     await buyerIntelImpl(e(), 'teagasc', { refresh: false, fetch: fetchFake });
     expect(calls).toEqual([]);
     await expect(buyerIntelImpl(e(), 'nobody', { refresh: false })).rejects.toMatchObject({ status: 404 });
   });
 
-  it('a refresh searches, extracts, writes cited facts and counts the cap; the repeat is served from KV', async () => {
+  it('a refresh keeps only grounded sources, re-indexes facts, counts the cap; the repeat is served from KV', async () => {
     const s = await session();
-    await env.DB.prepare("DELETE FROM limits_counters WHERE key = 'tavily'").run();
-    await env.CACHE.delete('tavily:s:force-miss');
+    await env.DB.prepare("DELETE FROM limits_counters WHERE key = 'web_search'").run();
     calls.length = 0;
     const intel = await buyerIntelImpl(e(), 'teagasc', { refresh: true, sessionId: s, fetch: fetchFake });
-    expect(calls.filter((c) => c.includes('tavily')).length).toBe(2);
-    expect(intel.sources).toHaveLength(recordedSearch.length);
-    expect(intel.facts.map((f) => f.label)).toEqual(['Remit', 'Research portfolio']);
-    expect((await used(s)).tavily_used).toBe(1);
-    const day = await env.DB.prepare("SELECT count FROM limits_counters WHERE key = 'tavily'").first<{ count: number }>();
-    expect(day!.count).toBe(2);
+    expect(calls).toHaveLength(1);
+    expect(intel.sources.map((x) => x.url)).toEqual(['https://www.teagasc.ie/about', 'https://www.teagasc.ie/research/']);
+    expect(intel.facts).toEqual([{ label: 'Remit', value: 'Agriculture and food development authority', source_idx: 0 }, { label: 'Research portfolio', value: 'About 300 research projects', source_idx: 1 }]);
+    expect((await used(s)).search_used).toBe(1);
+    const day = await env.DB.prepare("SELECT count FROM limits_counters WHERE key = 'web_search'").first<{ count: number }>();
+    expect(day!.count).toBe(1);
     const stored = await env.DB.prepare('SELECT summary FROM buyer_intel WHERE buyer_key = ?').bind('teagasc').first<{ summary: string }>();
     expect(stored!.summary).toContain('agriculture');
-    expect(intel.sources.map((x) => x.url)).toContain('https://teagasc.ie');
 
     calls.length = 0;
     await buyerIntelImpl(e(), 'teagasc', { refresh: true, sessionId: s, fetch: fetchFake });
-    expect(calls.filter((c) => c.includes('tavily'))).toEqual([]);
-    expect((await used(s)).tavily_used).toBe(1);
+    expect(calls).toEqual([]);
+    expect((await used(s)).search_used).toBe(1);
   });
 
-  it('refunds the session count when Tavily fails', async () => {
+  it('refunds the session count when the search fails', async () => {
     const s = await session();
     await env.DB.prepare("INSERT OR IGNORE INTO tenders (id, source, source_ref, title, buyer, buyer_key, country, cpv_json, lots_json) VALUES ('tnd_t_x', 'upload', 'x', 't', 'Fresh Buyer Ltd', 'fresh-buyer', 'IE', '[]', '[]')").run();
     const failing = (async () => new Response('nope', { status: 500 })) as unknown as typeof fetch;
-    await expect(buyerIntelImpl(e(), 'fresh-buyer', { refresh: true, sessionId: s, fetch: failing })).rejects.toMatchObject({ status: 502 });
-    expect((await used(s)).tavily_used).toBe(0);
+    await expect(buyerIntelImpl(e(), 'fresh-buyer', { refresh: true, sessionId: s, fetch: failing })).rejects.toMatchObject({ status: 503, code: 'unavailable' });
+    expect((await used(s)).search_used).toBe(0);
   });
 });

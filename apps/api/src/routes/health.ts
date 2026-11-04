@@ -10,7 +10,7 @@ export const register: Register = (r) => {
     bindings: {
       DB: !!env.DB, FILES: !!env.FILES, CACHE: !!env.CACHE, PACK_RUN: !!env.PACK_RUN, SCAN: !!env.SCAN,
       INTAKE: !!env.INTAKE, AGENT: !!env.AGENT, EVENTS: !!env.EVENTS,
-      META_API_KEY: !!env.META_API_KEY, TAVILY_API_KEY: !!env.TAVILY_API_KEY,
+      META_API_KEY: !!env.META_API_KEY,
     },
   }));
 };

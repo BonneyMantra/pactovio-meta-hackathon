@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { Env } from '@pactovio/contracts/env';
-import { applyDodoEvent, chargeCredits, getPlan, reserveRun, reserveTavily, standardSign, verifyStandardWebhook, dodoProducts } from '@pactovio/billing';
+import { applyDodoEvent, chargeCredits, getPlan, reserveRun, reserveSearch, standardSign, verifyStandardWebhook, dodoProducts } from '@pactovio/billing';
 import { deriveWebhookSecret, verifyWebhook } from '@pactovio/events';
 import { buildApp } from '../src/app';
 import { fanOut, wants } from '../src/queue';
@@ -102,28 +102,28 @@ describe('credit ledger', () => {
 });
 
 describe('caps', () => {
-  it('judge session: 2 fresh runs, 3 Tavily refreshes', async () => {
+  it('judge session: 2 fresh runs, 3 web-search refreshes', async () => {
     const s = 'ses_f_caps';
     await env.DB.prepare("INSERT INTO judge_sessions (id, workspace_id, created_at) VALUES (?, 'ws_harbour_digital', ?)").bind(s, new Date().toISOString()).run();
     await reserveRun(env, s); await reserveRun(env, s);
     await expect(reserveRun(env, s)).rejects.toMatchObject({ status: 429, code: 'cap_session' });
-    for (let i = 0; i < 3; i++) await reserveTavily(env, s);
-    await expect(reserveTavily(env, s)).rejects.toMatchObject({ status: 429, code: 'cap_session' });
+    for (let i = 0; i < 3; i++) await reserveSearch(env, s);
+    await expect(reserveSearch(env, s)).rejects.toMatchObject({ status: 429, code: 'cap_session' });
   });
-  it('month budget of 150 stops Tavily and refunds the session slot', async () => {
+  it('month budget of 150 stops web search and refunds the session slot', async () => {
     const month = new Date().toISOString().slice(0, 7);
-    await env.DB.prepare('INSERT INTO limits_counters (key, day, count) VALUES (?, ?, 150) ON CONFLICT(key, day) DO UPDATE SET count = 150').bind('tavily', `${month}-01`).run();
+    await env.DB.prepare('INSERT INTO limits_counters (key, day, count) VALUES (?, ?, 150) ON CONFLICT(key, day) DO UPDATE SET count = 150').bind('web_search', `${month}-01`).run();
     const s = 'ses_f_caps2';
     await env.DB.prepare("INSERT INTO judge_sessions (id, workspace_id, created_at) VALUES (?, 'ws_harbour_digital', ?)").bind(s, new Date().toISOString()).run();
-    await expect(reserveTavily(env, s)).rejects.toMatchObject({ code: 'cap_month' });
-    const row = await env.DB.prepare('SELECT tavily_used FROM judge_sessions WHERE id = ?').bind(s).first<{ tavily_used: number }>();
-    expect(row?.tavily_used).toBe(0);
+    await expect(reserveSearch(env, s)).rejects.toMatchObject({ code: 'cap_month' });
+    const row = await env.DB.prepare('SELECT tavily_used AS search_used FROM judge_sessions WHERE id = ?').bind(s).first<{ search_used: number }>();
+    expect(row?.search_used).toBe(0);
   });
   it('GET /api/limits returns real structure', async () => {
     const res = await call('/api/limits');
     expect(res.status).toBe(200);
-    const j = (await res.json()) as { tavily: { month_budget: number }; usage: { prices_are_estimates: boolean }; inference: { rpm: number } };
-    expect(j.tavily.month_budget).toBe(150);
+    const j = (await res.json()) as { search: { month_budget: number }; usage: { prices_are_estimates: boolean }; inference: { rpm: number } };
+    expect(j.search.month_budget).toBe(150);
     expect(j.inference.rpm).toBe(1000);
     expect(typeof j.usage.prices_are_estimates).toBe('boolean');
   });

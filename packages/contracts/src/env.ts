@@ -37,7 +37,6 @@ export interface Env {
   FIREWORKS_API_KEY?: string;
   BASETEN_API_KEY?: string;
   MODAL_API_KEY?: string;
-  TAVILY_API_KEY?: string;
   COMPOSIO_API_KEY?: string;
   /** Set true only after configuring the project callback verifier URL. */
   COMPOSIO_CALLBACK_VERIFIER_ENABLED?: string;

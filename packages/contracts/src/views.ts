@@ -24,9 +24,9 @@ export const SessionInfo = z.object({
   session_id: z.string(),
   workspace_id: z.string(),
   workspace: Workspace,
-  caps: z.object({ runs: z.number().int(), tavily: z.number().int(), agent_turns_per_min: z.number().int() }),
+  caps: z.object({ runs: z.number().int(), search: z.number().int(), agent_turns_per_min: z.number().int() }),
   runs_used: z.number().int(),
-  tavily_used: z.number().int(),
+  search_used: z.number().int(),
 });
 
 export const TenderWithMatch = z.object({ tender: Tender, match: TenderMatch.nullable() });
@@ -87,7 +87,7 @@ export const PatchAnswerBody = z.object({
 export const FillFormBody = z.object({ answer_ids: z.array(z.string()).optional() });
 export const FillFormResult = z.object({ r2_key: z.string(), download_url: z.string() });
 
-export const RefreshBuyerResult = z.object({ buyer_key: z.string(), refreshed: z.boolean(), tavily_used: z.number().int() });
+export const RefreshBuyerResult = z.object({ buyer_key: z.string(), refreshed: z.boolean(), search_used: z.number().int() });
 
 export const EvidenceUploadResult = z.object({ evidence_id: z.string(), status: z.enum(['queued', 'ready']) });
 export const IntakeCreateBody = z.object({
@@ -199,7 +199,7 @@ const TokenUsage = z.object({ model: z.string(), calls: z.number().int(), tokens
 export const Limits = z.object({
   session: z.object({
     runs_used: z.number().int(), runs_cap: z.number().int(),
-    tavily_used: z.number().int(), tavily_cap: z.number().int(),
+    search_used: z.number().int(), search_cap: z.number().int(),
     agent_turns_per_min_cap: z.number().int(),
   }),
   inference: z.object({
@@ -211,7 +211,7 @@ export const Limits = z.object({
     cost_today_usd: z.number(), cost_all_time_usd: z.number(),
     prices_are_estimates: z.boolean(),
   }).optional(),
-  tavily: z.object({
+  search: z.object({
     session_used: z.number().int(), session_cap: z.number().int(),
     day_used: z.number().int(), day_cap: z.number().int(),
     month_used: z.number().int(), month_budget: z.number().int(),

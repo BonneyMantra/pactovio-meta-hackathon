@@ -118,7 +118,7 @@ export const getVerdicts = defineTool({
 
 export const buyerIntelTool = defineTool({
   name: 'buyer_intel',
-  description: 'Intelligence on a buyer (what they buy, how they evaluate, recent news). refresh=true makes a live web search (Tavily, capped per session) and needs the user to confirm.',
+  description: 'Intelligence on a buyer (what they buy, how they evaluate, recent news). refresh=true makes a live Muse Spark web search (capped per session) and needs the user to confirm.',
   input: z.object({ buyer_key: z.string().optional(), tender_id: z.string().optional(), refresh: z.boolean().default(false) }),
   needsConfirmation: (i) => i.refresh === true,
   async describe(env, _ctx, i) {
@@ -188,12 +188,12 @@ export const billingStatus = defineTool({
 
 export const getLimits = defineTool({
   name: 'get_limits',
-  description: 'Real caps and usage for this session: fresh pack runs, Tavily refreshes, agent turns per minute, and the shared inference quota.',
+  description: 'Real caps and usage for this session: fresh pack runs, web-search refreshes, agent turns per minute, and the shared inference quota.',
   input: z.object({}),
   async run(env, ctx) {
-    const s = ctx.sessionId ? await one<{ runs_used: number; tavily_used: number }>(env, 'SELECT runs_used, tavily_used FROM judge_sessions WHERE id = ?', ctx.sessionId) : null;
+    const s = ctx.sessionId ? await one<{ runs_used: number; search_used: number }>(env, 'SELECT runs_used, tavily_used AS search_used FROM judge_sessions WHERE id = ?', ctx.sessionId) : null;
     return {
-      pack_runs: { used: s?.runs_used ?? 0, cap: 2 }, tavily_refreshes: { used: s?.tavily_used ?? 0, cap: 3 },
+      pack_runs: { used: s?.runs_used ?? 0, cap: 2 }, search_refreshes: { used: s?.search_used ?? 0, cap: 3 },
       agent_turns_per_minute: AGENT_CAPS.turnsPerMinute, session_token_budget: AGENT_CAPS.sessionTokenBudget,
       inference: { rpm: 1000, tpm: 2_000_000, note: 'Meta Model API rate limit for the key' },
     };

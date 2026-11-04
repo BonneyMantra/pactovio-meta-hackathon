@@ -27,7 +27,7 @@ export interface AgentTool<I extends z.ZodType = z.ZodType> {
   input: I;
   /** true if the tool changes state or contacts a third party: it returns a pending action instead of executing. */
   mutating?: boolean;
-  /** Overrides `mutating` per call (e.g. buyer_intel only needs confirmation when it refreshes via Tavily). */
+  /** Overrides `mutating` per call (e.g. buyer_intel only needs confirmation when it refreshes via web search). */
   needsConfirmation?(input: z.infer<I>): boolean;
   /** Human-readable confirmation card, resolved against live data (tender titles etc). */
   describe?(env: Env, ctx: AgentToolCtx, input: z.infer<I>): Promise<ToolCard>;

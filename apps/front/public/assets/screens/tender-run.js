@@ -76,7 +76,7 @@ export async function buyerTab({ buyerKey, tender }) {
       h('div.card.wk-pad', h('div.xs.muted', `Buyer intel · ${tender.buyer || buyerKey}`), h('p.small', { style: { margin: '8px 0 14px' } }, b.summary || dash),
         (b.facts || []).map((f) => h('div.wk-kv', h('span.xs.muted', f.label || dash), h('span.small', f.value || dash, f.source_idx != null && sources[f.source_idx] ? h('span.cite', { title: sources[f.source_idx].title || '' }, String(f.source_idx + 1)) : null)))),
       h('div.card.wk-pad', h('div.xs.muted', 'Sources'), sources.length ? h('ol.wk-sources', sources.map((s) => h('li.small', h('a', { href: s.url, target: '_blank', rel: 'noopener' }, s.title || s.url), s.snippet ? h('div.xs.muted.wk-clamp2', s.snippet) : null))) : h('div.small.muted', dash),
-        h('div.xs.muted', { style: { marginTop: '12px' } }, b.fetched_at ? `Fetched ${fmt.ago(b.fetched_at)} with Tavily` : ''))));
+        h('div.xs.muted', { style: { marginTop: '12px' } }, b.fetched_at ? `Found ${fmt.ago(b.fetched_at)} with Muse Spark web search` : ''))));
   };
   const refreshBtn = () => h('button.btn.btn-primary.btn-sm', {
     onclick: async (e) => {

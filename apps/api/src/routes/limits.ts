@@ -1,6 +1,6 @@
 import { capUsd, modelsDisabled, spentTodayUsd } from '@pactovio/models';
 import { endpoints } from '@pactovio/contracts';
-import { CONCURRENCY, INFERENCE_SHARED, SESSION_CAPS, TAVILY_BUDGET, tavilyDayUsed, tavilyMonthUsed } from '@pactovio/billing';
+import { CONCURRENCY, INFERENCE_SHARED, SESSION_CAPS, SEARCH_BUDGET, searchDayUsed, searchMonthUsed } from '@pactovio/billing';
 import { PRICES_ARE_ESTIMATES } from '@pactovio/models';
 import { one, rows } from '../lib/db';
 import type { Register } from '../lib/router';
@@ -15,7 +15,7 @@ const sum = (u: Usage[]) => Number(u.reduce((a, x) => a + x.cost_usd, 0).toFixed
 export const register: Register = (r) => {
   r.on(endpoints.getLimits, async ({ env, db, auth }) => {
     const day = new Date().toISOString().slice(0, 10);
-    const s = auth.sessionId ? await one<{ runs_used: number; tavily_used: number }>(db, 'SELECT runs_used, tavily_used FROM judge_sessions WHERE id = ?', auth.sessionId) : null;
+    const s = auth.sessionId ? await one<{ runs_used: number; search_used: number }>(db, 'SELECT runs_used, tavily_used AS search_used FROM judge_sessions WHERE id = ?', auth.sessionId) : null;
     const [today, all, scan] = await Promise.all([
       rows<Usage>(db, `${SELECT} AND s.at >= ? GROUP BY s.model ORDER BY SUM(s.cost_usd) DESC`, auth.workspaceId, `${day}T00:00:00.000Z`),
       rows<Usage>(db, `${SELECT} GROUP BY s.model ORDER BY SUM(s.cost_usd) DESC`, auth.workspaceId),
@@ -23,12 +23,12 @@ export const register: Register = (r) => {
     ]);
     const tenders = scan ? (await one<{ n: number }>(db, 'SELECT COUNT(*) AS n FROM tender_matches WHERE workspace_id = ?', auth.workspaceId))?.n ?? 0 : 0;
     return {
-      session: { runs_used: s?.runs_used ?? 0, runs_cap: SESSION_CAPS.runs, tavily_used: s?.tavily_used ?? 0, tavily_cap: SESSION_CAPS.tavily, agent_turns_per_min_cap: SESSION_CAPS.agentTurnsPerMin },
+      session: { runs_used: s?.runs_used ?? 0, runs_cap: SESSION_CAPS.runs, search_used: s?.search_used ?? 0, search_cap: SESSION_CAPS.search, agent_turns_per_min_cap: SESSION_CAPS.agentTurnsPerMin },
       inference: { rpm: INFERENCE_SHARED.rpm, tpm: INFERENCE_SHARED.tpm, global_concurrency: CONCURRENCY.live, shared_across_products: INFERENCE_SHARED.products, flex_concurrency: CONCURRENCY.flex },
       usage: { today, all_time: all, cost_today_usd: sum(today), cost_all_time_usd: sum(all), prices_are_estimates: PRICES_ARE_ESTIMATES },
-      tavily: {
-        session_used: s?.tavily_used ?? 0, session_cap: SESSION_CAPS.tavily,
-        day_used: await tavilyDayUsed(env), day_cap: TAVILY_BUDGET.day, month_used: await tavilyMonthUsed(env), month_budget: TAVILY_BUDGET.month,
+      search: {
+        session_used: s?.search_used ?? 0, session_cap: SESSION_CAPS.search,
+        day_used: await searchDayUsed(env), day_cap: SEARCH_BUDGET.day, month_used: await searchMonthUsed(env), month_budget: SEARCH_BUDGET.month,
       },
       model_budget: { cap_usd: capUsd(env), spent_today_usd: Number((await spentTodayUsd(env)).toFixed(4)), remaining_usd: Number(Math.max(0, capUsd(env) - (await spentTodayUsd(env))).toFixed(4)), resets_at_utc: '00:00', resets_at_myt: '08:00', models_disabled: await modelsDisabled(env), counts: 'every model call, at list prices' },
       last_scan: scan ? { run_id: scan.id, status: scan.status, started_at: scan.started_at, finished_at: scan.finished_at, tenders_total: tenders } : null,

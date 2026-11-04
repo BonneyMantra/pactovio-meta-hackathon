@@ -66,6 +66,6 @@ export const JudgeSession = z.object({
   workspace_id: z.string(),
   created_at: Iso,
   runs_used: z.number().int(),
-  tavily_used: z.number().int(),
+  search_used: z.number().int(),
 });
 export type JudgeSession = z.infer<typeof JudgeSession>;

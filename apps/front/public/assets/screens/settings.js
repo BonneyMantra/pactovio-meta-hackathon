@@ -36,13 +36,13 @@ export async function render(root, _p, ctx) {
 
   load(usage, async () => {
     const l = await api('/limits');
-    const s = l.session || {}; const t = l.tavily || {}; const u = l.usage || {};
+    const s = l.session || {}; const t = l.search || {}; const u = l.usage || {};
     const rows = (u.today || []).map((m) => h('tr', h('td.mono', String(m.model || '').split('/').pop()), h('td.r.num', String(m.calls ?? 0)),
       h('td.r.num', fmt.tokens(m.tokens_in)), h('td.r.num.muted', fmt.tokens(m.tokens_cached)), h('td.r.num', fmt.tokens(m.tokens_out)), h('td.r.num', fmt.usd(m.cost_usd))));
     return h('div',
       h('div.grid.g4',
         h('div.card.stat', meter('Pack reads this session', s.runs_used, s.runs_cap)),
-        h('div.card.stat', meter('Buyer lookups this session', s.tavily_used, s.tavily_cap)),
+        h('div.card.stat', meter('Buyer lookups this session', s.search_used, s.search_cap)),
         h('div.card.stat', meter('Buyer lookups today', t.day_used, t.day_cap)),
         h('div.card.stat', meter('Agent turns / minute', 0, s.agent_turns_per_min_cap, 'Per session cap'))),
       h('div.card', { style: { marginTop: '16px' } },
