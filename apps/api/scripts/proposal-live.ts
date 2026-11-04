@@ -41,6 +41,6 @@ const steps = await listSteps(env, ws, id);
 writeFileSync(join(outDir, 'proposal.json'), JSON.stringify(proposal, null, 1));
 writeFileSync(join(outDir, 'steps.json'), JSON.stringify(steps, null, 1));
 if (proposal) writeFileSync(join(outDir, 'proposal.html'), renderProposalHtml(proposal, { seller: 'Rax Tech International', assetBase: 'assets' }));
-for (const k of (await env.FILES.list({ prefix: `proposals/${ws}/${id}/assets/` })).objects) writeFileSync(join(outDir, k.key.split('/').pop()!), new Uint8Array(await (await env.FILES.get(k.key))!.arrayBuffer()));
+for (const n of ['floorplan.png', 'floorplan.jpg', 'concept.jpg']) { const o = await env.FILES.get(`proposals/${ws}/${id}/assets/${n}`); if (o) writeFileSync(join(outDir, n), new Uint8Array(await o.arrayBuffer())); }
 process.stdout.write(`${JSON.stringify({ id, wall_s: Math.round((Date.now() - t0) / 1000), status: proposal ? 'completed' : 'failed', steps: steps.map((s) => ({ n: s.name, st: s.status, ms: s.ms, usd: s.cost_usd, m: s.models, sum: s.summary })), total_usd: steps.filter((s) => s.name !== 'orchestrate').reduce((a, s) => a + s.cost_usd, 0) }, null, 1)}\n`);
 await dispose();
