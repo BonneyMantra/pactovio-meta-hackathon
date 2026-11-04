@@ -73,10 +73,13 @@ export function rfqKit({ win, ta, feed, scroll, threadId, setBusy }) {
     try { id = (await startProposal({ file: rfq, extras, text })).id; }
     catch (e) { list.replaceChildren(h('div.error-box', e.message)); setBusy(false); return; }
     setBusy(false);
-    let sig = '';
+    let sig = '', fails = 0;
     const poll = async () => {
       let p;
-      try { p = await getProposal(id); } catch { setTimeout(poll, 2500); return; }
+      try { p = await getProposal(id); fails = 0; } catch (e) {
+        if (++fails > 12 || e?.status === 404) { result.replaceChildren(h('div.error-box', 'Lost track of this run. Open it from Proposals.')); return; }
+        setTimeout(poll, 2500); return;
+      }
       const ps = p, st = ps.steps || [];
       // Re-render only when a step changes: each render replays the steps' entrance animation.
       const next = JSON.stringify(st.map((s) => [s.status, s.model, s.summary]));
