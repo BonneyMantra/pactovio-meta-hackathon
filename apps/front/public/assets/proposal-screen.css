@@ -1,6 +1,6 @@
 /* Proposal document, part 2: floor plan, Gantt, commercials, notes; screen stage, bid-desk rail, phone reflow and print. */
-.pd-plan { position: relative; border-radius: 1.6mm; overflow: hidden; box-shadow: inset 0 0 0 0.5pt var(--pd-rule); }
-.pd-plan img { width: 100%; height: auto; }
+.pd-plan { position: relative; width: fit-content; max-width: 100%; margin: 0 auto; border-radius: 1.6mm; overflow: hidden; box-shadow: inset 0 0 0 0.5pt var(--pd-rule); }
+.pd-plan img { display: block; width: auto; max-width: 100%; height: auto; }
 .pd-marks { position: absolute; inset: 0; }
 .pd-mark { position: absolute; border: 1.4px solid var(--pd-teal); background: rgba(11, 95, 120, 0.1); border-radius: 2px; }
 .pd-mark > span, .pd-dot { display: inline-grid; place-items: center; min-width: 15px; height: 15px; padding: 0 3px; border-radius: 99px; background: var(--pd-teal); color: #fff; font: 600 8.5px var(--mono); }
@@ -10,7 +10,16 @@
 .pd-mark.ext { border-color: var(--pd-graph); background: rgba(62, 68, 73, 0.08); } .pd-mark.ext > span, .pd-dot.ext { background: var(--pd-graph); }
 .pd-place { margin-top: 3mm; display: grid; grid-template-columns: 1fr 1fr; gap: 0 6mm; }
 .pd-place > div { display: grid; grid-template-columns: 6mm 1fr; gap: 1mm; padding: 1.6mm 0; border-bottom: 0.5pt solid var(--pd-rule); font-size: 8.4pt; align-items: start; }
-.pd-plan img { max-height: 150mm; object-fit: contain; }
+.pd-plan img { max-height: 150mm; }
+.pd-obj { position: absolute; border: 1px dashed rgba(11, 95, 120, 0.55); border-radius: 2px; }
+.pd-obj > span { position: absolute; left: 0; bottom: 100%; font: 500 6.4pt var(--mono); color: var(--pd-teal); background: rgba(255, 255, 255, 0.86); padding: 0 2px; white-space: nowrap; border-radius: 2px; }
+.pd-mark.est { border-style: dotted; }
+.pd-plan-key { display: flex; flex-wrap: wrap; gap: 2mm 5mm; margin-top: 2mm; font-size: 7.4pt; color: var(--pd-ink2); }
+.pd-plan-key span { display: inline-flex; align-items: center; gap: 1.4mm; }
+.pd-plan-key i { display: inline-block; width: 3.4mm; height: 2.4mm; border-radius: 1px; }
+.pd-key-obj { border: 1px dashed rgba(11, 95, 120, 0.7); }
+.pd-key-dev { border: 1.4px solid var(--pd-teal); background: rgba(11, 95, 120, 0.1); }
+.pd-key-est { border: 1.4px dotted var(--pd-graph); }
 
 /* Gantt */
 .pd-gantt { display: grid; }
@@ -69,6 +78,8 @@
 .pd-steps { display: grid; gap: 2px; }
 .pd-step { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 13px; padding: 5px 0; }
 .pd-step .ico { color: var(--ok); }
+.pd-step-sum { display: block; font-size: 11.5px; line-height: 15px; color: var(--ink-3); margin-top: 1px; }
+.pd-step.pending > span:nth-child(2) { color: var(--ink-3); }
 .pd-model { font-family: var(--mono); font-size: 10.5px; padding: 1px 6px; border-radius: 6px; background: var(--surface-2); color: var(--ink-2); white-space: nowrap; }
 .pd-model.wonder { background: #efe9fb; color: #5b3fa8; } .pd-model.sam { background: #e6f2ec; color: #276749; } .pd-model.image { background: #fdeee4; color: #b4480b; } .pd-model.spark { background: #e6f0f6; color: #22648a; }
 .pd-refs { display: flex; flex-wrap: wrap; gap: 6px; }

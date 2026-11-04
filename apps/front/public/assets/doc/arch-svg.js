@@ -1,7 +1,7 @@
 // Solution architecture as a layered top-to-bottom system diagram, laid out from architecture.nodes/links.
 import { esc, list, KIND } from './kit.js';
 
-const NW = 168, GX = 26, GY = 62, PAD = 18;
+const NW = 168, GX = 26, GY = 62, PAD = 18, MAX_ROW = 5;
 
 export function wrap(text, max = 24) {
   const words = String(text || '').split(/\s+/).filter(Boolean), lines = [];
@@ -31,8 +31,10 @@ export function architectureSvg(arch) {
   const nodes = list(arch?.nodes).filter((n) => n && n.id), links = list(arch?.links).filter((l) => l && l.from && l.to);
   if (!nodes.length) return '';
   const rank = ranks(nodes, links);
-  const rows = [];
-  nodes.forEach((n) => { (rows[rank.get(n.id)] ||= []).push(n); });
+  const layers = [];
+  nodes.forEach((n) => { (layers[rank.get(n.id)] ||= []).push(n); });
+  // A wide layer (e.g. ten field devices) wraps onto rows of at most MAX_ROW so the figure stays legible on A4.
+  const rows = layers.filter(Boolean).flatMap((l) => Array.from({ length: Math.ceil(l.length / MAX_ROW) }, (_, i) => l.slice(i * MAX_ROW, (i + 1) * MAX_ROW)));
   const pos = new Map();
   const heights = rows.map((row) => Math.max(...(row || []).map((n) => 40 + wrap(n.label).length * 14)));
   const width = Math.max(560, Math.max(...rows.map((r) => (r || []).length)) * (NW + GX) - GX + PAD * 2);

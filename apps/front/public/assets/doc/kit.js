@@ -63,7 +63,11 @@ export function paras(text, evidence, nt) {
       const claim = String(ev.claim || '').trim();
       if (claim.length < 3) continue;
       const i = p.toLowerCase().indexOf(claim.toLowerCase());
-      if (i >= 0 && !hits.some((x) => x.end > i && x.i < i + claim.length)) hits.push({ i, end: i + claim.length, ev });
+      if (i < 0) continue;
+      // Footnote markers sit after the whole word, never inside one.
+      let end = i + claim.length;
+      while (end < p.length && /[\w\u00C0-\u024F]/.test(p[end])) end++;
+      if (!hits.some((x) => x.end > i && x.i < end)) hits.push({ i, end, ev });
     }
     hits.sort((a, b) => a.i - b.i);
     const kids = []; let at = 0;

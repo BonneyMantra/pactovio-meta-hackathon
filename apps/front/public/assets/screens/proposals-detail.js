@@ -4,6 +4,7 @@ import { buildDocument, paginate } from '../doc/document.js';
 import { rail, steps } from '../doc/rail.js';
 import { inrShort } from '../doc/kit.js';
 import { productIndex } from '../brain-api.js';
+import { getProposal } from '../doc/api.js';
 
 const SHEET_PX = 793.7;
 
@@ -16,10 +17,10 @@ export async function render(root, { id }, ctx) {
 
   async function load(first) {
     let data;
-    try { data = await api(`/proposals/${encodeURIComponent(id)}`); } catch (e) { if (!disposed) root.replaceChildren(errorBox(e)); return; }
+    try { data = await getProposal(id); } catch (e) { if (!disposed) root.replaceChildren(errorBox(e)); return; }
     if (disposed) return;
-    const p = data.proposal ? { ...data.proposal, id: data.id, status: data.status, steps: data.steps ?? data.proposal.steps } : data;
-    if (p.status && p.status !== 'ready' && !p.scope_of_supply) return progress(p, first);
+    const p = data;
+    if (p.status !== 'ready' || !p.scope_of_supply) return progress(p, first);
     show(p, !first);
   }
 
@@ -34,7 +35,7 @@ export async function render(root, { id }, ctx) {
   }
 
   function show(p, reveal) {
-    const supplier = brain?.profile?.name || ctx.session?.workspace?.name || 'Supplier';
+    const supplier = brain?.profile?.legal_name || brain?.profile?.name || ctx.session?.workspace?.name || 'Supplier';
     ctx.setCrumbs(h('a', { href: '#/proposals' }, 'Proposals'), p.ref || p.title || 'Proposal');
     const doc = buildDocument({
       p, id, supplier, products,

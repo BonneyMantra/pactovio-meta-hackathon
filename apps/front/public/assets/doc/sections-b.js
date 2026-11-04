@@ -1,8 +1,9 @@
-// Proposal sections: solution and architecture, per-site wiring schematics, floor plan with device placements.
+// Proposal sections: solution and architecture, per-site kits and zone wiring, device placement on the drawing and the site visual.
 import { h } from '../ui.js';
 import { list, qty, assetUrl, paras, sectionHead } from './kit.js';
 import { architectureSvg, kindLegend } from './arch-svg.js';
-import { wiringSvg, siteGroups } from './wiring-svg.js';
+import { wiringSvg } from './wiring-svg.js';
+import { placementFigure, placementLead } from './placement.js';
 
 export function solution(c, num) {
   const { p } = c;
@@ -18,43 +19,52 @@ export function solution(c, num) {
 const SITE_NAME = { atm: 'ATM site', branch: 'branch', site: 'site', dc: 'distribution centre', station: 'station' };
 const siteName = (k) => SITE_NAME[k] || String(k).replace(/_/g, ' ');
 
-/** One block per site type: the zone schematic and the per-site kit. Returns [] when there is no zone map. */
+/** Site types with their zones and kit: per_site_items is the ATM kit when a branch kit also exists. */
+export function kitGroups(kit) {
+  const zones = list(kit?.zone_map), siteItems = list(kit?.per_site_items), branchItems = list(kit?.per_branch_items);
+  const def = branchItems.length ? 'atm' : 'site';
+  const keys = [...new Set(zones.map((z) => z.site || def))];
+  if (!keys.includes(def) && siteItems.length) keys.unshift(def);
+  if (branchItems.length && !keys.includes('branch')) keys.push('branch');
+  return keys.map((k) => ({ key: k, zones: zones.filter((z) => (z.site || def) === k), items: k === 'branch' ? branchItems : k === def ? siteItems : [] }))
+    .filter((g) => g.zones.length || g.items.length);
+}
+
+function sitePhoto(c, g) {
+  const cv = c.p.concept_visual, src = assetUrl(c.id, cv?.image_ref);
+  if (!src || !list(cv?.placements).length || !(g.key === 'atm' || (g.key === 'site' && c.p.site_kit?.sites?.atm))) return null;
+  const [fig, legend] = placementFigure(c, cv, src, { alt: `Device positions at a ${cv.site || 'typical site'}`, caption: 'Concept visual by Muse Image, not a photo of a client site', wide: true });
+  return h('div.pd-block',
+    h('div.pd-fig-head', h('span.pd-label', 'Typical ATM site'), h('span', 'Where each device goes')),
+    h('p.pd-lead', `Device positions on a ${cv.site || 'typical site'}.${placementLead(cv, 'in the image')}`), fig, legend);
+}
+
+/** One block per site type: the zone schematic, the per-site kit and, for ATM sites, positions on the site visual. */
 export function wiring(c, num) {
-  const kit = c.p.site_kit, groups = siteGroups(kit);
+  const kit = c.p.site_kit, groups = kitGroups(kit);
   if (!groups.length) return [];
   return groups.map((g, gi) => h('div',
     gi === 0 ? sectionHead(`${num}.2`, 'Site Kit & Zone Wiring', 'Proposed Solution & Architecture') : null,
     gi === 0 ? h('p.pd-lead', 'Every site of a type receives the same kit, wired to the alarm panel as shown. Zone inputs, cable and loop type follow the panel’s terminal schedule.') : null,
-    h('figure.pd-fig-block',
+    g.zones.length ? h('figure.pd-fig-block',
       h('div.pd-fig-head', h('span.pd-label', `Figure ${num}.${gi + 2}`), h('span', `Typical ${siteName(g.key)} — ${g.zones.length} zone${g.zones.length === 1 ? '' : 's'}`),
         kit?.sites?.[g.key] ? h('span.pd-chip', `× ${qty(kit.sites[g.key])} sites`) : null),
-      h('div.pd-svg', { html: wiringSvg(g.zones, g.items, c.nameOf, { title: `${siteName(g.key)} wiring schematic` }) })),
+      h('div.pd-svg', { html: wiringSvg(g.zones, g.items, c.nameOf, { title: `${siteName(g.key)} wiring schematic` }) })) : null,
     h('div.pd-kit',
-      h('div.pd-label', `Kit per ${siteName(g.key)}`),
+      h('div.pd-label', `Kit per ${siteName(g.key)}`, !g.zones.length && kit?.sites?.[g.key] ? ` · × ${qty(kit.sites[g.key])} sites` : ''),
       h('div.pd-kit-items', list(g.items).map((i) => h('span.pd-kit-item', h('b', `${qty(i.qty)}×`), c.nameOf(i.sku) || i.sku, h('span.pd-mono.pd-muted', i.sku))))),
-    h('table.pd-table.pd-zones', h('thead', h('tr', h('th', 'Input'), h('th', 'Zone'), h('th', 'Device'), h('th', 'Wiring'))),
-      h('tbody', g.zones.map((z) => h('tr', h('td.pd-mono', z.input), h('td', z.zone), h('td.pd-mono', z.device_sku), h('td.pd-muted', z.wiring)))))));
+    g.zones.length ? h('table.pd-table.pd-zones', h('thead', h('tr', h('th', 'Input'), h('th', 'Zone'), h('th', 'Device'), h('th', 'Wiring'))),
+      h('tbody', g.zones.map((z) => h('tr', h('td.pd-mono', z.input), h('td', z.zone), h('td.pd-mono', z.device_sku), h('td.pd-muted', z.wiring))))) : null,
+    sitePhoto(c, g)));
 }
 
-const TONE = (sku) => (/CCTV|CAM/.test(sku) ? 'cam' : /^RT-/.test(sku) ? 'rax' : 'ext');
-
 export function floorplan(c, num) {
-  const fp = c.p.floorplan, src = assetUrl(c.id, fp?.image_ref), pl = list(fp?.placements);
+  const fp = c.p.floorplan, src = assetUrl(c.id, fp?.image_ref);
   if (!src) return null;
-  const sam = pl.length && pl.every((x) => /sam/i.test(x.source || ''));
-  const marks = pl.map((x, i) => {
-    const [bx, by, bw, bh] = (x.box || []).map(Number);
-    if (![bx, by, bw, bh].every(Number.isFinite)) return null;
-    return h(`div.pd-mark.${TONE(x.device_sku)}`, { style: { left: `${bx * 100}%`, top: `${by * 100}%`, width: `${bw * 100}%`, height: `${bh * 100}%` }, title: `${x.label} · ${x.device_sku}` },
-      h('span', String(i + 1)));
-  });
+  const [fig, legend] = placementFigure(c, fp, src, { alt: `Floor plan${fp.site ? ` — ${fp.site}` : ''}` });
   return h('div',
-    sectionHead(`${num}.${2 + siteGroups(c.p.site_kit).length}`, 'Device Placement', 'Proposed Solution & Architecture'),
-    h('p.pd-lead', fp.site ? `Proposed device positions — ${fp.site}.` : 'Proposed device positions on the client drawing.',
-      sam ? ' Positions were located on the drawing with SAM 3.1 and reviewed against the kit.' : ''),
-    h('figure.pd-fig-block',
-      h('div.pd-plan', h('img', { src, alt: `Floor plan${fp.site ? ` — ${fp.site}` : ''}` }), h('div.pd-marks', marks))),
-    h('div.pd-place', pl.map((x, i) => h('div', h(`span.pd-dot.${TONE(x.device_sku)}`, String(i + 1)),
-      h('div', h('div', x.label), h('div.pd-muted.pd-xs', c.nameOf(x.device_sku) || x.device_sku, ' · ', h('span.pd-mono', x.device_sku)))))),
-    sam ? h('p.pd-muted.pd-xs', { style: { marginTop: '2mm' } }, 'Located by SAM 3.1 on the client drawing; final positions are confirmed at site survey.') : null);
+    sectionHead(`${num}.${2 + kitGroups(c.p.site_kit).length}`, 'Device Placement', 'Proposed Solution & Architecture'),
+    h('p.pd-lead', fp.site ? `Proposed device positions — ${fp.site}.` : 'Proposed device positions on the client’s typical branch drawing.', placementLead(fp, 'on the drawing')),
+    fig, legend,
+    h('p.pd-muted.pd-xs', { style: { marginTop: '2mm' } }, 'Final positions are confirmed at the site survey of each branch.'));
 }

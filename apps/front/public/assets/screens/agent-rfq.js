@@ -1,12 +1,13 @@
 // Chat additions: drop an RFQ (and drawings) to start a proposal run, live run card with the model behind each step,
 // and a microphone that sends 16 kHz WAV to /api/voice/transcribe.
 import { h, icon, toast } from '../ui.js';
-import { startProposal, getProposal, transcribe } from '../brain-api.js';
+import { startProposal, getProposal, transcribe, STAGES } from '../doc/api.js';
 import { canRecord, startRecording } from '../voice.js';
 import { steps } from '../doc/rail.js';
 import { inrShort, assetUrl } from '../doc/kit.js';
 
 const ACCEPT = '.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp,.txt';
+const GO = { go: 'Go', conditional: 'Bid with conditions', no_go: 'No bid' };
 const kb = (n) => (n > 1e6 ? `${(n / 1e6).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1e3))} KB`);
 
 export function rfqKit({ win, ta, feed, scroll, threadId, setBusy }) {
@@ -63,30 +64,33 @@ export function rfqKit({ win, ta, feed, scroll, threadId, setBusy }) {
     files = []; draw();
     feed.querySelector('.welcome')?.remove();
     feed.append(h('div.msg.user', h('div.bubble', text ? h('p', text) : null, h('div.rq-sent', [rfq, ...extras].map((f) => h('span', icon('file', 13), f.name))))));
-    const list = h('div', steps([{ label: 'Uploading the request', status: 'running' }])), bar = h('i'), result = h('div');
-    const card = h('div.rq-run', h('div.rq-head', h('span.rq-ico', icon('file', 16)), h('div', h('strong', 'Writing the proposal'), h('div.xs.muted', rfq.name))), list, h('div.rq-bar', bar), result);
+    const list = h('div', steps([{ label: `Uploading ${[rfq, ...extras].length > 1 ? `${[rfq, ...extras].length} files` : 'the request'}`, status: 'running' }])), bar = h('i'), result = h('div');
+    const orch = h('span.xs.muted');
+    const card = h('div.rq-run', h('div.rq-head', h('span.rq-ico', icon('file', 16)), h('div', h('strong', 'Writing the proposal'), h('div.xs.muted', rfq.name, ' ', orch))), list, h('div.rq-bar', bar), result);
     feed.append(h('div.msg.assistant', h('span.agent-av', icon('logo', 14)), h('div.msg-col', h('div.msg-who', 'Pactovio', h('span.xs.muted', 'now')), card)));
     scroll(); setBusy(true);
     let id;
-    try { id = (await startProposal({ file: rfq, extras, text, threadId: threadId() })).id; }
+    try { id = (await startProposal({ file: rfq, extras, text })).id; }
     catch (e) { list.replaceChildren(h('div.error-box', e.message)); setBusy(false); return; }
     setBusy(false);
+    let sig = '';
     const poll = async () => {
       let p;
       try { p = await getProposal(id); } catch { setTimeout(poll, 2500); return; }
-      const ps = p.proposal ? { ...p.proposal, status: p.status, steps: p.steps ?? p.proposal.steps } : p;
-      const st = ps.steps || [];
-      if (st.length) list.replaceChildren(steps(st));
+      const ps = p, st = ps.steps || [];
+      // Re-render only when a step changes: each render replays the steps' entrance animation.
+      const next = JSON.stringify(st.map((s) => [s.status, s.model, s.summary]));
+      if (st.length && next !== sig) { sig = next; list.replaceChildren(steps(st)); scroll(); }
+      if (ps.orchestrator) orch.textContent = `· orchestrated by ${ps.orchestrator}`;
       const done = st.filter((s) => s.status === 'done').length;
-      bar.style.width = `${ps.status === 'ready' ? 100 : st.length ? (done / st.length) * 92 + 4 : 8}%`;
-      scroll();
+      bar.style.width = `${ps.status === 'ready' ? 100 : (done / STAGES.length) * 92 + 4}%`;
       if (ps.status === 'failed') { result.replaceChildren(h('div.error-box', ps.error || 'The run failed. Try again, or send the RFQ as a PDF.')); return; }
-      if (ps.status !== 'ready') { setTimeout(poll, 1500); return; }
+      if (ps.status !== 'ready') { setTimeout(poll, 2500); return; }
       card.classList.add('done');
       card.querySelector('.rq-head strong').textContent = 'Proposal ready';
       result.replaceChildren(h('a.rq-doc', { href: `#/proposals/${encodeURIComponent(id)}` },
         h('div.rq-sheet', h('div.rq-sheet-k', ps.ref || 'Proposal'), h('div.rq-sheet-t', ps.title), ps.concept_visual?.image_ref ? h('img', { src: assetUrl(id, ps.concept_visual.image_ref), alt: '' }) : h('div.rq-sheet-l'), h('div.rq-sheet-l.s'), h('div.rq-sheet-l')),
-        h('div.rq-doc-meta', h('div.small', ps.client?.name), h('div.rq-doc-v.num', inrShort(ps.commercials?.total_inr)), h('div.xs.muted', [ps.go_no_go?.decision === 'go' ? `Go · ${Math.round((ps.go_no_go.confidence || 0) * 100)}% confidence` : null, `${(ps.scope_of_supply || []).length} line items`].filter(Boolean).join(' · ')),
+        h('div.rq-doc-meta', h('div.small', ps.client?.name), h('div.rq-doc-v.num', inrShort(ps.commercials?.total_inr)), h('div.xs.muted', [ps.go_no_go ? `${GO[ps.go_no_go.decision] || ps.go_no_go.decision} · ${Math.round((ps.go_no_go.confidence || 0) * 100)}%` : null, `${(ps.scope_of_supply || []).length} line items`, ps.floorplan ? `${(ps.floorplan.placements || []).length} devices placed` : null].filter(Boolean).join(' · ')),
           h('span.btn.btn-primary.btn-sm', 'Open proposal', icon('arrow', 14)))));
       scroll();
     };

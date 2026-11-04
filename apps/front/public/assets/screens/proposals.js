@@ -1,6 +1,6 @@
 // #/proposals — every proposal the agent has written, from chat or from the Gmail autopilot.
 import { h, icon, fmt, chip, empty, errorBox, skeleton } from '../ui.js';
-import { listProposals } from '../brain-api.js';
+import { listProposals } from '../doc/api.js';
 import { inrShort } from '../doc/kit.js';
 
 const SOURCE = { chat: ['agent', 'Chat'], gmail: ['inbox', 'Gmail autopilot'], email: ['inbox', 'Email'], upload: ['file', 'Upload'] };

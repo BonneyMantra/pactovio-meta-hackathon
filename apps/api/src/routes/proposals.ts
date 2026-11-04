@@ -11,7 +11,7 @@ const MAX_FILE = 15 * 1024 * 1024;
 const MAX_FILES = 8;
 const ALLOWED = /\.(pdf|docx|txt|eml|md|png|jpe?g|webp)$/i;
 const MIME_BY_EXT: Record<string, string> = { pdf: 'application/pdf', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp' };
-const JsonStart = z.object({ text: z.string().trim().max(100_000).optional(), intakeId: z.string().regex(/^int_[\w]+$/).optional(), title: z.string().trim().max(200).optional() }).strict();
+const JsonStart = z.object({ text: z.string().trim().max(100_000).optional(), intakeId: z.string().regex(/^int_[\w]+$/).optional(), title: z.string().trim().max(200).optional(), source: z.enum(['chat', 'upload']).optional() }).strict();
 
 export const proposalRoutes = new Hono<AppEnv>();
 export const voiceRoutes = new Hono<AppEnv>();
@@ -46,26 +46,26 @@ async function intakeFiles(c: Context<AppEnv>, ws: string, intakeId: string) {
 proposalRoutes.post('/', async (c) => {
   const ws = c.get('auth').workspaceId;
   await takeLimit(c.env.DB, `proposal:${ws}`, 30, 3600);
-  let text: string | undefined, title: string | undefined, intakeId: string | undefined;
+  let text: string | undefined, title: string | undefined, intakeId: string | undefined, source: 'chat' | 'upload' | undefined;
   const files: { filename: string; mime: string; bytes: Uint8Array }[] = [];
   if (c.req.header('content-type')?.toLowerCase().startsWith('multipart/form-data')) {
     const form = await c.req.formData().catch(() => null);
     if (!form) throw new HttpError(400, 'Send multipart form data', 'validation');
-    const f = JsonStart.parse(Object.fromEntries(['text', 'title', 'intakeId'].flatMap((k) => { const v = form.get(k); return typeof v === 'string' && v.trim() ? [[k, v]] : []; })));
-    ({ text, title, intakeId } = f);
-    for (const file of form.getAll('file')) {
+    const f = JsonStart.parse(Object.fromEntries(['text', 'title', 'intakeId', 'source'].flatMap((k) => { const v = form.get(k); return typeof v === 'string' && v.trim() ? [[k, v]] : []; })));
+    ({ text, title, intakeId, source } = f);
+    for (const file of [...form.getAll('file'), ...form.getAll('attachments')]) {
       if (!(file instanceof File)) continue;
       if (!ALLOWED.test(file.name)) throw new HttpError(400, `${file.name}: supported files are PDF, DOCX, TXT, EML and images`, 'validation');
       if (file.size > MAX_FILE) throw new HttpError(400, `${file.name} is larger than 15 MB`, 'validation');
       files.push({ filename: file.name, mime: mimeOf(file.name, file.type), bytes: new Uint8Array(await file.arrayBuffer()) });
     }
   } else {
-    ({ text, title, intakeId } = JsonStart.parse(await c.req.json().catch(() => ({}))));
+    ({ text, title, intakeId, source } = JsonStart.parse(await c.req.json().catch(() => ({}))));
   }
   if (files.length > MAX_FILES) throw new HttpError(400, `At most ${MAX_FILES} files per proposal`, 'validation');
   if (intakeId) files.push(...(await intakeFiles(c, ws, intakeId)));
   if (!text && !files.length) throw new HttpError(400, 'Send RFQ text, files or an intakeId', 'validation');
-  const r = await startProposal(c.env, ws, { source: 'upload', files, text, intakeId, title }, (p) => c.executionCtx.waitUntil(p));
+  const r = await startProposal(c.env, ws, { source: source ?? 'upload', files, text, intakeId, title }, (p) => c.executionCtx.waitUntil(p));
   return c.json({ proposalId: r.proposalId, status: 'queued' }, 201);
 });
 

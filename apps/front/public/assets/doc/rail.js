@@ -20,24 +20,39 @@ function gauge(v) {
 }
 
 export function steps(items) {
-  return h('div.pd-steps', list(items).map((s) => h('div.pd-step',
+  return h('div.pd-steps', list(items).map((s) => h(`div.pd-step.${s.status || 'pending'}`,
     s.status === 'done' ? icon('check', 14) : s.status === 'failed' ? icon('x', 14) : s.status === 'running' ? h('span.pd-spin') : h('span.pd-pend'),
-    h('span', s.label || s.key), modelChip(s.model))));
+    h('span', s.label || s.key, s.summary && s.status === 'done' ? h('span.pd-step-sum', tidy(s.summary)) : null), modelChip(s.model))));
+}
+/** Step summaries are written for the log; tidy them for the bid desk. */
+const tidy = (t) => String(t).replace(/^skipped: /, 'Skipped: ').replace('file(s)', 'files');
+const mins = (ms) => (ms >= 60000 ? `${Math.floor(ms / 60000)} min ${Math.round((ms % 60000) / 1000)} s` : `${Math.round(ms / 1000)} s`);
+const LEARNED = { payment_terms: 'Payment terms', warranty_months_commissioning: 'Warranty', amc_pct: 'AMC rate', validity_days: 'Validity', section_order: 'Section order', phrases: 'House phrases' };
+
+function runCost(p) {
+  const ms = Date.parse(p.updated_at) - Date.parse(p.created_at);
+  const bits = [Number.isFinite(ms) && ms > 0 ? mins(ms) : null, p.cost_usd ? `$${Number(p.cost_usd).toFixed(2)} in model calls` : null].filter(Boolean);
+  return bits.length ? ` · ${bits.join(' · ')}` : '';
 }
 
 export function rail(p, brain) {
   const g = p.go_no_go || p.bid_decision;
   const rules = new Map(list(brain?.style?.voice_rules).map((r) => [r.id, r.text]));
-  const applied = list(p.style_applied);
+  const all = list(p.style_applied);
+  const learnedTerms = all.filter((x) => x.startsWith('brain:')).map((x) => LEARNED[x.slice(6)]).filter(Boolean);
+  const applied = all.filter((x) => !x.includes(':'));
   const ev = list(p.evidence);
   return h('aside.pd-rail',
     g ? h('section.card',
       h('h4', 'Bid decision', h('span.chip.outline', 'Internal · not printed')),
       h('div.pd-gauge', gauge(Number(g.confidence) || 0), h('div', h(`div.pd-verdict.${g.decision}`, VERDICT[g.decision] || g.decision), h('div.xs.muted', 'Confidence from the Company Brain'))),
       list(g.reasons).length ? h('ul.pd-reasons', g.reasons.map((r) => h('li', r))) : null) : null,
-    list(p.steps).length ? h('section.card', h('h4', 'How it was written'), steps(p.steps)) : null,
-    list(p.learned_from).length || applied.length ? h('section.card',
-      h('h4', 'Written the Rax way'),
+    list(p.steps).length ? h('section.card', h('h4', 'How it was written'),
+      p.orchestrator ? h('div.xs.muted', { style: { marginBottom: '8px' } }, `Orchestrated by ${p.orchestrator}`, runCost(p)) : null,
+      steps(p.steps)) : null,
+    list(p.learned_from).length || applied.length || learnedTerms.length ? h('section.card',
+      h('h4', `Written the ${String(brain?.profile?.legal_name || brain?.profile?.name || 'house').split(/\s+/)[0]} way`),
+      learnedTerms.length ? h('div.xs.muted', { style: { marginBottom: '10px' } }, `Learned from past proposals: ${learnedTerms.join(', ')}.`) : null,
       list(p.learned_from).length ? h('div', h('div.xs.muted', { style: { marginBottom: '8px' } }, 'Closest past proposals it learned from'),
         h('div.pd-refs', p.learned_from.map((r) => h('span.chip.outline', r)))) : null,
       applied.length ? h('div.pd-rules', { style: { marginTop: '14px' } }, applied.map((id) => h('div', h('b', id), rules.get(id) || 'Style rule from the Company Brain'))) : null) : null,
