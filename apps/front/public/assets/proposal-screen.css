@@ -99,7 +99,8 @@
   .pd-fluid .pd-figures.three { grid-template-columns: 1fr; }
   .pd-fluid .pd-figures.three > div { padding-left: 0; border-left: 0; }
   .pd-fluid .pd-place, .pd-fluid .pd-two, .pd-fluid .pd-cover-foot, .pd-fluid .pd-sign-row { grid-template-columns: 1fr; }
-  .pd-fluid .pd-scroll { overflow-x: auto; }
+  .pd-fluid .pd-scroll, .pd-fluid .pd-svg { overflow-x: auto; }
+  .pd-fluid .pd-wire { min-width: 640px; } .pd-fluid .pd-arch { min-width: 480px; }
   .pd-fluid .pd-bom { min-width: 560px; } .pd-fluid .pd-wp { min-width: 480px; }
   .pd-fluid .pd-comp th:nth-child(4), .pd-fluid .pd-comp td:nth-child(4) { display: none; }
   .pd-fluid .pd-g-row { grid-template-columns: 1fr; gap: 6px; }
